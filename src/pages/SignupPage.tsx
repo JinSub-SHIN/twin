@@ -37,6 +37,39 @@ function formatPhone(value: string) {
   return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
 }
 
+/** 숫자만 받아 1993 03 22 형태로 포맷 (YYYY MM DD) */
+function formatBirthDate(value: string) {
+  const digits = value.replace(/\D/g, "").slice(0, 8);
+  if (digits.length <= 4) return digits;
+  if (digits.length <= 6) {
+    return `${digits.slice(0, 4)} ${digits.slice(4)}`;
+  }
+  return `${digits.slice(0, 4)} ${digits.slice(4, 6)} ${digits.slice(6)}`;
+}
+
+function isValidBirthDate(value: string) {
+  const digits = value.replace(/\D/g, "");
+  if (digits.length !== 8) return false;
+  const year = Number(digits.slice(0, 4));
+  const month = Number(digits.slice(4, 6));
+  const day = Number(digits.slice(6, 8));
+  if (year < 1900 || year > new Date().getFullYear()) return false;
+  if (month < 1 || month > 12) return false;
+  const date = new Date(year, month - 1, day);
+  return (
+    date.getFullYear() === year &&
+    date.getMonth() === month - 1 &&
+    date.getDate() === day
+  );
+}
+
+/** 저장용 ISO (YYYY-MM-DD) */
+function toIsoBirthDate(value: string) {
+  const digits = value.replace(/\D/g, "");
+  if (digits.length !== 8) return "";
+  return `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6, 8)}`;
+}
+
 export function SignupPage() {
   const navigate = useNavigate();
   const { signup, isLoggedIn } = useAuth();
@@ -72,7 +105,7 @@ export function SignupPage() {
     return (
       draftPhone.replace(/\D/g, "").length >= 10 &&
       Boolean(draftCarrier) &&
-      Boolean(draftBirthDate) &&
+      isValidBirthDate(draftBirthDate) &&
       Boolean(draftGender)
     );
   }, [draftPhone, draftCarrier, draftBirthDate, draftGender]);
@@ -90,7 +123,7 @@ export function SignupPage() {
       Boolean(provider) &&
       emailOk &&
       nickname.trim().length >= 2 &&
-      Boolean(birthDate) &&
+      isValidBirthDate(birthDate) &&
       Boolean(gender) &&
       phoneVerified &&
       phone.replace(/\D/g, "").length >= 10 &&
@@ -130,7 +163,7 @@ export function SignupPage() {
   const openPhoneModal = () => {
     setDraftPhone(phone);
     setDraftCarrier(carrier);
-    setDraftBirthDate(birthDate);
+    setDraftBirthDate(formatBirthDate(birthDate));
     setDraftGender(gender);
     setPhoneModalOpen(true);
   };
@@ -152,9 +185,13 @@ export function SignupPage() {
       setCodeError("성별을 선택해 주세요.");
       return;
     }
+    if (!isValidBirthDate(draftBirthDate)) {
+      setCodeError("생년월일을 확인해 주세요.");
+      return;
+    }
     setPhone(formatPhone(draftPhone));
     setCarrier(draftCarrier);
-    setBirthDate(draftBirthDate);
+    setBirthDate(formatBirthDate(draftBirthDate));
     setGender(draftGender);
     setPhoneVerified(true);
     setCodeModalOpen(false);
@@ -194,7 +231,7 @@ export function SignupPage() {
       provider,
       ...(isEmailSignup ? { loginId: loginId.trim() } : {}),
       nickname: nickname.trim(),
-      birthDate,
+      birthDate: toIsoBirthDate(birthDate),
       gender,
       phone: phone.trim(),
       agreedTerms,
@@ -398,12 +435,9 @@ export function SignupPage() {
                   </label>
                   <Input
                     id="birthDate"
-                    type="date"
-                    className={cn(
-                      styles.input,
-                      styles.dateInput,
-                      styles.dateInputReadonly,
-                    )}
+                    type="text"
+                    inputMode="numeric"
+                    className={styles.input}
                     value={birthDate}
                     disabled
                     readOnly
@@ -538,10 +572,13 @@ export function SignupPage() {
               </label>
               <Input
                 id="draftBirthDate"
-                type="date"
-                className={cn(styles.input, styles.dateInput)}
+                type="text"
+                inputMode="numeric"
+                className={styles.input}
+                placeholder="1993 03 22"
                 value={draftBirthDate}
-                onChange={(e) => setDraftBirthDate(e.target.value)}
+                onChange={(e) => setDraftBirthDate(formatBirthDate(e.target.value))}
+                maxLength={10}
               />
             </div>
 
