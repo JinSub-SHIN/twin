@@ -1,0 +1,233 @@
+.page {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100dvh - 4.5rem - env(safe-area-inset-bottom));
+  overflow: hidden;
+}
+
+.media {
+  position: absolute;
+  inset: 0;
+}
+
+.mediaImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  animation: twin-drift 14s ease-in-out infinite;
+}
+
+.mediaGradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    oklch(0.14 0.02 155 / 0.3) 0%,
+    oklch(0.14 0.02 155 / 0.52) 42%,
+    oklch(0.14 0.02 155 / 0.92) 78%,
+    oklch(0.14 0.02 155) 100%
+  );
+}
+
+.orbit {
+  position: absolute;
+  top: -6rem;
+  right: -5rem;
+  width: 18rem;
+  height: 18rem;
+  border-radius: 9999px;
+  border: 1px solid color-mix(in oklch, var(--primary) 25%, transparent);
+  animation: twin-orbit 28s linear infinite;
+}
+
+.glow {
+  position: absolute;
+  top: 18%;
+  left: -18%;
+  width: 14rem;
+  height: 14rem;
+  border-radius: 9999px;
+  background: color-mix(in oklch, var(--primary) 25%, transparent);
+  filter: blur(48px);
+  animation: twin-breathe 8s ease-in-out infinite;
+}
+
+.content {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  margin-top: auto;
+  padding: calc(env(safe-area-inset-top) + 4.5rem) 1.25rem 2rem;
+}
+
+.brandBlock {
+  margin-bottom: 1.75rem;
+  animation: twin-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.brand {
+  font-family: var(--font-heading);
+  font-size: 4.8rem;
+  font-weight: 800;
+  line-height: 0.8;
+  letter-spacing: -0.07em;
+  color: #fff;
+}
+
+.brandDot {
+  color: var(--primary);
+}
+
+.taglineRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.taglineLine {
+  width: 2.5rem;
+  height: 1px;
+  background: var(--primary);
+}
+
+.tagline {
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 70%);
+}
+
+.headline {
+  max-width: 13ch;
+  font-family: var(--font-heading);
+  font-size: 1.95rem;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  color: #fff;
+  animation: twin-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: 0.08s;
+}
+
+.accent {
+  color: var(--primary);
+}
+
+.desc {
+  max-width: 28ch;
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.625;
+  color: rgb(255 255 255 / 72%);
+  animation: twin-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: 0.16s;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 2.5rem;
+  animation: twin-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: 0.28s;
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-width: 12.5rem;
+  height: 3rem;
+  padding: 0 1.75rem;
+  border-radius: 9999px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+  box-shadow: 0 12px 40px oklch(0.86 0.2 125 / 0.28);
+  transition:
+    background-color 0.3s ease,
+    box-shadow 0.3s ease,
+    transform 0.3s ease;
+}
+
+.cta:hover {
+  background: color-mix(in oklch, var(--primary) 90%, black);
+  box-shadow: 0 16px 48px oklch(0.86 0.2 125 / 0.38);
+}
+
+.cta:active {
+  transform: scale(0.98);
+}
+
+.ctaIcon {
+  width: 1rem;
+  height: 1rem;
+  transition: transform 0.3s ease;
+}
+
+.cta:hover .ctaIcon {
+  transform: translate(2px, -2px);
+}
+
+.secondaryLink {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgb(255 255 255 / 55%);
+  text-decoration: none;
+  text-underline-offset: 4px;
+  transition: color 0.2s ease;
+}
+
+.secondaryLink:hover {
+  color: rgb(255 255 255 / 85%);
+  text-decoration: underline;
+}
+
+@keyframes twin-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(2%, -3%, 0) scale(1.04);
+  }
+}
+
+@keyframes twin-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes twin-breathe {
+  0%,
+  100% {
+    transform: translateX(-4%) scale(1);
+  }
+  50% {
+    transform: translateX(2%) scale(1.03);
+  }
+}
+
+@keyframes twin-orbit {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
