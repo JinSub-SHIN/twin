@@ -1,0 +1,344 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding-bottom: 1rem;
+}
+
+.topBar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 0;
+  border-radius: 9999px;
+  background: var(--muted);
+  color: var(--foreground);
+  cursor: pointer;
+}
+
+.stepLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+
+.intro {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.title {
+  font-family: "Noto Sans KR", var(--font-sans), sans-serif;
+  font-size: 1.85rem;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.05em;
+}
+
+.accent {
+  color: oklch(0.52 0.14 145);
+}
+
+.desc {
+  font-size: 0.875rem;
+  line-height: 1.65;
+  color: var(--muted-foreground);
+}
+
+.socialList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.socialBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  height: 3.1rem;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.socialBtn:active {
+  transform: scale(0.98);
+}
+
+.kakao {
+  background: #fee500;
+  color: #191600;
+  border-color: #fee500;
+}
+
+.naver {
+  background: #03c75a;
+  color: #fff;
+  border-color: #03c75a;
+}
+
+.apple {
+  background: #111;
+  color: #fff;
+  border-color: #111;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.15rem 0;
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.email {
+  background: var(--card);
+  color: var(--foreground);
+  border-color: var(--border);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.required {
+  color: oklch(0.52 0.14 145);
+  margin-left: 0.15rem;
+}
+
+.fieldHint {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.input {
+  height: 3rem;
+  border-radius: 0.9rem;
+  padding-inline: 0.9rem;
+  font-size: 1rem;
+}
+
+.genderRow {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+}
+
+.genderBtn {
+  height: 2.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.9rem;
+  background: var(--card);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  cursor: pointer;
+}
+
+.genderBtnActive {
+  border-color: oklch(0.52 0.14 145);
+  background: color-mix(in oklch, var(--primary) 22%, white);
+  color: oklch(0.35 0.1 145);
+}
+
+.genderBtnDisabled {
+  cursor: not-allowed;
+  opacity: 0.85;
+}
+
+.agreements {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: 1rem;
+  background: var(--muted);
+}
+
+.agreeRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+}
+
+.agreeText {
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--foreground);
+}
+
+.agreeHint {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.submit {
+  width: 100%;
+  height: 3.1rem;
+  margin-top: 0.5rem;
+  border-radius: 1rem;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.error {
+  font-size: 0.8rem;
+  color: var(--destructive);
+}
+
+.phoneTrigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 3rem;
+  padding: 0 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 0.9rem;
+  background: var(--card);
+  text-align: left;
+  cursor: pointer;
+}
+
+.phonePlaceholder {
+  font-size: 1rem;
+  color: var(--muted-foreground);
+}
+
+.phoneValue {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.phoneBadge {
+  flex-shrink: 0;
+  padding: 0.2rem 0.55rem;
+  border-radius: 9999px;
+  background: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--muted-foreground);
+}
+
+.phoneBadgeDone {
+  background: color-mix(in oklch, var(--primary) 28%, white);
+  color: oklch(0.35 0.1 145);
+}
+
+.dialogContent {
+  max-width: 24rem;
+  gap: 1rem;
+  padding: 1.1rem 1.1rem 0;
+}
+
+.modalTop {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.modalBackBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  border: 0;
+  border-radius: 9999px;
+  background: var(--muted);
+  color: var(--foreground);
+  cursor: pointer;
+}
+
+.modalHeader {
+  gap: 0.4rem;
+}
+
+.modalBody {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.carrierRow {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+}
+
+.carrierBtn {
+  height: 2.6rem;
+  border: 1px solid var(--border);
+  border-radius: 0.8rem;
+  background: var(--card);
+  font-size: 0.875rem;
+  font-weight: 650;
+  color: var(--muted-foreground);
+  cursor: pointer;
+}
+
+.carrierBtnActive {
+  border-color: oklch(0.52 0.14 145);
+  background: color-mix(in oklch, var(--primary) 22%, white);
+  color: oklch(0.35 0.1 145);
+}
+
+.dialogFooter {
+  margin-inline: -1.1rem;
+  margin-bottom: 0;
+  gap: 0.5rem;
+}
+
+.modalAction {
+  width: 100%;
+  height: 2.9rem;
+  border-radius: 0.9rem;
+  font-weight: 700;
+}
+
+.codeHint {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}

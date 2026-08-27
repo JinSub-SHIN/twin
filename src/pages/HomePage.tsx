@@ -36,7 +36,7 @@ export function HomePage() {
             살짝 찾기
             <ArrowUpRight className={styles.ctaIcon} />
           </Link>
-          <Link to="/profile" className={styles.secondaryLink}>
+          <Link to="/signup" className={styles.secondaryLink}>
             내 프로필 만들기
           </Link>
         </div>

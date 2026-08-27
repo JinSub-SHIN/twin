@@ -7,15 +7,22 @@ import styles from './AppLayout.module.css'
 export function AppLayout() {
   const { pathname } = useLocation()
   const isHome = pathname === '/'
+  const isSignup = pathname.startsWith('/signup')
 
   return (
     <div className={cn(styles.shell, isHome ? styles.shellHome : styles.shellDefault)}>
       {!isHome && <div aria-hidden className={styles.glow} />}
-      <Header immersive={isHome} />
-      <main className={cn(styles.main, isHome ? styles.mainHome : styles.mainDefault)}>
+      {!isSignup && <Header immersive={isHome} />}
+      <main
+        className={cn(
+          styles.main,
+          isHome ? styles.mainHome : styles.mainDefault,
+          isSignup && styles.mainSignup,
+        )}
+      >
         <Outlet />
       </main>
-      <BottomNav immersive={isHome} />
+      {!isSignup && <BottomNav immersive={isHome} />}
     </div>
   )
 }

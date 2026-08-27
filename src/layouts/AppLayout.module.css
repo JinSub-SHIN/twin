@@ -47,3 +47,8 @@
   padding: calc(3.5rem + env(safe-area-inset-top) + 1rem) 1.25rem
     calc(4.5rem + env(safe-area-inset-bottom));
 }
+
+.mainSignup {
+  padding: calc(env(safe-area-inset-top) + 1rem) 1.25rem
+    calc(env(safe-area-inset-bottom) + 1.5rem);
+}
