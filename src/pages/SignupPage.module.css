@@ -150,6 +150,11 @@
   color: var(--muted-foreground);
 }
 
+.fieldHintError {
+  font-size: 0.75rem;
+  color: var(--destructive);
+}
+
 .input {
   height: 3rem;
   border-radius: 0.9rem;

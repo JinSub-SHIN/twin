@@ -4,6 +4,8 @@ export type Gender = 'male' | 'female' | 'other'
 
 export type UserProfile = {
   provider: SocialProvider
+  /** 일반 회원가입(email)일 때만 사용 */
+  loginId?: string
   nickname: string
   birthDate: string
   gender: Gender
@@ -27,7 +29,8 @@ export function getProfileCompletion(user: UserProfile | null): number {
     Boolean(user.gender) &&
     Boolean(user.phone.trim()) &&
     user.agreedTerms &&
-    user.agreedPrivacy
+    user.agreedPrivacy &&
+    (user.provider !== 'email' || Boolean(user.loginId?.trim()))
 
   if (!hasBasics) return 0
 

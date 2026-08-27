@@ -28,6 +28,7 @@ const GENDER_OPTIONS: { value: Gender; label: string }[] = [
 const CARRIER_OPTIONS: Carrier[] = ["SKT", "KT", "LGU+", "MVNO"];
 
 const MOCK_CODE = "123456";
+const LOGIN_ID_PATTERN = /^[a-zA-Z0-9_]{4,20}$/;
 
 function formatPhone(value: string) {
   const digits = value.replace(/\D/g, "").slice(0, 11);
@@ -41,6 +42,9 @@ export function SignupPage() {
   const { signup, isLoggedIn } = useAuth();
   const [step, setStep] = useState<Step>("social");
   const [provider, setProvider] = useState<SocialProvider | null>(null);
+  const [loginId, setLoginId] = useState("");
+  const [password, setPassword] = useState("");
+  const [passwordConfirm, setPasswordConfirm] = useState("");
   const [nickname, setNickname] = useState("");
   const [birthDate, setBirthDate] = useState("");
   const [gender, setGender] = useState<Gender | null>(null);
@@ -73,9 +77,18 @@ export function SignupPage() {
     );
   }, [draftPhone, draftCarrier, draftBirthDate, draftGender]);
 
+  const isEmailSignup = provider === "email";
+
   const canSubmit = useMemo(() => {
+    const emailOk =
+      !isEmailSignup ||
+      (LOGIN_ID_PATTERN.test(loginId.trim()) &&
+        password.length >= 8 &&
+        password === passwordConfirm);
+
     return (
       Boolean(provider) &&
+      emailOk &&
       nickname.trim().length >= 2 &&
       Boolean(birthDate) &&
       Boolean(gender) &&
@@ -86,6 +99,10 @@ export function SignupPage() {
     );
   }, [
     provider,
+    isEmailSignup,
+    loginId,
+    password,
+    passwordConfirm,
     nickname,
     birthDate,
     gender,
@@ -150,6 +167,20 @@ export function SignupPage() {
       setError("필수 정보를 모두 입력해 주세요.");
       return;
     }
+    if (isEmailSignup) {
+      if (!LOGIN_ID_PATTERN.test(loginId.trim())) {
+        setError("아이디는 영문/숫자/밑줄 4~20자로 입력해 주세요.");
+        return;
+      }
+      if (password.length < 8) {
+        setError("비밀번호는 8자 이상 입력해 주세요.");
+        return;
+      }
+      if (password !== passwordConfirm) {
+        setError("비밀번호가 일치하지 않습니다.");
+        return;
+      }
+    }
     if (!phoneVerified) {
       setError("휴대폰 인증을 완료해 주세요.");
       return;
@@ -161,6 +192,7 @@ export function SignupPage() {
 
     const user: UserProfile = {
       provider,
+      ...(isEmailSignup ? { loginId: loginId.trim() } : {}),
       nickname: nickname.trim(),
       birthDate,
       gender,
@@ -257,6 +289,63 @@ export function SignupPage() {
           </div>
 
           <form className={styles.form} onSubmit={handleSubmit}>
+            {isEmailSignup && (
+              <>
+                <div className={styles.field}>
+                  <label className={styles.label} htmlFor="loginId">
+                    아이디<span className={styles.required}>*</span>
+                  </label>
+                  <Input
+                    id="loginId"
+                    className={styles.input}
+                    autoComplete="username"
+                    placeholder="영문/숫자 4~20자"
+                    value={loginId}
+                    onChange={(e) => setLoginId(e.target.value)}
+                    maxLength={20}
+                    required
+                  />
+                </div>
+
+                <div className={styles.field}>
+                  <label className={styles.label} htmlFor="password">
+                    비밀번호<span className={styles.required}>*</span>
+                  </label>
+                  <Input
+                    id="password"
+                    type="password"
+                    className={styles.input}
+                    autoComplete="new-password"
+                    placeholder="8자 이상"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className={styles.field}>
+                  <label className={styles.label} htmlFor="passwordConfirm">
+                    비밀번호 확인<span className={styles.required}>*</span>
+                  </label>
+                  <Input
+                    id="passwordConfirm"
+                    type="password"
+                    className={styles.input}
+                    autoComplete="new-password"
+                    placeholder="비밀번호를 한 번 더 입력"
+                    value={passwordConfirm}
+                    onChange={(e) => setPasswordConfirm(e.target.value)}
+                    required
+                  />
+                  {passwordConfirm.length > 0 && password !== passwordConfirm ? (
+                    <p className={styles.fieldHintError}>
+                      비밀번호가 일치하지 않습니다.
+                    </p>
+                  ) : null}
+                </div>
+              </>
+            )}
+
             <div className={styles.field}>
               <label className={styles.label} htmlFor="nickname">
                 닉네임<span className={styles.required}>*</span>
