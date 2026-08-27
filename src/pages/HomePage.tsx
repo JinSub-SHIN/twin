@@ -2,7 +2,7 @@ import { ArrowUpRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import styles from "./HomePage.module.css";
 
-const HERO_IMAGE = "/images/hero-room.jpg";
+const HERO_IMAGE = "/images/hero-share.jpg";
 
 export function HomePage() {
   return (
