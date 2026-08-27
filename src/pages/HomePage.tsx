@@ -49,20 +49,20 @@ export function HomePage() {
           생활 리듬과 취향이 맞는 룸메이트를 '트윈'이 이어줍니다.
         </p>
 
-        <div className="animate-twin-rise delay-3 mt-8 flex flex-col gap-3">
+        <div className="animate-twin-rise delay-3 mt-10 flex flex-col items-center gap-4">
           <Link
             to="/explore"
             className={cn(
-              buttonVariants({ size: "lg" }),
-              "h-12 w-full justify-between rounded-2xl bg-primary px-5 text-base font-bold text-primary-foreground hover:bg-primary/90",
+              buttonVariants({ size: 'lg' }),
+              'group h-12 min-w-[12.5rem] gap-2 rounded-full bg-primary px-7 text-[0.95rem] font-semibold tracking-[-0.01em] text-primary-foreground shadow-[0_12px_40px_oklch(0.86_0.2_125_/0.28)] transition-all duration-300 hover:bg-primary/90 hover:shadow-[0_16px_48px_oklch(0.86_0.2_125_/0.38)] active:scale-[0.98]',
             )}
           >
             룸메 찾기 시작
-            <ArrowUpRight className="size-5" />
+            <ArrowUpRight className="size-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
           </Link>
           <Link
             to="/profile"
-            className="inline-flex h-11 items-center justify-center rounded-2xl border border-white/20 bg-white/5 text-sm font-semibold text-white backdrop-blur-md transition hover:bg-white/10"
+            className="text-sm font-medium text-white/55 underline-offset-4 transition hover:text-white/85 hover:underline"
           >
             내 생활 프로필 만들기
           </Link>
