@@ -8,14 +8,14 @@ export function ProfilePage() {
       <div className={styles.intro}>
         <p className={styles.eyebrow}>내정보</p>
         <h2 className={styles.title}>
-          나의 방을
+          나의 정보를
           <br />
           <span className={styles.accent}>살짝</span> 소개해 주세요
         </h2>
         <p className={styles.desc}>
-          혼자 살기엔 비싸니까,
+          작성된 선호값을 기반으로,
           <br />
-          나눌 조건을 먼저 적어둘게요.
+          살짝 소개해드릴게요.
         </p>
       </div>
 
