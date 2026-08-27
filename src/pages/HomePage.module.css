@@ -15,19 +15,23 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center 35%;
+  filter: saturate(1.2) contrast(1.06) brightness(1.05);
   animation: twin-drift 14s ease-in-out infinite;
 }
 
 .mediaGradient {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    180deg,
-    oklch(0.14 0.02 155 / 0.3) 0%,
-    oklch(0.14 0.02 155 / 0.52) 42%,
-    oklch(0.14 0.02 155 / 0.92) 78%,
-    oklch(0.14 0.02 155) 100%
-  );
+  background:
+    linear-gradient(
+      180deg,
+      oklch(0.2 0.04 145 / 0.15) 0%,
+      oklch(0.16 0.03 155 / 0.35) 38%,
+      oklch(0.14 0.02 155 / 0.82) 72%,
+      oklch(0.13 0.02 155 / 0.96) 100%
+    ),
+    radial-gradient(ellipse at 70% 20%, oklch(0.86 0.2 125 / 0.18), transparent 45%);
 }
 
 .orbit {
@@ -68,16 +72,12 @@
 }
 
 .brand {
-  font-family: var(--font-heading);
-  font-size: 4.8rem;
-  font-weight: 800;
-  line-height: 0.8;
-  letter-spacing: -0.07em;
+  font-family: "Noto Sans KR", var(--font-sans), sans-serif;
+  font-size: 4.1rem;
+  font-weight: 900;
+  line-height: 0.92;
+  letter-spacing: -0.12em;
   color: #fff;
-}
-
-.brandDot {
-  color: var(--primary);
 }
 
 .taglineRow {
@@ -94,20 +94,19 @@
 }
 
 .tagline {
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-weight: 500;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: rgb(255 255 255 / 70%);
+  letter-spacing: -0.01em;
+  color: rgb(255 255 255 / 72%);
 }
 
 .headline {
-  max-width: 13ch;
-  font-family: var(--font-heading);
-  font-size: 1.95rem;
-  font-weight: 700;
-  line-height: 1.15;
-  letter-spacing: -0.03em;
+  max-width: 14ch;
+  font-family: "Noto Sans KR", var(--font-sans), sans-serif;
+  font-size: 1.9rem;
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: -0.05em;
   color: #fff;
   animation: twin-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
   animation-delay: 0.08s;

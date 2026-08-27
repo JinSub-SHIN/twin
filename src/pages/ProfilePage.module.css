@@ -52,9 +52,10 @@
 }
 
 .avatarFallback {
-  font-family: var(--font-heading);
-  font-size: 1.125rem;
-  font-weight: 700;
+  font-family: "Noto Sans KR", var(--font-sans), sans-serif;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: -0.06em;
   background: var(--secondary);
   color: var(--primary);
 }

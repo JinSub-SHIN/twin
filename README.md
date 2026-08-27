@@ -1,6 +1,6 @@
-# Twin
+# 살짝
 
-룸메이트를 찾는 반응형 웹뷰 앱 (Vite + React + TypeScript + shadcn/ui)
+월세 나누고 같이 살 사람을 찾는 반응형 웹뷰 앱 (Vite + React + TypeScript + shadcn/ui)
 
 ## 시작하기
 

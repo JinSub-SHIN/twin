@@ -8,17 +8,14 @@ export function Header({ immersive = false }: HeaderProps) {
   if (immersive) {
     return (
       <header className={styles.immersive}>
-        <p className={styles.immersiveLabel}>Roommate match</p>
+        <p className={styles.immersiveLabel}>월세, 살짝 나눠요</p>
       </header>
     )
   }
 
   return (
     <header className={styles.header}>
-      <h1 className={styles.brand}>
-        Twin
-        <span className={styles.brandDot}>.</span>
-      </h1>
+      <h1 className={styles.brand}>살짝</h1>
     </header>
   )
 }
