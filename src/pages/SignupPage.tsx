@@ -301,52 +301,52 @@ export function SignupPage() {
               </button>
             </div>
 
-            <div className={styles.field}>
-              <label className={styles.label} htmlFor="birthDate">
-                생년월일<span className={styles.required}>*</span>
-              </label>
-              <Input
-                id="birthDate"
-                type="date"
-                className={styles.input}
-                value={birthDate}
-                disabled
-                readOnly
-                required={phoneVerified}
-              />
-              <p className={styles.fieldHint}>
-                {phoneVerified
-                  ? "휴대폰 인증 정보로 입력됐어요."
-                  : "휴대폰 인증 시 함께 입력돼요."}
-              </p>
-            </div>
-
-            <div className={styles.field}>
-              <p className={styles.label}>
-                성별<span className={styles.required}>*</span>
-              </p>
-              <div className={styles.genderRow}>
-                {GENDER_OPTIONS.map((option) => (
-                  <button
-                    key={option.value}
-                    type="button"
+            {phoneVerified && (
+              <>
+                <div className={styles.field}>
+                  <label className={styles.label} htmlFor="birthDate">
+                    생년월일<span className={styles.required}>*</span>
+                  </label>
+                  <Input
+                    id="birthDate"
+                    type="date"
+                    className={styles.input}
+                    value={birthDate}
                     disabled
-                    className={cn(
-                      styles.genderBtn,
-                      gender === option.value && styles.genderBtnActive,
-                      styles.genderBtnDisabled,
-                    )}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-              <p className={styles.fieldHint}>
-                {phoneVerified
-                  ? "휴대폰 인증 정보로 입력됐어요."
-                  : "휴대폰 인증 시 함께 입력돼요."}
-              </p>
-            </div>
+                    readOnly
+                    required
+                  />
+                  <p className={styles.fieldHint}>
+                    휴대폰 인증 정보로 입력됐어요.
+                  </p>
+                </div>
+
+                <div className={styles.field}>
+                  <p className={styles.label}>
+                    성별<span className={styles.required}>*</span>
+                  </p>
+                  <div className={styles.genderRow}>
+                    {GENDER_OPTIONS.map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        disabled
+                        className={cn(
+                          styles.genderBtn,
+                          gender === option.value && styles.genderBtnActive,
+                          styles.genderBtnDisabled,
+                        )}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                  <p className={styles.fieldHint}>
+                    휴대폰 인증 정보로 입력됐어요.
+                  </p>
+                </div>
+              </>
+            )}
 
             <div className={styles.agreements}>
               <label className={styles.agreeRow}>
