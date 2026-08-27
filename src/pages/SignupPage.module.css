@@ -163,25 +163,50 @@
 }
 
 .dateInput {
+  display: block;
   width: 100%;
-  min-width: 100%;
+  max-width: 100%;
+  min-width: 0;
   min-height: 3.25rem;
-  height: auto;
-  padding-block: 0.7rem;
+  height: 3.25rem;
+  padding: 0 2.6rem 0 0.9rem;
   box-sizing: border-box;
-  font-size: 1.05rem;
-  letter-spacing: 0.02em;
+  overflow: hidden;
+  font-size: 1rem;
+  letter-spacing: 0.01em;
+  -webkit-appearance: none;
+  appearance: none;
+  position: relative;
 }
 
 .dateInput::-webkit-date-and-time-value {
   text-align: left;
-  min-width: 100%;
 }
 
 .dateInput::-webkit-datetime-edit {
-  width: 100%;
-  min-width: 14ch;
   padding: 0;
+  max-width: 100%;
+}
+
+.dateInput::-webkit-calendar-picker-indicator {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1.15rem;
+  height: 1.15rem;
+  margin: 0;
+  padding: 0;
+  cursor: pointer;
+  opacity: 0.55;
+}
+
+.dateInputReadonly {
+  padding-right: 0.9rem;
+}
+
+.dateInputReadonly::-webkit-calendar-picker-indicator {
+  display: none;
 }
 
 .genderRow {

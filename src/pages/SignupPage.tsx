@@ -399,7 +399,11 @@ export function SignupPage() {
                   <Input
                     id="birthDate"
                     type="date"
-                    className={cn(styles.input, styles.dateInput)}
+                    className={cn(
+                      styles.input,
+                      styles.dateInput,
+                      styles.dateInputReadonly,
+                    )}
                     value={birthDate}
                     disabled
                     readOnly
