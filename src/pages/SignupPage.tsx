@@ -310,7 +310,7 @@ export function SignupPage() {
                   <Input
                     id="birthDate"
                     type="date"
-                    className={styles.input}
+                    className={cn(styles.input, styles.dateInput)}
                     value={birthDate}
                     disabled
                     readOnly
@@ -446,7 +446,7 @@ export function SignupPage() {
               <Input
                 id="draftBirthDate"
                 type="date"
-                className={styles.input}
+                className={cn(styles.input, styles.dateInput)}
                 value={draftBirthDate}
                 onChange={(e) => setDraftBirthDate(e.target.value)}
               />

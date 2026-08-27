@@ -157,6 +157,28 @@
   font-size: 1rem;
 }
 
+.dateInput {
+  width: 100%;
+  min-width: 100%;
+  min-height: 3.25rem;
+  height: auto;
+  padding-block: 0.7rem;
+  box-sizing: border-box;
+  font-size: 1.05rem;
+  letter-spacing: 0.02em;
+}
+
+.dateInput::-webkit-date-and-time-value {
+  text-align: left;
+  min-width: 100%;
+}
+
+.dateInput::-webkit-datetime-edit {
+  width: 100%;
+  min-width: 14ch;
+  padding: 0;
+}
+
 .genderRow {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
