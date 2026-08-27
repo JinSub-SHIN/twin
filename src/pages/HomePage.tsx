@@ -1,10 +1,10 @@
-import { ArrowUpRight } from 'lucide-react'
-import { Link } from 'react-router-dom'
-import { buttonVariants } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
+import { ArrowUpRight } from "lucide-react";
+import { Link } from "react-router-dom";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const HERO_IMAGE =
-  'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1400&q=80'
+  "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1400&q=80";
 
 export function HomePage() {
   return (
@@ -46,15 +46,15 @@ export function HomePage() {
           감각으로 고르세요
         </h2>
         <p className="animate-twin-rise delay-2 mt-3 max-w-[28ch] text-sm leading-relaxed text-white/72">
-          생활 리듬과 취향이 맞는 룸메이트를 Twin이 이어줍니다.
+          생활 리듬과 취향이 맞는 룸메이트를 '트윈'이 이어줍니다.
         </p>
 
         <div className="animate-twin-rise delay-3 mt-8 flex flex-col gap-3">
           <Link
             to="/explore"
             className={cn(
-              buttonVariants({ size: 'lg' }),
-              'h-12 w-full justify-between rounded-2xl bg-primary px-5 text-base font-bold text-primary-foreground hover:bg-primary/90',
+              buttonVariants({ size: "lg" }),
+              "h-12 w-full justify-between rounded-2xl bg-primary px-5 text-base font-bold text-primary-foreground hover:bg-primary/90",
             )}
           >
             룸메 찾기 시작
@@ -69,5 +69,5 @@ export function HomePage() {
         </div>
       </div>
     </section>
-  )
+  );
 }
