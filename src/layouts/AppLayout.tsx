@@ -8,21 +8,27 @@ export function AppLayout() {
   const { pathname } = useLocation()
   const isHome = pathname === '/'
   const isSignup = pathname.startsWith('/signup')
+  const isLogin = pathname.startsWith('/login')
+  const isProfileEdit = pathname.startsWith('/profile/edit')
+  const isAuthPage = isSignup || isLogin
+  const hideHeader = isAuthPage || isProfileEdit
+  const showBottomNav = !isAuthPage
 
   return (
     <div className={cn(styles.shell, isHome ? styles.shellHome : styles.shellDefault)}>
       {!isHome && <div aria-hidden className={styles.glow} />}
-      {!isSignup && <Header immersive={isHome} />}
+      {!hideHeader && <Header immersive={isHome} />}
       <main
         className={cn(
           styles.main,
           isHome ? styles.mainHome : styles.mainDefault,
-          isSignup && styles.mainSignup,
+          isAuthPage && styles.mainAuth,
+          isProfileEdit && styles.mainProfileEdit,
         )}
       >
         <Outlet />
       </main>
-      {!isSignup && <BottomNav immersive={isHome} />}
+      {showBottomNav && <BottomNav immersive={isHome} />}
     </div>
   )
 }

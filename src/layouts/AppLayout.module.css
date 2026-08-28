@@ -48,7 +48,11 @@
     calc(4.5rem + env(safe-area-inset-bottom));
 }
 
-.mainSignup {
+.mainAuth {
   padding: calc(env(safe-area-inset-top) + 1rem) 1.25rem
     calc(env(safe-area-inset-bottom) + 1.5rem);
+}
+
+.mainProfileEdit {
+  padding-top: calc(env(safe-area-inset-top) + 1rem);
 }
