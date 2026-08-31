@@ -26,12 +26,25 @@ import {
   type PetKind,
   type PrefGender,
   type SeekRole,
+  type ShareMode,
   type SmokingType,
   type UserPref,
 } from "@/types/user";
 import styles from "./ProfileEditPage.module.css";
 
 type Step = "role" | "region" | "detail";
+
+const SHARE_MODE_OPTIONS: { value: ShareMode; label: string }[] = [
+  { value: "half", label: "1/2" },
+  { value: "negotiate", label: "직접조율" },
+  { value: "custom", label: "직접입력" },
+];
+
+function normalizeShareMode(mode: string | undefined | null): ShareMode | null {
+  if (mode === "half" || mode === "negotiate" || mode === "custom") return mode;
+  if (mode === "nbbang") return "half";
+  return null;
+}
 
 function toggleDistrict(list: string[], city: string, district: string) {
   const value = formatRegion(city, district);
@@ -83,17 +96,17 @@ export function ProfileEditPage() {
   const [cleanFreq, setCleanFreq] = useState<CleanFreq | null>(null);
 
   const [prefGender, setPrefGender] = useState<PrefGender | null>(null);
-  const [ageMin, setAgeMin] = useState("");
-  const [ageMax, setAgeMax] = useState("");
-  const [budgetMin, setBudgetMin] = useState("");
-  const [budgetMax, setBudgetMax] = useState("");
+  const [rentShareMode, setRentShareMode] = useState<ShareMode | null>(null);
+  const [rentSharePercent, setRentSharePercent] = useState("");
+  const [mgmtShareMode, setMgmtShareMode] = useState<ShareMode | null>(null);
+  const [mgmtSharePercent, setMgmtSharePercent] = useState("");
   const [noSmoker, setNoSmoker] = useState(false);
   const [noPet, setNoPet] = useState(false);
-  const [noNoise, setNoNoise] = useState(false);
   const [noDrink, setNoDrink] = useState(false);
-  const [noHomebody, setNoHomebody] = useState(false);
-  const [noMessy, setNoMessy] = useState(false);
+  const [bio, setBio] = useState("");
   const [agreedLocation, setAgreedLocation] = useState(false);
+  const [agreedPush, setAgreedPush] = useState(false);
+  const [agreedMarketing, setAgreedMarketing] = useState(false);
 
   useEffect(() => {
     if (!isLoggedIn || !user) {
@@ -127,17 +140,21 @@ export function ProfileEditPage() {
     setHomeTime(p?.homeTime ?? null);
     setCleanFreq(p?.cleanFreq ?? null);
     setPrefGender(p?.prefGender ?? null);
-    setAgeMin(p?.ageMin != null ? String(p.ageMin) : "");
-    setAgeMax(p?.ageMax != null ? String(p.ageMax) : "");
-    setBudgetMin(p?.budgetMin != null ? String(p.budgetMin) : "");
-    setBudgetMax(p?.budgetMax != null ? String(p.budgetMax) : "");
+    setRentShareMode(normalizeShareMode(p?.rentShare?.mode));
+    setRentSharePercent(
+      p?.rentShare?.percent != null ? String(p.rentShare.percent) : "",
+    );
+    setMgmtShareMode(normalizeShareMode(p?.mgmtShare?.mode));
+    setMgmtSharePercent(
+      p?.mgmtShare?.percent != null ? String(p.mgmtShare.percent) : "",
+    );
     setNoSmoker(Boolean(p?.noSmoker));
     setNoPet(Boolean(p?.noPet));
-    setNoNoise(Boolean(p?.noNoise));
     setNoDrink(Boolean(p?.noDrink));
-    setNoHomebody(Boolean(p?.noHomebody));
-    setNoMessy(Boolean(p?.noMessy));
+    setBio(user.bio ?? "");
     setAgreedLocation(Boolean(user.agreedLocation));
+    setAgreedPush(Boolean(user.agreedPush));
+    setAgreedMarketing(Boolean(user.agreedMarketing));
 
     setStep("role");
     setHydrated(true);
@@ -177,6 +194,13 @@ export function ProfileEditPage() {
   const showWfhOption =
     job === "employee" || job === "freelancer" || job === "other";
 
+  const isShareValid = (mode: ShareMode | null, percent: string) => {
+    if (!mode) return false;
+    if (mode === "half" || mode === "negotiate") return true;
+    const n = Number(percent);
+    return percent.trim() !== "" && Number.isFinite(n) && n >= 1 && n <= 99;
+  };
+
   const detailInvalid =
     !job ||
     (job === "other" && !jobOther.trim()) ||
@@ -191,10 +215,8 @@ export function ProfileEditPage() {
     (pet && petKind === "other" && !petKindOther.trim()) ||
     (hasRoom &&
       (!prefGender ||
-        !ageMin.trim() ||
-        !ageMax.trim() ||
-        !budgetMin.trim() ||
-        !budgetMax.trim()));
+        !isShareValid(rentShareMode, rentSharePercent) ||
+        !isShareValid(mgmtShareMode, mgmtSharePercent)));
 
   const handleSaveDetail = () => {
     if (!user || !seekRole) return;
@@ -227,22 +249,32 @@ export function ProfileEditPage() {
       homeTime: homeTime ?? undefined,
       cleanFreq: cleanFreq ?? undefined,
       prefGender: prefGender ?? undefined,
-      ageMin: toInt(ageMin),
-      ageMax: toInt(ageMax),
-      budgetMin: toInt(budgetMin),
-      budgetMax: toInt(budgetMax),
+      rentShare: rentShareMode
+        ? {
+            mode: rentShareMode,
+            percent:
+              rentShareMode === "custom" ? toInt(rentSharePercent) : undefined,
+          }
+        : undefined,
+      mgmtShare: mgmtShareMode
+        ? {
+            mode: mgmtShareMode,
+            percent:
+              mgmtShareMode === "custom" ? toInt(mgmtSharePercent) : undefined,
+          }
+        : undefined,
       noSmoker,
       noPet,
-      noNoise,
       noDrink,
-      noHomebody,
-      noMessy,
     };
 
     updateUser({
       job: job ?? undefined,
       jobOther: job === "other" ? jobOther.trim() || undefined : undefined,
+      bio: bio.trim() || undefined,
       agreedLocation,
+      agreedPush,
+      agreedMarketing,
       pref,
     });
     navigate("/profile", { replace: true });
@@ -280,7 +312,7 @@ export function ProfileEditPage() {
           onClick={handleBack}
           aria-label="뒤로"
         >
-          <ArrowLeft className="size-4" />
+          <ArrowLeft className="size-[1.15rem]" strokeWidth={2.4} />
         </button>
         <p className={styles.stepLabel}>
           {step === "role"
@@ -354,6 +386,10 @@ export function ProfileEditPage() {
           </div>
 
           <section className={styles.block}>
+            <h3 className={styles.blockTitle}>희망 지역</h3>
+            <p className={styles.blockHint}>
+              광역을 고른 뒤 구/시를 선택해 주세요. 여러 지역을 고를 수 있어요.
+            </p>
             <div className={styles.field}>
               <p className={styles.label}>
                 1. 전체 지역 <span className={styles.required}>*</span>
@@ -469,13 +505,14 @@ export function ProfileEditPage() {
             </h2>
             <p className={styles.desc}>
               {hasRoom
-                ? "생활 습관과 함께 지낼 사람 조건을 적어주세요."
+                ? "내 생활 습관과 함께 지낼 사람 조건을 적어주세요."
                 : "생활 습관을 알려주시면 매칭에 도움이 돼요."}
             </p>
           </div>
 
           <section className={styles.block}>
-            <h3 className={styles.blockTitle}>내 정보</h3>
+            <h3 className={styles.blockTitle}>기본 정보</h3>
+            <p className={styles.blockHint}>직업과 근무 형태를 알려주세요</p>
             <div className={styles.field}>
               <p className={styles.label}>
                 직업 <span className={styles.required}>*</span>
@@ -534,7 +571,9 @@ export function ProfileEditPage() {
 
           <section className={styles.block}>
             <h3 className={styles.blockTitle}>생활 습관</h3>
-            <p className={styles.blockHint}>취침·기상·성격·생활 패턴</p>
+            <p className={styles.blockHint}>
+              취침·기상, 성격, 흡연·음주 등 평소 생활 패턴
+            </p>
 
             <div className={styles.field}>
               <p className={styles.label}>
@@ -750,8 +789,10 @@ export function ProfileEditPage() {
 
           {hasRoom ? (
             <section className={styles.block}>
-              <h3 className={styles.blockTitle}>살짝 조건</h3>
-              <p className={styles.blockHint}>같이 살 사람에게 바라는 조건</p>
+              <h3 className={styles.blockTitle}>원하는 룸메 조건</h3>
+              <p className={styles.blockHint}>
+                성별, 분담 방식, 함께하기 어려운 점
+              </p>
 
               <div className={styles.field}>
                 <p className={styles.label}>
@@ -774,128 +815,140 @@ export function ProfileEditPage() {
                 </div>
               </div>
 
-              <div className={styles.twoCol}>
-                <div className={styles.field}>
-                  <label className={styles.label} htmlFor="ageMin">
-                    최소 나이 <span className={styles.required}>*</span>
-                  </label>
-                  <Input
-                    id="ageMin"
-                    className={styles.input}
-                    inputMode="numeric"
-                    placeholder="20"
-                    value={ageMin}
-                    onChange={(e) =>
-                      setAgeMin(e.target.value.replace(/\D/g, "").slice(0, 2))
-                    }
-                  />
+              <div className={styles.field}>
+                <p className={styles.label}>
+                  분담 월세 <span className={styles.required}>*</span>
+                </p>
+                <div className={styles.chipRow3}>
+                  {SHARE_MODE_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      className={cn(
+                        styles.chip,
+                        rentShareMode === opt.value && styles.chipActive,
+                      )}
+                      onClick={() => {
+                        setRentShareMode(opt.value);
+                        if (opt.value !== "custom") setRentSharePercent("");
+                      }}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
                 </div>
-                <div className={styles.field}>
-                  <label className={styles.label} htmlFor="ageMax">
-                    최대 나이 <span className={styles.required}>*</span>
-                  </label>
-                  <Input
-                    id="ageMax"
-                    className={styles.input}
-                    inputMode="numeric"
-                    placeholder="35"
-                    value={ageMax}
-                    onChange={(e) =>
-                      setAgeMax(e.target.value.replace(/\D/g, "").slice(0, 2))
-                    }
-                  />
-                </div>
+                {rentShareMode === "custom" ? (
+                  <div className={styles.percentField}>
+                    <Input
+                      id="rentSharePercent"
+                      className={styles.input}
+                      inputMode="numeric"
+                      placeholder="예: 50"
+                      value={rentSharePercent}
+                      onChange={(e) =>
+                        setRentSharePercent(
+                          e.target.value.replace(/\D/g, "").slice(0, 2),
+                        )
+                      }
+                    />
+                    <span className={styles.percentSuffix}>%</span>
+                  </div>
+                ) : null}
               </div>
 
-              <div className={styles.twoCol}>
-                <div className={styles.field}>
-                  <label className={styles.label} htmlFor="budgetMin">
-                    희망 분담 월세(만){" "}
-                    <span className={styles.required}>*</span>
-                  </label>
-                  <Input
-                    id="budgetMin"
-                    className={styles.input}
-                    inputMode="numeric"
-                    placeholder="40"
-                    value={budgetMin}
-                    onChange={(e) =>
-                      setBudgetMin(
-                        e.target.value.replace(/\D/g, "").slice(0, 4),
-                      )
-                    }
-                  />
+              <div className={styles.field}>
+                <p className={styles.label}>
+                  분담 관리비 <span className={styles.required}>*</span>
+                </p>
+                <div className={styles.chipRow3}>
+                  {SHARE_MODE_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      className={cn(
+                        styles.chip,
+                        mgmtShareMode === opt.value && styles.chipActive,
+                      )}
+                      onClick={() => {
+                        setMgmtShareMode(opt.value);
+                        if (opt.value !== "custom") setMgmtSharePercent("");
+                      }}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
                 </div>
-                <div className={styles.field}>
-                  <label className={styles.label} htmlFor="budgetMax">
-                    최대 분담 월세(만){" "}
-                    <span className={styles.required}>*</span>
-                  </label>
-                  <Input
-                    id="budgetMax"
-                    className={styles.input}
-                    inputMode="numeric"
-                    placeholder="60"
-                    value={budgetMax}
-                    onChange={(e) =>
-                      setBudgetMax(
-                        e.target.value.replace(/\D/g, "").slice(0, 4),
-                      )
-                    }
-                  />
-                </div>
+                {mgmtShareMode === "custom" ? (
+                  <div className={styles.percentField}>
+                    <Input
+                      id="mgmtSharePercent"
+                      className={styles.input}
+                      inputMode="numeric"
+                      placeholder="예: 50"
+                      value={mgmtSharePercent}
+                      onChange={(e) =>
+                        setMgmtSharePercent(
+                          e.target.value.replace(/\D/g, "").slice(0, 2),
+                        )
+                      }
+                    />
+                    <span className={styles.percentSuffix}>%</span>
+                  </div>
+                ) : null}
               </div>
 
-              <p className={styles.label}>거부 조건</p>
+              <p className={styles.label}>함께하기 어려운 점</p>
               <div className={styles.checkGrid2}>
                 <label className={styles.checkRow}>
                   <Checkbox
                     checked={noSmoker}
                     onCheckedChange={(v) => setNoSmoker(v === true)}
                   />
-                  <span>흡연자 거부</span>
-                </label>
-                <label className={styles.checkRow}>
-                  <Checkbox
-                    checked={noPet}
-                    onCheckedChange={(v) => setNoPet(v === true)}
-                  />
-                  <span>반려동물 거부</span>
-                </label>
-                <label className={styles.checkRow}>
-                  <Checkbox
-                    checked={noNoise}
-                    onCheckedChange={(v) => setNoNoise(v === true)}
-                  />
-                  <span>소음 거부</span>
+                  <span>흡연</span>
                 </label>
                 <label className={styles.checkRow}>
                   <Checkbox
                     checked={noDrink}
                     onCheckedChange={(v) => setNoDrink(v === true)}
                   />
-                  <span>음주 거부</span>
+                  <span>음주</span>
                 </label>
                 <label className={styles.checkRow}>
                   <Checkbox
-                    checked={noHomebody}
-                    onCheckedChange={(v) => setNoHomebody(v === true)}
+                    checked={noPet}
+                    onCheckedChange={(v) => setNoPet(v === true)}
                   />
-                  <span>집순이/집돌이 거부</span>
-                </label>
-                <label className={styles.checkRow}>
-                  <Checkbox
-                    checked={noMessy}
-                    onCheckedChange={(v) => setNoMessy(v === true)}
-                  />
-                  <span>비청결 거부</span>
+                  <span>반려동물</span>
                 </label>
               </div>
             </section>
           ) : null}
 
           <section className={styles.block}>
-            <h3 className={styles.blockTitle}>동의</h3>
+            <h3 className={styles.blockTitle}>살짝에게 전하는 한마디</h3>
+            <p className={styles.blockHint}>
+              매칭 상대에게 보여질 소개예요. 원하는 생활이나 성향을 자유롭게
+              적어주세요.
+            </p>
+            <textarea
+              id="bio"
+              className={styles.textarea}
+              placeholder={
+                hasRoom
+                  ? "예: 투룸이고 거실 공유해요. 조용한 분과 월세 반반이면 좋겠어요"
+                  : "예: 강남·서초 쪽 원룸 구해요. 주말엔 같이 밥 해먹을 룸메면 좋아요"
+              }
+              value={bio}
+              maxLength={200}
+              rows={4}
+              onChange={(e) => setBio(e.target.value)}
+            />
+            <p className={styles.charCount}>{bio.length}/200</p>
+          </section>
+
+          <section className={styles.block}>
+            <h3 className={styles.blockTitle}>서비스 동의</h3>
+            <p className={styles.blockHint}>필요한 항목만 선택해 주세요</p>
             <label className={styles.agreeRow}>
               <Checkbox
                 checked={agreedLocation}
@@ -905,6 +958,30 @@ export function ProfileEditPage() {
                 위치기반 서비스 이용 동의
                 <span className={styles.agreeHint}>
                   근처 살짝 추천에 사용돼요. (선택)
+                </span>
+              </span>
+            </label>
+            <label className={styles.agreeRow}>
+              <Checkbox
+                checked={agreedPush}
+                onCheckedChange={(v) => setAgreedPush(v === true)}
+              />
+              <span className={styles.agreeText}>
+                푸시 알림 수신 동의
+                <span className={styles.agreeHint}>
+                  매칭·메시지 등 서비스 알림을 받아요. (선택)
+                </span>
+              </span>
+            </label>
+            <label className={styles.agreeRow}>
+              <Checkbox
+                checked={agreedMarketing}
+                onCheckedChange={(v) => setAgreedMarketing(v === true)}
+              />
+              <span className={styles.agreeText}>
+                마케팅 정보 수신 동의
+                <span className={styles.agreeHint}>
+                  이벤트·혜택 소식을 받아요. (선택)
                 </span>
               </span>
             </label>

@@ -42,6 +42,15 @@ export type PetInfo = {
   note?: string
 }
 
+/** 분담 방식: 1/2 / 직접조율 / 직접입력(%) */
+export type ShareMode = 'half' | 'negotiate' | 'custom'
+
+export type CostShare = {
+  mode: ShareMode
+  /** mode === custom 일 때 분담 비율 (1~99) */
+  percent?: number
+}
+
 /**
  * sjj_pref — 프로필 추가정보에서 쓰는 선호/생활 조건
  * (방 등록·매칭·인증 테이블은 별도 플로우)
@@ -62,16 +71,13 @@ export type UserPref = {
   homeTime?: HomeTime
   cleanFreq?: CleanFreq
   prefGender?: PrefGender
-  ageMin?: number
-  ageMax?: number
-  budgetMin?: number
-  budgetMax?: number
+  /** 분담 월세 */
+  rentShare?: CostShare
+  /** 분담 관리비 */
+  mgmtShare?: CostShare
   noSmoker?: boolean
   noPet?: boolean
-  noNoise?: boolean
   noDrink?: boolean
-  noHomebody?: boolean
-  noMessy?: boolean
 }
 
 export type UserProfile = {
@@ -94,6 +100,10 @@ export type UserProfile = {
   jobOther?: string
   /** sjj_user.location_at 동의 여부 */
   agreedLocation?: boolean
+  /** 푸시 알림 수신 동의 */
+  agreedPush?: boolean
+  /** 마케팅 정보 수신 동의 */
+  agreedMarketing?: boolean
   /** sjj_pref */
   pref?: UserPref
   createdAt: string
@@ -187,16 +197,11 @@ function hasHope(pref?: UserPref): boolean {
   if (!pref) return false
   return (
     Boolean(pref.prefGender) ||
-    pref.ageMin != null ||
-    pref.ageMax != null ||
-    pref.budgetMin != null ||
-    pref.budgetMax != null ||
+    Boolean(pref.rentShare?.mode) ||
+    Boolean(pref.mgmtShare?.mode) ||
     pref.noSmoker === true ||
     pref.noPet === true ||
-    pref.noNoise === true ||
-    pref.noDrink === true ||
-    pref.noHomebody === true ||
-    pref.noMessy === true
+    pref.noDrink === true
   )
 }
 

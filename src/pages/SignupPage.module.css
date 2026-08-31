@@ -162,6 +162,12 @@
   font-size: 1rem;
 }
 
+.input::placeholder {
+  color: oklch(0.55 0.02 150 / 0.34);
+  font-weight: 400;
+  opacity: 1;
+}
+
 .genderRow {
   display: grid;
   grid-template-columns: repeat(2, 1fr);

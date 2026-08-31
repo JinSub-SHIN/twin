@@ -114,6 +114,13 @@
   .font-heading {
     font-family: var(--font-heading);
   }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: oklch(0.55 0.02 150 / 0.38);
+    font-weight: 400;
+    opacity: 1;
+  }
 }
 
 @keyframes twin-drift {
