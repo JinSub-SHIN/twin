@@ -1,4 +1,4 @@
-import { Route, Routes } from 'react-router-dom'
+import { Route, Routes, Navigate } from 'react-router-dom'
 import { AuthProvider } from '@/context/AuthContext'
 import { AppLayout } from '@/layouts/AppLayout'
 import { ExplorePage } from '@/pages/ExplorePage'
@@ -16,7 +16,11 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/explore" element={<ExplorePage />} />
           <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/profile/edit" element={<ProfileEditPage />} />
+          <Route
+            path="/profile/edit"
+            element={<Navigate to="/profile/edit/role" replace />}
+          />
+          <Route path="/profile/edit/:step" element={<ProfileEditPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/login" element={<LoginPage />} />
         </Route>

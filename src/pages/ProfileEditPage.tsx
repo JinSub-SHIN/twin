@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Home, Search, X } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -41,6 +41,25 @@ import styles from "./ProfileEditPage.module.css";
 
 type Step = "role" | "region" | "detail" | "prefs";
 
+const STEP_PATH: Record<Step, string> = {
+  role: "/profile/edit/role",
+  region: "/profile/edit/region",
+  detail: "/profile/edit/detail",
+  prefs: "/profile/edit/prefs",
+};
+
+function parseStep(value: string | undefined): Step {
+  if (
+    value === "role" ||
+    value === "region" ||
+    value === "detail" ||
+    value === "prefs"
+  ) {
+    return value;
+  }
+  return "role";
+}
+
 const SHARE_MODE_OPTIONS: { value: ShareMode; label: string }[] = [
   { value: "half", label: "1/2" },
   { value: "negotiate", label: "직접조율" },
@@ -78,8 +97,9 @@ function toInt(v: string) {
 
 export function ProfileEditPage() {
   const navigate = useNavigate();
+  const { step: stepParam } = useParams<{ step: string }>();
+  const step = parseStep(stepParam);
   const { user, isLoggedIn, updateUser } = useAuth();
-  const [step, setStep] = useState<Step>("role");
   const [seekRole, setSeekRole] = useState<SeekRole | null>(null);
   const [regionCity, setRegionCity] = useState<string | null>(null);
   const [regions, setRegions] = useState<string[]>([]);
@@ -166,9 +186,21 @@ export function ProfileEditPage() {
     setAgreedPush(Boolean(user.agreedPush));
     setAgreedMarketing(Boolean(user.agreedMarketing));
 
-    setStep("role");
     setHydrated(true);
   }, [isLoggedIn, user, navigate, hydrated]);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    if (
+      stepParam &&
+      stepParam !== "role" &&
+      stepParam !== "region" &&
+      stepParam !== "detail" &&
+      stepParam !== "prefs"
+    ) {
+      navigate(STEP_PATH.role, { replace: true });
+    }
+  }, [hydrated, stepParam, navigate]);
 
   const hasRoom = seekRole === "has_room";
   const showWfhOption =
@@ -291,7 +323,7 @@ export function ProfileEditPage() {
 
   const handleNextFromRegion = () => {
     if (!seekRole || regions.length === 0) return;
-    setStep("detail");
+    navigate(STEP_PATH.detail);
   };
 
   const isShareValid = (mode: ShareMode | null, percent: string) => {
@@ -325,16 +357,24 @@ export function ProfileEditPage() {
   const handleNextFromDetail = () => {
     if (lifestyleInvalid) return;
     persistDraft();
-    setStep("prefs");
+    navigate(STEP_PATH.prefs);
   };
 
-  const leaveTo = (next: "profile" | "post") => {
+  const leaveTo = (next: "profile" | "post" | "find") => {
     persistDraft();
     if (next === "post") {
       if (detailInvalid) return;
       navigate("/explore", {
         replace: true,
         state: { intent: "create-listing" },
+      });
+      return;
+    }
+    if (next === "find") {
+      if (detailInvalid) return;
+      navigate("/explore", {
+        replace: true,
+        state: { intent: "search" },
       });
       return;
     }
@@ -359,24 +399,16 @@ export function ProfileEditPage() {
 
   const confirmAutosaveTip = () => {
     setAutosaveTipOpen(false);
-    setStep("region");
+    navigate(STEP_PATH.region);
   };
 
   const handleBack = () => {
-    if (step === "prefs") {
-      setStep("detail");
+    if (step === "role") {
+      persistDraft();
+      navigate("/profile");
       return;
     }
-    if (step === "detail") {
-      setStep("region");
-      return;
-    }
-    if (step === "region") {
-      setStep("role");
-      return;
-    }
-    persistDraft();
-    navigate("/profile");
+    navigate(-1);
   };
 
   if (!isLoggedIn || !user) return null;
@@ -1098,26 +1130,26 @@ export function ProfileEditPage() {
           </section>
 
           <div className={styles.submitGroup}>
+            <Button
+              type="button"
+              className={styles.submit}
+              size="lg"
+              disabled={detailInvalid}
+              onClick={() => leaveTo(hasRoom ? "post" : "find")}
+            >
+              {hasRoom ? "이 정보로 살짝 구하기" : "이 정보로 살짝 찾기"}
+            </Button>
             {hasRoom ? (
               <Button
                 type="button"
-                className={styles.submit}
+                className={cn(styles.submit, styles.submitSecondary)}
                 size="lg"
-                disabled={detailInvalid}
-                onClick={() => leaveTo("post")}
+                variant="outline"
+                onClick={() => leaveTo("profile")}
               >
-                이 정보로 살짝 구하기
+                살짝은 나중에 구하기
               </Button>
             ) : null}
-            <Button
-              type="button"
-              className={cn(styles.submit, hasRoom && styles.submitSecondary)}
-              size="lg"
-              variant={hasRoom ? "outline" : "default"}
-              onClick={() => leaveTo("profile")}
-            >
-              살짝은 나중에 구하기
-            </Button>
           </div>
         </>
       )}
