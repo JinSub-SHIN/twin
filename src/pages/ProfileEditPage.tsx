@@ -134,6 +134,7 @@ export function ProfileEditPage() {
   const [agreedLocation, setAgreedLocation] = useState(false);
   const [agreedPush, setAgreedPush] = useState(false);
   const [agreedMarketing, setAgreedMarketing] = useState(false);
+  const [agreedMatch, setAgreedMatch] = useState(false);
   const [autosaveTipOpen, setAutosaveTipOpen] = useState(false);
   const userRef = useRef(user);
   userRef.current = user;
@@ -185,6 +186,7 @@ export function ProfileEditPage() {
     setAgreedLocation(Boolean(user.agreedLocation));
     setAgreedPush(Boolean(user.agreedPush));
     setAgreedMarketing(Boolean(user.agreedMarketing));
+    setAgreedMatch(Boolean(user.agreedMatch));
 
     setHydrated(true);
   }, [isLoggedIn, user, navigate, hydrated]);
@@ -217,6 +219,7 @@ export function ProfileEditPage() {
       agreedLocation,
       agreedPush,
       agreedMarketing,
+      agreedMatch,
       pref: {
         ...current.pref,
         seekRole: seekRole ?? undefined,
@@ -307,6 +310,7 @@ export function ProfileEditPage() {
     agreedLocation,
     agreedPush,
     agreedMarketing,
+    agreedMatch,
     showWfhOption,
   ]);
 
@@ -352,7 +356,18 @@ export function ProfileEditPage() {
       !isShareValid(rentShareMode, rentSharePercent) ||
       !isShareValid(mgmtShareMode, mgmtSharePercent));
 
-  const detailInvalid = lifestyleInvalid || prefsInvalid;
+  const detailInvalid =
+    lifestyleInvalid || prefsInvalid || !agreedMatch;
+
+  const agreeAll =
+    agreedMatch && agreedLocation && agreedPush && agreedMarketing;
+
+  const setAgreeAll = (checked: boolean) => {
+    setAgreedMatch(checked);
+    setAgreedLocation(checked);
+    setAgreedPush(checked);
+    setAgreedMarketing(checked);
+  };
 
   const handleNextFromDetail = () => {
     if (lifestyleInvalid) return;
@@ -423,7 +438,9 @@ export function ProfileEditPage() {
   };
 
   return (
-    <section className={styles.page}>
+    <section
+      className={cn(styles.page, step === "prefs" && styles.pagePrefs)}
+    >
       <div className={styles.topBar}>
         <button
           type="button"
@@ -1090,46 +1107,97 @@ export function ProfileEditPage() {
 
           <section className={styles.block}>
             <h3 className={styles.blockTitle}>서비스 동의</h3>
-            <p className={styles.blockHint}>필요한 항목만 선택해 주세요</p>
-            <label className={styles.agreeRow}>
-              <Checkbox
-                checked={agreedLocation}
-                onCheckedChange={(v) => setAgreedLocation(v === true)}
-              />
-              <span className={styles.agreeText}>
-                위치기반 서비스 이용 동의
-                <span className={styles.agreeHint}>
-                  근처 살짝 추천에 사용돼요. (선택)
+            <div className={styles.agreeCard}>
+              <label className={styles.agreeAll}>
+                <Checkbox
+                  checked={agreeAll}
+                  onCheckedChange={(v) => setAgreeAll(v === true)}
+                />
+                <span className={styles.agreeAllBody}>
+                  <span className={styles.agreeAllTitle}>전체 동의</span>
+                  <span className={styles.agreeAllDesc}>
+                    필수·선택 항목을 모두 포함해요
+                  </span>
                 </span>
-              </span>
-            </label>
-            <label className={styles.agreeRow}>
-              <Checkbox
-                checked={agreedPush}
-                onCheckedChange={(v) => setAgreedPush(v === true)}
-              />
-              <span className={styles.agreeText}>
-                푸시 알림 수신 동의
-                <span className={styles.agreeHint}>
-                  매칭·메시지 등 서비스 알림을 받아요. (선택)
-                </span>
-              </span>
-            </label>
-            <label className={styles.agreeRow}>
-              <Checkbox
-                checked={agreedMarketing}
-                onCheckedChange={(v) => setAgreedMarketing(v === true)}
-              />
-              <span className={styles.agreeText}>
-                마케팅 정보 수신 동의
-                <span className={styles.agreeHint}>
-                  이벤트·혜택 소식을 받아요. (선택)
-                </span>
-              </span>
-            </label>
+              </label>
+
+              <div
+                className={cn(
+                  styles.agreeCollapse,
+                  agreeAll && styles.agreeCollapseClosed,
+                )}
+              >
+                <div className={styles.agreeCollapseInner}>
+                  <div className={styles.agreeDivider} />
+
+                  <div className={styles.agreeList}>
+                    <label className={styles.agreeItem}>
+                      <Checkbox
+                        checked={agreedMatch}
+                        onCheckedChange={(v) => setAgreedMatch(v === true)}
+                      />
+                      <span className={styles.agreeItemBody}>
+                        <span className={styles.agreeItemTitle}>
+                          매칭을 위한 프로필 정보 제공
+                          <span className={styles.agreeTagRequired}>필수</span>
+                        </span>
+                        <span className={styles.agreeItemDesc}>
+                          룸메 매칭을 위해 프로필이 다른 회원에게 보여져요
+                        </span>
+                      </span>
+                    </label>
+                    <label className={styles.agreeItem}>
+                      <Checkbox
+                        checked={agreedLocation}
+                        onCheckedChange={(v) => setAgreedLocation(v === true)}
+                      />
+                      <span className={styles.agreeItemBody}>
+                        <span className={styles.agreeItemTitle}>
+                          위치기반 서비스 이용
+                          <span className={styles.agreeTagOptional}>선택</span>
+                        </span>
+                        <span className={styles.agreeItemDesc}>
+                          근처 살짝 추천에 사용돼요
+                        </span>
+                      </span>
+                    </label>
+                    <label className={styles.agreeItem}>
+                      <Checkbox
+                        checked={agreedPush}
+                        onCheckedChange={(v) => setAgreedPush(v === true)}
+                      />
+                      <span className={styles.agreeItemBody}>
+                        <span className={styles.agreeItemTitle}>
+                          푸시 알림 수신
+                          <span className={styles.agreeTagOptional}>선택</span>
+                        </span>
+                        <span className={styles.agreeItemDesc}>
+                          매칭·메시지 등 서비스 알림을 받아요
+                        </span>
+                      </span>
+                    </label>
+                    <label className={styles.agreeItem}>
+                      <Checkbox
+                        checked={agreedMarketing}
+                        onCheckedChange={(v) => setAgreedMarketing(v === true)}
+                      />
+                      <span className={styles.agreeItemBody}>
+                        <span className={styles.agreeItemTitle}>
+                          마케팅 정보 수신
+                          <span className={styles.agreeTagOptional}>선택</span>
+                        </span>
+                        <span className={styles.agreeItemDesc}>
+                          이벤트·혜택 소식을 받아요
+                        </span>
+                      </span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
           </section>
 
-          <div className={styles.submitGroup}>
+          <div className={cn(styles.submitGroup, styles.submitGroupDock)}>
             <Button
               type="button"
               className={styles.submit}

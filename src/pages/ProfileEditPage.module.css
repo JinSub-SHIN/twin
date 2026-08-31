@@ -5,6 +5,27 @@
   padding-bottom: 1.75rem;
 }
 
+.pagePrefs {
+  /* 스크롤 뷰포트 높이를 채워, 동의 접혀도 CTA가 하단에 남음 */
+  min-height: calc(
+    100dvh - env(safe-area-inset-top) - 1rem - 4rem -
+      env(safe-area-inset-bottom) - 0.75rem
+  );
+  box-sizing: border-box;
+}
+
+.submitGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin-top: 0.35rem;
+}
+
+.submitGroupDock {
+  margin-top: auto;
+  padding-top: 1rem;
+}
+
 .topBar {
   display: flex;
   align-items: center;
@@ -434,30 +455,144 @@
   border-width: 1.5px;
 }
 
-.agreeRow {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  padding: 1rem;
-  border-radius: 1rem;
-  background: oklch(0.96 0.008 120);
-  cursor: pointer;
-}
-
-.agreeText {
+.agreeCard {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
-  font-size: 0.92rem;
-  font-weight: 700;
-  letter-spacing: -0.03em;
+  border: 1px solid oklch(0.92 0.01 145);
+  border-radius: 1.1rem;
+  background: oklch(0.985 0.004 145);
+  overflow: hidden;
 }
 
-.agreeHint {
+.agreeAll {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.05rem;
+  cursor: pointer;
+  background: oklch(1 0 0);
+}
+
+.agreeAll :global([data-slot='checkbox']) {
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 0.45rem;
+  border-width: 1.5px;
+  flex-shrink: 0;
+}
+
+.agreeAllBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.agreeAllTitle {
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: oklch(0.22 0.03 150);
+}
+
+.agreeAllDesc {
   font-size: 0.78rem;
   font-weight: 500;
   letter-spacing: -0.02em;
-  color: var(--muted-foreground);
+  color: oklch(0.55 0.02 150);
+}
+
+.agreeCollapse {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 0.32s ease;
+}
+
+.agreeCollapseClosed {
+  grid-template-rows: 0fr;
+}
+
+.agreeCollapseInner {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.agreeCollapseClosed .agreeCollapseInner {
+  pointer-events: none;
+}
+
+.agreeDivider {
+  height: 1px;
+  margin: 0 1.05rem;
+  background: oklch(0.92 0.01 145);
+}
+
+.agreeList {
+  display: flex;
+  flex-direction: column;
+  padding: 0.25rem 0 0.35rem;
+  background: oklch(1 0 0);
+}
+
+.agreeItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  padding: 0.7rem 1.05rem;
+  cursor: pointer;
+}
+
+.agreeItem :global([data-slot='checkbox']) {
+  width: 1.2rem;
+  height: 1.2rem;
+  margin-top: 0.1rem;
+  border-radius: 0.4rem;
+  border-width: 1.5px;
+  flex-shrink: 0;
+}
+
+.agreeItemBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.agreeItemTitle {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: oklch(0.28 0.03 150);
+  line-height: 1.35;
+}
+
+.agreeTagRequired,
+.agreeTagOptional {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.agreeTagRequired {
+  color: oklch(0.48 0.11 145);
+}
+
+.agreeTagOptional {
+  color: oklch(0.62 0.02 150);
+}
+
+.agreeItemDesc {
+  font-size: 0.76rem;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+  color: oklch(0.58 0.015 150);
 }
 
 .subForm {
@@ -496,12 +631,6 @@
   font-weight: 700;
   letter-spacing: -0.02em;
   cursor: pointer;
-}
-
-.submitGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 0.65rem;
 }
 
 .submit {

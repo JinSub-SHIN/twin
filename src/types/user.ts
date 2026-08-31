@@ -104,6 +104,8 @@ export type UserProfile = {
   agreedPush?: boolean
   /** 마케팅 정보 수신 동의 */
   agreedMarketing?: boolean
+  /** 매칭을 위한 프로필 정보 제공 동의 (필수) */
+  agreedMatch?: boolean
   /** sjj_pref */
   pref?: UserPref
   createdAt: string
