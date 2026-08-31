@@ -71,5 +71,5 @@
   padding-bottom: calc(4rem + env(safe-area-inset-bottom));
   overflow: hidden;
   scrollbar-gutter: auto;
-  background: oklch(0.975 0.008 120);
+  background: oklch(0.97 0.005 145);
 }

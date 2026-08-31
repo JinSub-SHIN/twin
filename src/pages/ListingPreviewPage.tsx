@@ -65,8 +65,10 @@ function formatHour(hour?: number) {
 
 function buildHeadline(user: UserProfile) {
   const region = user.pref?.regions?.[0];
-  if (region) return `${region}에서 살짝 구해요.`;
-  return "같이 살 살짝을 구해요.";
+  if (region) {
+    return { lead: `${region}에서`, action: "살짝 구해요." };
+  }
+  return { lead: "같이 살", action: "살짝을 구해요." };
 }
 
 function buildLifestyleChips(user: UserProfile) {
@@ -143,13 +145,15 @@ export function ListingPreviewPage() {
     const rentShare = formatShare(user.pref?.rentShare);
     const mgmtShare = formatShare(user.pref?.mgmtShare);
     const prefGender = optionLabel(PREF_GENDER_OPTIONS, user.pref?.prefGender);
+    const headline = buildHeadline(user);
 
     return {
-      headline: buildHeadline(user),
+      headline,
       nickname: user.nickname,
       initial: user.nickname.trim().slice(0, 1) || "ㅅ",
       photoUrl: user.photoUrl,
       meta,
+      gender,
       regions,
       rentAmount,
       mgmtAmount,
@@ -159,6 +163,12 @@ export function ListingPreviewPage() {
       lifestyle: buildLifestyleChips(user),
       hardNos: buildHardNos(user),
       bio: user.bio?.trim() || "",
+      roomType:
+        user.pref?.seekRole === "has_room"
+          ? "방 있음"
+          : user.pref?.seekRole === "needs_room"
+            ? "방 구함"
+            : null,
     };
   }, [user]);
 
@@ -168,6 +178,12 @@ export function ListingPreviewPage() {
     Boolean(view.rentAmount || view.rentShare) ||
     Boolean(view.mgmtAmount || view.mgmtShare) ||
     Boolean(view.prefGender);
+
+  const metaBits = [
+    view.regions[0],
+    view.roomType,
+    view.gender || null,
+  ].filter((bit): bit is string => Boolean(bit));
 
   return (
     <section className={styles.page}>
@@ -181,24 +197,35 @@ export function ListingPreviewPage() {
           >
             <ArrowLeft size={20} strokeWidth={2.25} />
           </button>
-          <span className={styles.topTitle}>살짝 공고 미리보기</span>
+          <h1 className={styles.topTitle}>살짝 공고 미리보기</h1>
           <span className={styles.previewBadge}>미리보기</span>
         </header>
 
-        <article className={styles.cover}>
-          <div className={styles.coverWash} aria-hidden />
-          <div className={styles.coverHead}>
-            <p className={styles.coverEyebrow}>살짝 공고</p>
-            <h1 className={styles.coverTitle}>{view.headline}</h1>
-            {view.regions.length > 0 ? (
-              <p className={styles.coverRegion}>
-                <MapPin size={14} strokeWidth={2.4} aria-hidden />
-                <span>{view.regions.join(" · ")}</span>
-              </p>
-            ) : null}
-          </div>
+        <section className={styles.hero}>
+          <p className={styles.eyebrow}>살짝 공고</p>
+          <h2 className={styles.headline}>
+            <span className={styles.headlineLead}>{view.headline.lead}</span>
+            <span className={styles.headlineAction}>{view.headline.action}</span>
+          </h2>
 
-          <div className={styles.hostRow}>
+          {metaBits.length > 0 ? (
+            <ul className={styles.metaRow}>
+              {metaBits.map((bit) => (
+                <li key={bit} className={styles.metaItem}>
+                  {bit === view.regions[0] ? (
+                    <>
+                      <MapPin size={12} strokeWidth={2.4} aria-hidden />
+                      <span>{bit}</span>
+                    </>
+                  ) : (
+                    bit
+                  )}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+
+          <div className={styles.host}>
             <div className={styles.avatar} aria-hidden>
               {view.photoUrl ? (
                 <img src={view.photoUrl} alt="" className={styles.avatarImg} />
@@ -211,8 +238,15 @@ export function ListingPreviewPage() {
               {view.meta ? <p className={styles.hostMeta}>{view.meta}</p> : null}
             </div>
           </div>
+        </section>
 
-          {hasStats ? (
+        {hasStats ? (
+          <section className={styles.section} aria-labelledby="housing-title">
+            <header className={styles.sectionHead}>
+              <h3 id="housing-title" className={styles.sectionTitle}>
+                주거 조건
+              </h3>
+            </header>
             <div className={styles.stats}>
               {view.rentAmount || view.rentShare ? (
                 <div className={styles.stat}>
@@ -229,7 +263,9 @@ export function ListingPreviewPage() {
                 <div className={styles.stat}>
                   <span className={styles.statLabel}>관리비</span>
                   <span className={styles.statValue}>
-                    {view.mgmtAmount ? `평균 ${view.mgmtAmount}` : view.mgmtShare}
+                    {view.mgmtAmount
+                      ? `평균 ${view.mgmtAmount}`
+                      : view.mgmtShare}
                   </span>
                   {view.mgmtAmount && view.mgmtShare ? (
                     <span className={styles.statSub}>분담 {view.mgmtShare}</span>
@@ -243,57 +279,61 @@ export function ListingPreviewPage() {
                 </div>
               ) : null}
             </div>
-          ) : null}
-        </article>
-
-        <div className={styles.sections}>
-          {view.lifestyle.length > 0 ? (
-            <section className={styles.panel}>
-              <header className={styles.panelHead}>
-                <h2 className={styles.panelTitle}>생활 리듬</h2>
-                <p className={styles.panelDesc}>평소 생활 패턴이에요</p>
-              </header>
-              <div className={styles.chips}>
-                {view.lifestyle.map((chip) => (
-                  <span key={chip} className={styles.chip}>
-                    {chip}
-                  </span>
-                ))}
-              </div>
-            </section>
-          ) : null}
-
-          {view.hardNos.length > 0 ? (
-            <section className={cn(styles.panel, styles.panelWarn)}>
-              <header className={styles.panelHead}>
-                <h2 className={styles.panelTitle}>함께하기 어려운 점</h2>
-                <p className={styles.panelDesc}>이 부분은 맞춰주기 어려워요</p>
-              </header>
-              <div className={styles.chips}>
-                {view.hardNos.map((item) => (
-                  <span key={item} className={cn(styles.chip, styles.chipWarn)}>
-                    {item}
-                  </span>
-                ))}
-              </div>
-            </section>
-          ) : null}
-
-          <section className={cn(styles.panel, styles.panelBio)}>
-            <header className={styles.panelHead}>
-              <h2 className={styles.panelTitle}>한마디</h2>
-              <p className={styles.panelDesc}>살짝에게 전하는 소개예요</p>
-            </header>
-            {view.bio ? (
-              <p className={styles.bio}>{view.bio}</p>
-            ) : (
-              <p className={styles.bioEmpty}>
-                아직 소개 글이 없어요. 프로필에서 한마디를 적어보면 매칭이 더
-                자연스러워져요.
-              </p>
-            )}
           </section>
-        </div>
+        ) : null}
+
+        {view.lifestyle.length > 0 ? (
+          <section className={styles.section} aria-labelledby="life-title">
+            <header className={styles.sectionHead}>
+              <h3 id="life-title" className={styles.sectionTitle}>
+                생활 리듬
+              </h3>
+              <p className={styles.sectionDesc}>평소 생활 패턴이에요</p>
+            </header>
+            <div className={styles.chips}>
+              {view.lifestyle.map((chip) => (
+                <span key={chip} className={styles.chip}>
+                  {chip}
+                </span>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        {view.hardNos.length > 0 ? (
+          <section className={styles.section} aria-labelledby="hard-title">
+            <header className={styles.sectionHead}>
+              <h3 id="hard-title" className={styles.sectionTitle}>
+                함께하기 어려운 점
+              </h3>
+              <p className={styles.sectionDesc}>이 부분은 맞춰주기 어려워요</p>
+            </header>
+            <div className={styles.chips}>
+              {view.hardNos.map((item) => (
+                <span key={item} className={cn(styles.chip, styles.chipHard)}>
+                  {item}
+                </span>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        <section className={styles.section} aria-labelledby="bio-title">
+          <header className={styles.sectionHead}>
+            <h3 id="bio-title" className={styles.sectionTitle}>
+              한마디
+            </h3>
+            <p className={styles.sectionDesc}>살짝에게 전하는 소개예요</p>
+          </header>
+          {view.bio ? (
+            <blockquote className={styles.bio}>{view.bio}</blockquote>
+          ) : (
+            <p className={styles.bioEmpty}>
+              아직 소개 글이 없어요. 프로필에서 한마디를 적어보면 매칭이 더
+              자연스러워져요.
+            </p>
+          )}
+        </section>
       </div>
 
       <div className={styles.footer}>
