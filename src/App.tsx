@@ -3,6 +3,7 @@ import { AuthProvider } from '@/context/AuthContext'
 import { AppLayout } from '@/layouts/AppLayout'
 import { ExplorePage } from '@/pages/ExplorePage'
 import { HomePage } from '@/pages/HomePage'
+import { ListingPreviewPage } from '@/pages/ListingPreviewPage'
 import { LoginPage } from '@/pages/LoginPage'
 import { ProfileEditPage } from '@/pages/ProfileEditPage'
 import { ProfilePage } from '@/pages/ProfilePage'
@@ -15,6 +16,7 @@ function App() {
         <Route element={<AppLayout />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/explore" element={<ExplorePage />} />
+          <Route path="/explore/listing" element={<ListingPreviewPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route
             path="/profile/edit"

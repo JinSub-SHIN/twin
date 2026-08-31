@@ -39,10 +39,11 @@ import {
 } from "@/types/user";
 import styles from "./ProfileEditPage.module.css";
 
-type Step = "role" | "region" | "detail" | "prefs";
+type Step = "role" | "cost" | "region" | "detail" | "prefs";
 
 const STEP_PATH: Record<Step, string> = {
   role: "/profile/edit/role",
+  cost: "/profile/edit/cost",
   region: "/profile/edit/region",
   detail: "/profile/edit/detail",
   prefs: "/profile/edit/prefs",
@@ -51,6 +52,7 @@ const STEP_PATH: Record<Step, string> = {
 function parseStep(value: string | undefined): Step {
   if (
     value === "role" ||
+    value === "cost" ||
     value === "region" ||
     value === "detail" ||
     value === "prefs"
@@ -65,6 +67,24 @@ const SHARE_MODE_OPTIONS: { value: ShareMode; label: string }[] = [
   { value: "negotiate", label: "직접조율" },
   { value: "custom", label: "직접입력" },
 ];
+
+function digitsOnly(value: string, maxLen = 4) {
+  return value.replace(/\D/g, "").slice(0, maxLen);
+}
+
+/** 저장된 원 단위 → 입력용 만원 숫자 */
+function wonToManDigits(won?: number) {
+  if (won == null || won <= 0) return "";
+  if (won < 1000) return String(Math.round(won));
+  return String(Math.round(won / 10000));
+}
+
+/** 만원 숫자 → 저장용 원 */
+function manDigitsToWon(digits: string) {
+  const man = toInt(digits);
+  if (man == null || man <= 0) return undefined;
+  return man * 10000;
+}
 
 function normalizeShareMode(mode: string | undefined | null): ShareMode | null {
   if (mode === "half" || mode === "negotiate" || mode === "custom") return mode;
@@ -127,6 +147,8 @@ export function ProfileEditPage() {
   const [rentSharePercent, setRentSharePercent] = useState("");
   const [mgmtShareMode, setMgmtShareMode] = useState<ShareMode | null>(null);
   const [mgmtSharePercent, setMgmtSharePercent] = useState("");
+  const [rentAmount, setRentAmount] = useState("");
+  const [mgmtAmount, setMgmtAmount] = useState("");
   const [noSmoker, setNoSmoker] = useState(false);
   const [noPet, setNoPet] = useState(false);
   const [noDrink, setNoDrink] = useState(false);
@@ -136,6 +158,7 @@ export function ProfileEditPage() {
   const [agreedMarketing, setAgreedMarketing] = useState(false);
   const [agreedMatch, setAgreedMatch] = useState(false);
   const [autosaveTipOpen, setAutosaveTipOpen] = useState(false);
+  const [postConfirmOpen, setPostConfirmOpen] = useState(false);
   const userRef = useRef(user);
   userRef.current = user;
 
@@ -179,6 +202,8 @@ export function ProfileEditPage() {
     setMgmtSharePercent(
       p?.mgmtShare?.percent != null ? String(p.mgmtShare.percent) : "",
     );
+    setRentAmount(wonToManDigits(p?.rentAmount));
+    setMgmtAmount(wonToManDigits(p?.mgmtAmount));
     setNoSmoker(Boolean(p?.noSmoker));
     setNoPet(Boolean(p?.noPet));
     setNoDrink(Boolean(p?.noDrink));
@@ -196,13 +221,18 @@ export function ProfileEditPage() {
     if (
       stepParam &&
       stepParam !== "role" &&
+      stepParam !== "cost" &&
       stepParam !== "region" &&
       stepParam !== "detail" &&
       stepParam !== "prefs"
     ) {
       navigate(STEP_PATH.role, { replace: true });
+      return;
     }
-  }, [hydrated, stepParam, navigate]);
+    if (step === "cost" && seekRole && seekRole !== "has_room") {
+      navigate(STEP_PATH.region, { replace: true });
+    }
+  }, [hydrated, stepParam, step, seekRole, navigate]);
 
   const hasRoom = seekRole === "has_room";
   const showWfhOption =
@@ -247,6 +277,8 @@ export function ProfileEditPage() {
         homeTime: homeTime ?? undefined,
         cleanFreq: cleanFreq ?? undefined,
         prefGender: prefGender ?? undefined,
+        rentAmount: manDigitsToWon(rentAmount),
+        mgmtAmount: manDigitsToWon(mgmtAmount),
         rentShare: rentShareMode
           ? {
               mode: rentShareMode,
@@ -299,6 +331,8 @@ export function ProfileEditPage() {
     homeTime,
     cleanFreq,
     prefGender,
+    rentAmount,
+    mgmtAmount,
     rentShareMode,
     rentSharePercent,
     mgmtShareMode,
@@ -327,6 +361,17 @@ export function ProfileEditPage() {
 
   const handleNextFromRegion = () => {
     if (!seekRole || regions.length === 0) return;
+    persistDraft();
+    if (seekRole === "has_room") {
+      navigate(STEP_PATH.cost);
+      return;
+    }
+    navigate(STEP_PATH.detail);
+  };
+
+  const handleNextFromCost = () => {
+    if (!toInt(rentAmount) || !toInt(mgmtAmount)) return;
+    persistDraft();
     navigate(STEP_PATH.detail);
   };
 
@@ -336,6 +381,8 @@ export function ProfileEditPage() {
     const n = Number(percent);
     return percent.trim() !== "" && Number.isFinite(n) && n >= 1 && n <= 99;
   };
+
+  const costInvalid = !toInt(rentAmount) || !toInt(mgmtAmount);
 
   const lifestyleInvalid =
     !job ||
@@ -357,7 +404,10 @@ export function ProfileEditPage() {
       !isShareValid(mgmtShareMode, mgmtSharePercent));
 
   const detailInvalid =
-    lifestyleInvalid || prefsInvalid || !agreedMatch;
+    lifestyleInvalid ||
+    prefsInvalid ||
+    !agreedMatch ||
+    (hasRoom && costInvalid);
 
   const agreeAll =
     agreedMatch && agreedLocation && agreedPush && agreedMarketing;
@@ -379,10 +429,7 @@ export function ProfileEditPage() {
     persistDraft();
     if (next === "post") {
       if (detailInvalid) return;
-      navigate("/explore", {
-        replace: true,
-        state: { intent: "create-listing" },
-      });
+      navigate("/explore/listing", { replace: true });
       return;
     }
     if (next === "find") {
@@ -393,6 +440,7 @@ export function ProfileEditPage() {
       });
       return;
     }
+    if (detailInvalid) return;
     navigate("/profile", { replace: true });
   };
 
@@ -418,12 +466,24 @@ export function ProfileEditPage() {
   };
 
   const handleBack = () => {
+    persistDraft();
     if (step === "role") {
-      persistDraft();
       navigate("/profile");
       return;
     }
-    navigate(-1);
+    if (step === "region") {
+      navigate(STEP_PATH.role);
+      return;
+    }
+    if (step === "cost") {
+      navigate(STEP_PATH.region);
+      return;
+    }
+    if (step === "detail") {
+      navigate(hasRoom ? STEP_PATH.cost : STEP_PATH.region);
+      return;
+    }
+    navigate(STEP_PATH.detail);
   };
 
   if (!isLoggedIn || !user) return null;
@@ -438,9 +498,7 @@ export function ProfileEditPage() {
   };
 
   return (
-    <section
-      className={cn(styles.page, step === "prefs" && styles.pagePrefs)}
-    >
+    <section className={cn(styles.page, step === "prefs" && styles.pagePrefs)}>
       <div className={styles.topBar}>
         <button
           type="button"
@@ -451,13 +509,19 @@ export function ProfileEditPage() {
           <ArrowLeft className="size-[1.15rem]" strokeWidth={2.4} />
         </button>
         <p className={styles.stepLabel}>
-          {step === "role"
-            ? "추가 정보 · 1단계"
-            : step === "region"
-              ? "추가 정보 · 2단계"
-              : step === "detail"
-                ? "추가 정보 · 3단계"
-                : "추가 정보 · 4단계"}
+          {(() => {
+            if (hasRoom) {
+              if (step === "role") return "추가 정보 · 1단계";
+              if (step === "region") return "추가 정보 · 2단계";
+              if (step === "cost") return "추가 정보 · 3단계";
+              if (step === "detail") return "추가 정보 · 4단계";
+              return "추가 정보 · 5단계";
+            }
+            if (step === "role") return "추가 정보 · 1단계";
+            if (step === "region") return "추가 정보 · 2단계";
+            if (step === "detail") return "추가 정보 · 3단계";
+            return "추가 정보 · 4단계";
+          })()}
         </p>
       </div>
 
@@ -498,6 +562,78 @@ export function ProfileEditPage() {
             })}
           </div>
         </>
+      ) : step === "cost" ? (
+        <>
+          <div className={styles.intro}>
+            <h2 className={styles.title}>
+              지금 내고 있는
+              <br />
+              <span className={styles.accent}>월세·관리비</span>를 알려주세요
+            </h2>
+            <p className={styles.desc}>
+              룸메와 나눌 비용을 계산하는 데 쓰여요.
+            </p>
+          </div>
+
+          <section className={styles.block}>
+            <div className={styles.field}>
+              <p className={styles.label}>
+                현재 월세 <span className={styles.required}>*</span>
+              </p>
+              <p className={styles.fieldHint}>
+                지금 내고 있는 월세 금액을 적어 주세요.
+              </p>
+              <div className={styles.amountField}>
+                <Input
+                  id="rentAmount"
+                  className={styles.input}
+                  inputMode="numeric"
+                  placeholder="예: 30"
+                  value={rentAmount}
+                  onChange={(e) => setRentAmount(digitsOnly(e.target.value))}
+                />
+                <span className={styles.amountSuffix} aria-hidden>
+                  만원
+                </span>
+              </div>
+            </div>
+
+            <div className={styles.field}>
+              <p className={styles.label}>
+                현재 관리비 <span className={styles.required}>*</span>
+              </p>
+              <p className={styles.fieldHint}>
+                평균적으로 내고 있는 관리비 금액을 적어 주세요.
+              </p>
+              <div className={styles.fieldNotice} role="note">
+                공동사용료, 수도, 전기 등을 모두 포함한 금액으로 적어 주세요.
+              </div>
+              <div className={styles.amountField}>
+                <Input
+                  id="mgmtAmount"
+                  className={styles.input}
+                  inputMode="numeric"
+                  placeholder="예: 3"
+                  value={mgmtAmount}
+                  onChange={(e) => setMgmtAmount(digitsOnly(e.target.value))}
+                />
+                <span className={styles.amountSuffix} aria-hidden>
+                  만원
+                </span>
+              </div>
+            </div>
+          </section>
+
+          <Button
+            type="button"
+            className={styles.submit}
+            size="lg"
+            disabled={costInvalid}
+            onClick={handleNextFromCost}
+          >
+            다음
+          </Button>
+        </>
       ) : step === "region" ? (
         <>
           <div className={styles.intro}>
@@ -524,7 +660,9 @@ export function ProfileEditPage() {
           </div>
 
           <section className={styles.block}>
-            <h3 className={styles.blockTitle}>희망 지역</h3>
+            <h3 className={styles.blockTitle}>
+              {hasRoom ? "거주 지역" : "희망 지역"}
+            </h3>
             <p className={styles.blockHint}>
               광역을 고른 뒤 구/시를 선택해 주세요. 여러 지역을 고를 수 있어요.
             </p>
@@ -1191,18 +1329,34 @@ export function ProfileEditPage() {
               className={styles.submit}
               size="lg"
               disabled={detailInvalid}
-              onClick={() => leaveTo(hasRoom ? "post" : "find")}
+              onClick={() => {
+                if (detailInvalid) return;
+                if (hasRoom) {
+                  setPostConfirmOpen(true);
+                  return;
+                }
+                leaveTo("find");
+              }}
             >
-              {hasRoom ? "이 정보로 살짝 구하기" : "이 정보로 살짝 찾기"}
+              {hasRoom ? "바로 살짝 구할게요" : "이 정보로 살짝 찾기"}
             </Button>
+            {hasRoom ? (
+              <Button
+                type="button"
+                variant="outline"
+                className={cn(styles.submit, styles.submitSecondary)}
+                size="lg"
+                disabled={detailInvalid}
+                onClick={() => leaveTo("profile")}
+              >
+                일단 등록만 할게요
+              </Button>
+            ) : null}
           </div>
         </>
       )}
 
-      <Dialog
-        open={autosaveTipOpen}
-        onOpenChange={setAutosaveTipOpen}
-      >
+      <Dialog open={autosaveTipOpen} onOpenChange={setAutosaveTipOpen}>
         <DialogContent className={styles.dialogContent} showCloseButton={false}>
           <div className={styles.modalInner}>
             <div className={styles.modalIconWrap} aria-hidden>
@@ -1228,6 +1382,49 @@ export function ProfileEditPage() {
                 onClick={confirmAutosaveTip}
               >
                 확인했어요
+              </Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={postConfirmOpen} onOpenChange={setPostConfirmOpen}>
+        <DialogContent className={styles.dialogContent} showCloseButton={false}>
+          <div className={cn(styles.modalInner, styles.modalInnerSpacious)}>
+            <DialogHeader
+              className={cn(styles.modalHeader, styles.modalHeaderSpacious)}
+            >
+              <DialogTitle className={styles.modalTitle}>
+                살짝 구하기를 등록할까요?
+              </DialogTitle>
+              <DialogDescription className={styles.modalDesc}>
+                입력한 정보를 토대로
+                <br />
+                찾기 탭에 게시글이 바로 올라가요.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter
+              className={cn(styles.dialogFooter, styles.dialogFooterDual)}
+            >
+              <Button
+                type="button"
+                className={styles.modalAction}
+                size="lg"
+                onClick={() => {
+                  setPostConfirmOpen(false);
+                  leaveTo("post");
+                }}
+              >
+                살짝 구하기
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className={cn(styles.modalAction, styles.modalActionSecondary)}
+                size="lg"
+                onClick={() => setPostConfirmOpen(false)}
+              >
+                나중에 할게요
               </Button>
             </DialogFooter>
           </div>

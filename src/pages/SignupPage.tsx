@@ -272,9 +272,7 @@ export function SignupPage() {
               월세 나눌 사람을 만나보세요
             </h2>
             <p className={styles.desc}>
-              네이버·카카오·구글·애플로 빠르게 시작하거나
-              <br />
-              일반 회원가입으로 진행할 수 있어요.
+              간편 로그인 혹은 일반 회원가입으로 진행할 수 있어요.
             </p>
           </div>
 
@@ -373,7 +371,8 @@ export function SignupPage() {
                     onChange={(e) => setPasswordConfirm(e.target.value)}
                     required
                   />
-                  {passwordConfirm.length > 0 && password !== passwordConfirm ? (
+                  {passwordConfirm.length > 0 &&
+                  password !== passwordConfirm ? (
                     <p className={styles.fieldHintError}>
                       비밀번호가 일치하지 않습니다.
                     </p>
@@ -576,7 +575,9 @@ export function SignupPage() {
                 className={styles.input}
                 placeholder="0000-00-00"
                 value={draftBirthDate}
-                onChange={(e) => setDraftBirthDate(formatBirthDate(e.target.value))}
+                onChange={(e) =>
+                  setDraftBirthDate(formatBirthDate(e.target.value))
+                }
                 maxLength={10}
               />
             </div>

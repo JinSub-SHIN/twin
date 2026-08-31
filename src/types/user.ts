@@ -71,6 +71,10 @@ export type UserPref = {
   homeTime?: HomeTime
   cleanFreq?: CleanFreq
   prefGender?: PrefGender
+  /** 현재 월세 금액(원) — has_room */
+  rentAmount?: number
+  /** 현재 평균 관리비 금액(원) — has_room */
+  mgmtAmount?: number
   /** 분담 월세 */
   rentShare?: CostShare
   /** 분담 관리비 */
@@ -199,6 +203,8 @@ function hasHope(pref?: UserPref): boolean {
   if (!pref) return false
   return (
     Boolean(pref.prefGender) ||
+    pref.rentAmount != null ||
+    pref.mgmtAmount != null ||
     Boolean(pref.rentShare?.mode) ||
     Boolean(pref.mgmtShare?.mode) ||
     pref.noSmoker === true ||

@@ -10,8 +10,9 @@ export function AppLayout() {
   const isSignup = pathname.startsWith('/signup')
   const isLogin = pathname.startsWith('/login')
   const isProfileEdit = pathname.startsWith('/profile/edit')
+  const isListingPreview = pathname.startsWith('/explore/listing')
   const isAuthPage = isSignup || isLogin
-  const hideHeader = isAuthPage || isProfileEdit
+  const hideHeader = isAuthPage || isProfileEdit || isListingPreview
   const showBottomNav = !isAuthPage
 
   return (
@@ -24,6 +25,7 @@ export function AppLayout() {
           isHome ? styles.mainHome : styles.mainDefault,
           isAuthPage && styles.mainAuth,
           isProfileEdit && styles.mainProfileEdit,
+          isListingPreview && styles.mainListingPreview,
         )}
       >
         <Outlet />

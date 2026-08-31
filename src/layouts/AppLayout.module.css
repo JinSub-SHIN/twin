@@ -63,3 +63,13 @@
   padding-bottom: calc(4rem + env(safe-area-inset-bottom) + 0.75rem);
   background: oklch(0.97 0.005 145);
 }
+
+.mainListingPreview {
+  display: flex;
+  flex-direction: column;
+  padding-top: calc(env(safe-area-inset-top) + 0.85rem);
+  padding-bottom: calc(4rem + env(safe-area-inset-bottom));
+  overflow: hidden;
+  scrollbar-gutter: auto;
+  background: oklch(0.975 0.008 120);
+}
