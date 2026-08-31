@@ -12,6 +12,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { AppleSignInButton } from "@/components/AppleSignInButton";
+import { GoogleSignInButton } from "@/components/GoogleSignInButton";
+import { KakaoSignInButton } from "@/components/KakaoSignInButton";
+import { NaverSignInButton } from "@/components/NaverSignInButton";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 import type { Gender, SocialProvider, UserProfile } from "@/types/user";
@@ -268,34 +272,29 @@ export function SignupPage() {
               월세 나눌 사람을 만나보세요
             </h2>
             <p className={styles.desc}>
-              카카오·네이버·애플로 빠르게 시작하거나
+              네이버·카카오·구글·애플로 빠르게 시작하거나
               <br />
               일반 회원가입으로 진행할 수 있어요.
             </p>
           </div>
 
           <div className={styles.socialList}>
-            <button
-              type="button"
-              className={cn(styles.socialBtn, styles.kakao)}
-              onClick={() => handleSocial("kakao")}
-            >
-              카카오로 시작하기
-            </button>
-            <button
-              type="button"
-              className={cn(styles.socialBtn, styles.naver)}
+            <NaverSignInButton
+              label="네이버로 시작하기"
               onClick={() => handleSocial("naver")}
-            >
-              네이버로 시작하기
-            </button>
-            <button
-              type="button"
-              className={cn(styles.socialBtn, styles.apple)}
+            />
+            <KakaoSignInButton
+              label="카카오로 시작하기"
+              onClick={() => handleSocial("kakao")}
+            />
+            <GoogleSignInButton
+              label="Google로 시작하기"
+              onClick={() => handleSocial("google")}
+            />
+            <AppleSignInButton
+              label="Apple로 시작하기"
               onClick={() => handleSocial("apple")}
-            >
-              Apple로 시작하기
-            </button>
+            />
 
             <div className={styles.divider}>
               <span>또는</span>

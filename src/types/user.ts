@@ -1,4 +1,4 @@
-export type SocialProvider = 'kakao' | 'naver' | 'apple' | 'email'
+export type SocialProvider = 'kakao' | 'naver' | 'apple' | 'google' | 'email'
 
 export type Gender = 'male' | 'female' | 'other'
 

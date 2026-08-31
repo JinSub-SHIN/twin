@@ -11,6 +11,10 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
+import { AppleSignInButton } from '@/components/AppleSignInButton'
+import { GoogleSignInButton } from '@/components/GoogleSignInButton'
+import { KakaoSignInButton } from '@/components/KakaoSignInButton'
+import { NaverSignInButton } from '@/components/NaverSignInButton'
 import { useAuth } from '@/context/AuthContext'
 import { cn } from '@/lib/utils'
 import type { SocialProvider, UserProfile } from '@/types/user'
@@ -27,11 +31,14 @@ type FieldErrors = {
   password?: string
 }
 
-function createDemoUser(loginId: string): UserProfile {
+function createDemoUser(
+  provider: SocialProvider,
+  loginId?: string,
+): UserProfile {
   return {
-    provider: 'email',
-    loginId,
-    nickname: '살짝유저',
+    provider,
+    ...(provider === 'email' && loginId ? { loginId } : {}),
+    nickname: provider === 'google' ? '구글유저' : '살짝유저',
     birthDate: '1995-01-01',
     gender: 'female',
     phone: '010-0000-0000',
@@ -75,12 +82,21 @@ export function LoginPage() {
       return
     }
 
-    signup(createDemoUser(id))
+    signup(createDemoUser('email', id))
     navigate('/profile', { replace: true })
   }
 
-  const handleSocial = (_provider: Exclude<SocialProvider, 'email'>) => {
+  const handleSocial = (provider: Exclude<SocialProvider, 'email'>) => {
     setFieldErrors({})
+    setError('')
+
+    if (provider === 'google') {
+      // 서버 연동 전: 구글 로그인 데모
+      signup(createDemoUser('google'))
+      navigate('/profile', { replace: true })
+      return
+    }
+
     setError('SNS 로그인 연동은 준비 중이에요. 잠시만 기다려 주세요.')
   }
 
@@ -164,27 +180,13 @@ export function LoginPage() {
           <span>또는</span>
         </div>
         <div className={styles.socialList}>
-          <button
-            type="button"
-            className={cn(styles.socialBtn, styles.kakao)}
-            onClick={() => handleSocial('kakao')}
-          >
-            카카오로 로그인
-          </button>
-          <button
-            type="button"
-            className={cn(styles.socialBtn, styles.naver)}
-            onClick={() => handleSocial('naver')}
-          >
-            네이버로 로그인
-          </button>
-          <button
-            type="button"
-            className={cn(styles.socialBtn, styles.apple)}
-            onClick={() => handleSocial('apple')}
-          >
-            Apple로 로그인
-          </button>
+          <NaverSignInButton onClick={() => handleSocial('naver')} />
+          <KakaoSignInButton onClick={() => handleSocial('kakao')} />
+          <GoogleSignInButton
+            label="Google로 로그인"
+            onClick={() => handleSocial('google')}
+          />
+          <AppleSignInButton onClick={() => handleSocial('apple')} />
         </div>
       </div>
 

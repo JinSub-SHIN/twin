@@ -925,24 +925,12 @@ export function ProfileEditPage() {
         <>
           <div className={styles.intro}>
             <h2 className={styles.title}>
-              {hasRoom ? (
-                <>
-                  원하는 룸메와
-                  <br />
-                  <span className={styles.accent}>한 마디</span>를 남겨주세요
-                </>
-              ) : (
-                <>
-                  마지막으로
-                  <br />
-                  <span className={styles.accent}>한 마디</span>를 남겨주세요
-                </>
-              )}
+              마지막으로
+              <br />
+              <span className={styles.accent}>동의</span>를 확인해 주세요
             </h2>
             <p className={styles.desc}>
-              {hasRoom
-                ? "룸메 조건과 소개, 동의를 확인해주세요."
-                : "소개와 동의를 확인해주세요."}
+              서비스 이용을 위해 아래 항목에 동의해 주세요.
             </p>
           </div>
 
@@ -1207,17 +1195,6 @@ export function ProfileEditPage() {
             >
               {hasRoom ? "이 정보로 살짝 구하기" : "이 정보로 살짝 찾기"}
             </Button>
-            {hasRoom ? (
-              <Button
-                type="button"
-                className={cn(styles.submit, styles.submitSecondary)}
-                size="lg"
-                variant="outline"
-                onClick={() => leaveTo("profile")}
-              >
-                살짝은 나중에 구하기
-              </Button>
-            ) : null}
           </div>
         </>
       )}
