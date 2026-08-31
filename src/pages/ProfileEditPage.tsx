@@ -1,8 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Home, Search, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { DayClock } from "@/components/DayClock";
 import { useAuth } from "@/context/AuthContext";
@@ -28,11 +36,10 @@ import {
   type SeekRole,
   type ShareMode,
   type SmokingType,
-  type UserPref,
 } from "@/types/user";
 import styles from "./ProfileEditPage.module.css";
 
-type Step = "role" | "region" | "detail";
+type Step = "role" | "region" | "detail" | "prefs";
 
 const SHARE_MODE_OPTIONS: { value: ShareMode; label: string }[] = [
   { value: "half", label: "1/2" },
@@ -107,6 +114,9 @@ export function ProfileEditPage() {
   const [agreedLocation, setAgreedLocation] = useState(false);
   const [agreedPush, setAgreedPush] = useState(false);
   const [agreedMarketing, setAgreedMarketing] = useState(false);
+  const [autosaveTipOpen, setAutosaveTipOpen] = useState(false);
+  const userRef = useRef(user);
+  userRef.current = user;
 
   useEffect(() => {
     if (!isLoggedIn || !user) {
@@ -160,6 +170,114 @@ export function ProfileEditPage() {
     setHydrated(true);
   }, [isLoggedIn, user, navigate, hydrated]);
 
+  const hasRoom = seekRole === "has_room";
+  const showWfhOption =
+    job === "employee" || job === "freelancer" || job === "other";
+
+  const persistDraft = () => {
+    const current = userRef.current;
+    if (!current) return;
+
+    updateUser({
+      job: job ?? undefined,
+      jobOther: job === "other" ? jobOther.trim() || undefined : undefined,
+      bio: bio.trim() || undefined,
+      agreedLocation,
+      agreedPush,
+      agreedMarketing,
+      pref: {
+        ...current.pref,
+        seekRole: seekRole ?? undefined,
+        regions: regions.length ? regions : undefined,
+        sleepHour: toInt(sleepHour),
+        wakeHour: toInt(wakeHour),
+        personality: personality ?? undefined,
+        smoking: smokingType != null && smokingType !== "none",
+        smokingType: smokingType ?? undefined,
+        pet,
+        petInfo:
+          pet && petKind
+            ? {
+                kind: petKind,
+                kindOther:
+                  petKind === "other"
+                    ? petKindOther.trim() || undefined
+                    : undefined,
+                name: petName.trim() || undefined,
+                note: petNote.trim() || undefined,
+              }
+            : undefined,
+        wfh: showWfhOption ? wfh : false,
+        drinkFreq: drinkFreq ?? undefined,
+        homeTime: homeTime ?? undefined,
+        cleanFreq: cleanFreq ?? undefined,
+        prefGender: prefGender ?? undefined,
+        rentShare: rentShareMode
+          ? {
+              mode: rentShareMode,
+              percent:
+                rentShareMode === "custom"
+                  ? toInt(rentSharePercent)
+                  : undefined,
+            }
+          : undefined,
+        mgmtShare: mgmtShareMode
+          ? {
+              mode: mgmtShareMode,
+              percent:
+                mgmtShareMode === "custom"
+                  ? toInt(mgmtSharePercent)
+                  : undefined,
+            }
+          : undefined,
+        noSmoker,
+        noPet,
+        noDrink,
+      },
+    });
+  };
+
+  useEffect(() => {
+    if (!hydrated) return;
+    const timer = window.setTimeout(() => {
+      persistDraft();
+    }, 350);
+    return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- draft fields only; avoid user loop
+  }, [
+    hydrated,
+    seekRole,
+    regions,
+    job,
+    jobOther,
+    sleepHour,
+    wakeHour,
+    personality,
+    smokingType,
+    pet,
+    petKind,
+    petKindOther,
+    petName,
+    petNote,
+    wfh,
+    drinkFreq,
+    homeTime,
+    cleanFreq,
+    prefGender,
+    rentShareMode,
+    rentSharePercent,
+    mgmtShareMode,
+    mgmtSharePercent,
+    noSmoker,
+    noPet,
+    noDrink,
+    bio,
+    agreedLocation,
+    agreedPush,
+    agreedMarketing,
+    showWfhOption,
+  ]);
+
   const handleSelectRole = (role: SeekRole) => {
     if (!user) return;
     const roleChanged = seekRole !== role;
@@ -168,31 +286,13 @@ export function ProfileEditPage() {
       setRegions([]);
       setRegionCity(null);
     }
-    updateUser({
-      pref: {
-        ...user.pref,
-        seekRole: role,
-        ...(roleChanged ? { regions: undefined } : {}),
-      },
-    });
-    setStep("region");
+    setAutosaveTipOpen(true);
   };
 
   const handleNextFromRegion = () => {
-    if (!user || !seekRole || regions.length === 0) return;
-    updateUser({
-      pref: {
-        ...user.pref,
-        seekRole,
-        regions,
-      },
-    });
+    if (!seekRole || regions.length === 0) return;
     setStep("detail");
   };
-
-  const hasRoom = seekRole === "has_room";
-  const showWfhOption =
-    job === "employee" || job === "freelancer" || job === "other";
 
   const isShareValid = (mode: ShareMode | null, percent: string) => {
     if (!mode) return false;
@@ -201,7 +301,7 @@ export function ProfileEditPage() {
     return percent.trim() !== "" && Number.isFinite(n) && n >= 1 && n <= 99;
   };
 
-  const detailInvalid =
+  const lifestyleInvalid =
     !job ||
     (job === "other" && !jobOther.trim()) ||
     sleepHour === "" ||
@@ -212,75 +312,61 @@ export function ProfileEditPage() {
     !drinkFreq ||
     !smokingType ||
     (pet && !petKind) ||
-    (pet && petKind === "other" && !petKindOther.trim()) ||
-    (hasRoom &&
-      (!prefGender ||
-        !isShareValid(rentShareMode, rentSharePercent) ||
-        !isShareValid(mgmtShareMode, mgmtSharePercent)));
+    (pet && petKind === "other" && !petKindOther.trim());
 
-  const handleSaveDetail = () => {
-    if (!user || !seekRole) return;
-    if (detailInvalid) return;
+  const prefsInvalid =
+    hasRoom &&
+    (!prefGender ||
+      !isShareValid(rentShareMode, rentSharePercent) ||
+      !isShareValid(mgmtShareMode, mgmtSharePercent));
 
-    const pref: UserPref = {
-      ...user.pref,
-      seekRole,
-      regions: regions.length ? regions : undefined,
-      sleepHour: toInt(sleepHour),
-      wakeHour: toInt(wakeHour),
-      personality: personality ?? undefined,
-      smoking: smokingType != null && smokingType !== "none",
-      smokingType: smokingType ?? undefined,
-      pet,
-      petInfo:
-        pet && petKind
-          ? {
-              kind: petKind,
-              kindOther:
-                petKind === "other"
-                  ? petKindOther.trim() || undefined
-                  : undefined,
-              name: petName.trim() || undefined,
-              note: petNote.trim() || undefined,
-            }
-          : undefined,
-      wfh: showWfhOption ? wfh : false,
-      drinkFreq: drinkFreq ?? undefined,
-      homeTime: homeTime ?? undefined,
-      cleanFreq: cleanFreq ?? undefined,
-      prefGender: prefGender ?? undefined,
-      rentShare: rentShareMode
-        ? {
-            mode: rentShareMode,
-            percent:
-              rentShareMode === "custom" ? toInt(rentSharePercent) : undefined,
-          }
-        : undefined,
-      mgmtShare: mgmtShareMode
-        ? {
-            mode: mgmtShareMode,
-            percent:
-              mgmtShareMode === "custom" ? toInt(mgmtSharePercent) : undefined,
-          }
-        : undefined,
-      noSmoker,
-      noPet,
-      noDrink,
-    };
+  const detailInvalid = lifestyleInvalid || prefsInvalid;
 
-    updateUser({
-      job: job ?? undefined,
-      jobOther: job === "other" ? jobOther.trim() || undefined : undefined,
-      bio: bio.trim() || undefined,
-      agreedLocation,
-      agreedPush,
-      agreedMarketing,
-      pref,
-    });
+  const handleNextFromDetail = () => {
+    if (lifestyleInvalid) return;
+    persistDraft();
+    setStep("prefs");
+  };
+
+  const leaveTo = (next: "profile" | "post") => {
+    persistDraft();
+    if (next === "post") {
+      if (detailInvalid) return;
+      navigate("/explore", {
+        replace: true,
+        state: { intent: "create-listing" },
+      });
+      return;
+    }
     navigate("/profile", { replace: true });
   };
 
+  useEffect(() => {
+    const scrollTop = () => {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+      const main = document.querySelector("main");
+      if (main instanceof HTMLElement) {
+        main.scrollTop = 0;
+      }
+    };
+    scrollTop();
+    // 레이아웃 반영 후 한 번 더 (모바일에서 잔여 스크롤 방지)
+    const id = window.requestAnimationFrame(scrollTop);
+    return () => window.cancelAnimationFrame(id);
+  }, [step]);
+
+  const confirmAutosaveTip = () => {
+    setAutosaveTipOpen(false);
+    setStep("region");
+  };
+
   const handleBack = () => {
+    if (step === "prefs") {
+      setStep("detail");
+      return;
+    }
     if (step === "detail") {
       setStep("region");
       return;
@@ -289,6 +375,7 @@ export function ProfileEditPage() {
       setStep("role");
       return;
     }
+    persistDraft();
     navigate("/profile");
   };
 
@@ -319,7 +406,9 @@ export function ProfileEditPage() {
             ? "추가 정보 · 1단계"
             : step === "region"
               ? "추가 정보 · 2단계"
-              : "추가 정보 · 3단계"}
+              : step === "detail"
+                ? "추가 정보 · 3단계"
+                : "추가 정보 · 4단계"}
         </p>
       </div>
 
@@ -485,29 +574,15 @@ export function ProfileEditPage() {
             다음
           </Button>
         </>
-      ) : (
+      ) : step === "detail" ? (
         <>
           <div className={styles.intro}>
             <h2 className={styles.title}>
-              {hasRoom ? (
-                <>
-                  룸메에게 맞는
-                  <br />
-                  <span className={styles.accent}>정보</span>를 알려주세요
-                </>
-              ) : (
-                <>
-                  집 구할 때 필요한
-                  <br />
-                  <span className={styles.accent}>정보</span>를 알려주세요
-                </>
-              )}
+              나를 알려주는
+              <br />
+              <span className={styles.accent}>기본 정보</span>예요
             </h2>
-            <p className={styles.desc}>
-              {hasRoom
-                ? "내 생활 습관과 함께 지낼 사람 조건을 적어주세요."
-                : "생활 습관을 알려주시면 매칭에 도움이 돼요."}
-            </p>
+            <p className={styles.desc}>직업과 생활 습관을 먼저 적어주세요.</p>
           </div>
 
           <section className={styles.block}>
@@ -787,6 +862,41 @@ export function ProfileEditPage() {
             ) : null}
           </section>
 
+          <Button
+            type="button"
+            className={styles.submit}
+            size="lg"
+            disabled={lifestyleInvalid}
+            onClick={handleNextFromDetail}
+          >
+            다음
+          </Button>
+        </>
+      ) : (
+        <>
+          <div className={styles.intro}>
+            <h2 className={styles.title}>
+              {hasRoom ? (
+                <>
+                  원하는 룸메와
+                  <br />
+                  <span className={styles.accent}>한 마디</span>를 남겨주세요
+                </>
+              ) : (
+                <>
+                  마지막으로
+                  <br />
+                  <span className={styles.accent}>한 마디</span>를 남겨주세요
+                </>
+              )}
+            </h2>
+            <p className={styles.desc}>
+              {hasRoom
+                ? "룸메 조건과 소개, 동의를 확인해주세요."
+                : "소개와 동의를 확인해주세요."}
+            </p>
+          </div>
+
           {hasRoom ? (
             <section className={styles.block}>
               <h3 className={styles.blockTitle}>원하는 룸메 조건</h3>
@@ -987,17 +1097,65 @@ export function ProfileEditPage() {
             </label>
           </section>
 
-          <Button
-            type="button"
-            className={styles.submit}
-            size="lg"
-            disabled={detailInvalid}
-            onClick={handleSaveDetail}
-          >
-            저장하고 나가기
-          </Button>
+          <div className={styles.submitGroup}>
+            {hasRoom ? (
+              <Button
+                type="button"
+                className={styles.submit}
+                size="lg"
+                disabled={detailInvalid}
+                onClick={() => leaveTo("post")}
+              >
+                이 정보로 살짝 구하기
+              </Button>
+            ) : null}
+            <Button
+              type="button"
+              className={cn(styles.submit, hasRoom && styles.submitSecondary)}
+              size="lg"
+              variant={hasRoom ? "outline" : "default"}
+              onClick={() => leaveTo("profile")}
+            >
+              살짝은 나중에 구하기
+            </Button>
+          </div>
         </>
       )}
+
+      <Dialog
+        open={autosaveTipOpen}
+        onOpenChange={setAutosaveTipOpen}
+      >
+        <DialogContent className={styles.dialogContent} showCloseButton={false}>
+          <div className={styles.modalInner}>
+            <div className={styles.modalIconWrap} aria-hidden>
+              <span className={styles.modalIcon}>✓</span>
+            </div>
+            <DialogHeader className={styles.modalHeader}>
+              <DialogTitle className={styles.modalTitle}>
+                입력한 정보는 자동 저장돼요
+              </DialogTitle>
+              <DialogDescription className={styles.modalDesc}>
+                앱을 종료하거나 페이지를 나가도
+                <br />
+                작성 중이던 내용이 그대로 남아 있어요.
+                <br />
+                안심하고 천천히 적어 주세요.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className={styles.dialogFooter}>
+              <Button
+                type="button"
+                className={styles.modalAction}
+                size="lg"
+                onClick={confirmAutosaveTip}
+              >
+                확인했어요
+              </Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }
