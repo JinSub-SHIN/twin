@@ -250,3 +250,11 @@ export const REGION_CITIES = Object.keys(REGION_TREE)
 export function formatRegion(city: string, district: string) {
   return `${city} ${district}`
 }
+
+export function cityOfRegion(region?: string) {
+  return region?.trim().split(/\s+/)[0] ?? ""
+}
+
+export function districtOfRegion(region?: string) {
+  return region?.trim().split(/\s+/).slice(1).join(" ") ?? ""
+}
