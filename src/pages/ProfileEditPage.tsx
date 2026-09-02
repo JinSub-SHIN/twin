@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, ArrowRight, Home, Search, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Home, MapPin, Search, X } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -538,7 +538,7 @@ export function ProfileEditPage() {
     );
 
   return (
-    <section className={cn(styles.page, step === "prefs" && styles.pagePrefs)}>
+    <section className={styles.page}>
       <div className={styles.topBar}>
         <button
           type="button"
@@ -567,6 +567,7 @@ export function ProfileEditPage() {
         </p>
       </div>
 
+      <div className={styles.stepBody}>
       {step === "role" ? (
         <>
           <div className={styles.intro}>
@@ -665,16 +666,6 @@ export function ProfileEditPage() {
               </div>
             </div>
           </section>
-
-          <Button
-            type="button"
-            className={styles.submit}
-            size="lg"
-            disabled={costInvalid}
-            onClick={handleNextFromCost}
-          >
-            다음
-          </Button>
         </>
       ) : step === "region" ? (
         <>
@@ -783,16 +774,6 @@ export function ProfileEditPage() {
               </div>
             ) : null}
           </section>
-
-          <Button
-            type="button"
-            className={styles.submit}
-            size="lg"
-            disabled={regions.length === 0}
-            onClick={handleNextFromRegion}
-          >
-            다음
-          </Button>
         </>
       ) : step === "station" ? (
         <>
@@ -803,117 +784,185 @@ export function ProfileEditPage() {
               <span className={styles.accent}>지하철역</span>을 알려주세요
             </h2>
             <p className={styles.desc}>
-              거주하고 계신 곳에서 가장 가까운 역을 골라 주세요.
-              {selectedRegion ? ` ${selectedRegion} 기준으로 찾아볼게요.` : ""}
+              {selectedRegion
+                ? `${selectedRegion}에서 가장 가까운 역을 찾아볼게요.`
+                : "집 근처 역을 검색해 주세요."}
             </p>
           </div>
 
-          <section className={styles.block}>
-            <div className={styles.field}>
-              <p className={styles.label}>가장 가까운 역</p>
-              <div className={styles.selectedRow}>
-                <button
-                  type="button"
-                  className={cn(
-                    styles.noneStationChip,
-                    nearestStation === NO_NEARBY_STATION &&
-                      styles.noneStationChipActive,
-                  )}
-                  onClick={() => {
-                    setNearestStation(
-                      nearestStation === NO_NEARBY_STATION
-                        ? ""
-                        : NO_NEARBY_STATION,
-                    );
-                    setStationQuery("");
-                  }}
-                >
-                  {NO_NEARBY_STATION}
-                </button>
-                {nearestStation && nearestStation !== NO_NEARBY_STATION ? (
+          <div className={styles.stationChoice}>
+            <button
+              type="button"
+              className={cn(
+                styles.stationChoiceBtn,
+                nearestStation !== NO_NEARBY_STATION &&
+                  styles.stationChoiceBtnOn,
+              )}
+              onClick={() => {
+                if (nearestStation === NO_NEARBY_STATION) {
+                  setNearestStation("");
+                }
+              }}
+            >
+              역 검색하기
+            </button>
+            <button
+              type="button"
+              className={cn(
+                styles.stationChoiceBtn,
+                nearestStation === NO_NEARBY_STATION &&
+                  styles.stationChoiceBtnOn,
+              )}
+              onClick={() => {
+                setNearestStation(NO_NEARBY_STATION);
+                setStationQuery("");
+              }}
+            >
+              가까운 역 없음
+            </button>
+          </div>
+
+          <div
+            className={cn(
+              styles.stationFold,
+              nearestStation === NO_NEARBY_STATION && styles.stationFoldClosed,
+            )}
+          >
+            <div
+              className={styles.stationFoldInner}
+              aria-hidden={nearestStation === NO_NEARBY_STATION}
+            >
+              {nearestStation && nearestStation !== NO_NEARBY_STATION ? (
+                <div className={styles.stationPicked}>
+                  <span className={styles.stationPickedIcon} aria-hidden>
+                    <MapPin className="size-4" strokeWidth={2.3} />
+                  </span>
+                  <span className={styles.stationPickedText}>
+                    <span className={styles.stationPickedLabel}>선택한 역</span>
+                    <span className={styles.stationPickedName}>
+                      {nearestStation}
+                    </span>
+                  </span>
                   <button
                     type="button"
-                    className={styles.selectedChip}
+                    className={styles.stationPickedClear}
                     onClick={() => setNearestStation("")}
                   >
-                    {nearestStation}
+                    다시 고르기
+                  </button>
+                </div>
+              ) : null}
+
+              <div className={styles.stationSearch}>
+                <Search
+                  className={styles.stationSearchIcon}
+                  size={18}
+                  strokeWidth={2.2}
+                  aria-hidden
+                />
+                <Input
+                  className={cn(styles.input, styles.stationSearchInput)}
+                  placeholder={
+                    selectedCity
+                      ? `${selectedCity} 역 이름 검색`
+                      : "역 이름 검색"
+                  }
+                  value={stationQuery}
+                  onChange={(e) => setStationQuery(e.target.value)}
+                  tabIndex={
+                    nearestStation === NO_NEARBY_STATION ? -1 : undefined
+                  }
+                />
+                {stationQuery ? (
+                  <button
+                    type="button"
+                    className={styles.stationSearchClear}
+                    aria-label="검색어 지우기"
+                    tabIndex={
+                      nearestStation === NO_NEARBY_STATION ? -1 : undefined
+                    }
+                    onClick={() => setStationQuery("")}
+                  >
                     <X className="size-3.5" />
                   </button>
                 ) : null}
               </div>
-            </div>
 
-            <div className={styles.field}>
-              <p className={styles.label}>
-                역 검색 <span className={styles.required}>*</span>
-              </p>
-              <Input
-                className={styles.input}
-                placeholder={
-                  selectedCity ? `${selectedCity} 역 이름 검색` : "역 이름 검색"
-                }
-                value={stationQuery}
-                onChange={(e) => setStationQuery(e.target.value)}
-              />
-            </div>
-
-            <div className={styles.stationList}>
-              {showCustomStation ? (
-                <button
-                  type="button"
-                  className={styles.stationItem}
-                  onClick={() => {
-                    setNearestStation(customStationLabel);
-                    setStationQuery("");
-                  }}
-                >
-                  <span className={styles.stationName}>
-                    {customStationLabel}
-                  </span>
-                  <span className={styles.stationMeta}>이 역으로 직접입력</span>
-                </button>
+              {!stationQuery.trim() &&
+              !(
+                nearestStation && nearestStation !== NO_NEARBY_STATION
+              ) ? (
+                <p className={styles.stationHint}>
+                  역 이름을 입력하면 아래에서 고를 수 있어요
+                </p>
               ) : null}
 
-              {stationSuggestions.map((station) => {
-                const label = formatStationLabel(station);
-                return (
+              <div className={styles.stationList}>
+                {showCustomStation ? (
                   <button
-                    key={`${station.city}-${station.name}-${station.line}`}
                     type="button"
-                    className={cn(
-                      styles.stationItem,
-                      nearestStation === label && styles.stationItemActive,
-                    )}
+                    className={styles.stationItem}
+                    tabIndex={
+                      nearestStation === NO_NEARBY_STATION ? -1 : undefined
+                    }
                     onClick={() => {
-                      setNearestStation(label);
+                      setNearestStation(customStationLabel);
                       setStationQuery("");
                     }}
                   >
-                    <span className={styles.stationName}>{label}</span>
-                    <span className={styles.stationMeta}>
-                      {station.city} · {station.line}
+                    <span className={styles.stationItemIcon} aria-hidden>
+                      <MapPin className="size-4" strokeWidth={2.3} />
+                    </span>
+                    <span className={styles.stationItemText}>
+                      <span className={styles.stationName}>
+                        {customStationLabel}
+                      </span>
+                      <span className={styles.stationMeta}>
+                        이 이름으로 추가
+                      </span>
                     </span>
                   </button>
-                );
-              })}
+                ) : null}
 
-              {stationQuery.trim() &&
-              !showCustomStation &&
-              stationSuggestions.length === 0 ? (
-                <p className={styles.regionGuide}>맞는 역이 없어요.</p>
-              ) : null}
+                {stationSuggestions.map((station) => {
+                  const label = formatStationLabel(station);
+                  return (
+                    <button
+                      key={`${station.city}-${station.name}-${station.line}`}
+                      type="button"
+                      className={cn(
+                        styles.stationItem,
+                        nearestStation === label && styles.stationItemActive,
+                      )}
+                      tabIndex={
+                        nearestStation === NO_NEARBY_STATION ? -1 : undefined
+                      }
+                      onClick={() => {
+                        setNearestStation(label);
+                        setStationQuery("");
+                      }}
+                    >
+                      <span className={styles.stationItemIcon} aria-hidden>
+                        <MapPin className="size-4" strokeWidth={2.3} />
+                      </span>
+                      <span className={styles.stationItemText}>
+                        <span className={styles.stationName}>{label}</span>
+                        <span className={styles.stationMeta}>
+                          {station.city} · {station.line}
+                        </span>
+                      </span>
+                    </button>
+                  );
+                })}
+
+                {stationQuery.trim() &&
+                !showCustomStation &&
+                stationSuggestions.length === 0 ? (
+                  <p className={styles.stationHint}>맞는 역이 없어요.</p>
+                ) : null}
+              </div>
             </div>
-          </section>
-
-          <Button
-            type="button"
-            className={styles.submit}
-            size="lg"
-            disabled={!nearestStation.trim()}
-            onClick={handleNextFromStation}
-          >
-            다음
-          </Button>
+          </div>
         </>
       ) : step === "detail" ? (
         <>
@@ -1202,16 +1251,6 @@ export function ProfileEditPage() {
               </div>
             ) : null}
           </section>
-
-          <Button
-            type="button"
-            className={styles.submit}
-            size="lg"
-            disabled={lifestyleInvalid}
-            onClick={handleNextFromDetail}
-          >
-            다음
-          </Button>
         </>
       ) : (
         <>
@@ -1531,39 +1570,72 @@ export function ProfileEditPage() {
               </div>
             </div>
           </section>
+        </>
+      )}
+      </div>
 
-          <div className={cn(styles.submitGroup, styles.submitGroupDock)}>
+      {step !== "role" ? (
+        <div className={styles.submitDock}>
+          {step === "prefs" ? (
+            <div className={styles.submitGroup}>
+              <Button
+                type="button"
+                className={styles.submit}
+                size="lg"
+                disabled={detailInvalid}
+                onClick={() => {
+                  if (detailInvalid) return;
+                  if (hasRoom) {
+                    setPostConfirmOpen(true);
+                    return;
+                  }
+                  leaveTo("find");
+                }}
+              >
+                {hasRoom ? "바로 살짝 구할게요" : "이 정보로 살짝 찾기"}
+              </Button>
+              {hasRoom ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className={cn(styles.submit, styles.submitSecondary)}
+                  size="lg"
+                  disabled={detailInvalid}
+                  onClick={() => leaveTo("profile")}
+                >
+                  일단 등록만 할게요
+                </Button>
+              ) : null}
+            </div>
+          ) : (
             <Button
               type="button"
               className={styles.submit}
               size="lg"
-              disabled={detailInvalid}
-              onClick={() => {
-                if (detailInvalid) return;
-                if (hasRoom) {
-                  setPostConfirmOpen(true);
-                  return;
-                }
-                leaveTo("find");
-              }}
+              disabled={
+                step === "cost"
+                  ? costInvalid
+                  : step === "region"
+                    ? regions.length === 0
+                    : step === "station"
+                      ? !nearestStation.trim()
+                      : lifestyleInvalid
+              }
+              onClick={
+                step === "cost"
+                  ? handleNextFromCost
+                  : step === "region"
+                    ? handleNextFromRegion
+                    : step === "station"
+                      ? handleNextFromStation
+                      : handleNextFromDetail
+              }
             >
-              {hasRoom ? "바로 살짝 구할게요" : "이 정보로 살짝 찾기"}
+              다음
             </Button>
-            {hasRoom ? (
-              <Button
-                type="button"
-                variant="outline"
-                className={cn(styles.submit, styles.submitSecondary)}
-                size="lg"
-                disabled={detailInvalid}
-                onClick={() => leaveTo("profile")}
-              >
-                일단 등록만 할게요
-              </Button>
-            ) : null}
-          </div>
-        </>
-      )}
+          )}
+        </div>
+      ) : null}
 
       <Dialog open={autosaveTipOpen} onOpenChange={setAutosaveTipOpen}>
         <DialogContent className={styles.dialogContent} showCloseButton={false}>

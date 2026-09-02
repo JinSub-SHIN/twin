@@ -1,17 +1,23 @@
 .page {
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
-  padding-bottom: 1.75rem;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  gap: 0.75rem;
+  box-sizing: border-box;
 }
 
-.pagePrefs {
-  /* 스크롤 뷰포트 높이를 채워, 동의 접혀도 CTA가 하단에 남음 */
-  min-height: calc(
-    100dvh - env(safe-area-inset-top) - 1rem - 4rem -
-      env(safe-area-inset-bottom) - 0.75rem
-  );
-  box-sizing: border-box;
+.stepBody {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.85rem;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: auto;
+  padding: 0.2rem 0.15rem 0.45rem;
 }
 
 .submitGroup {
@@ -21,9 +27,11 @@
   margin-top: 0.35rem;
 }
 
-.submitGroupDock {
-  margin-top: auto;
-  padding-top: 1rem;
+.submitDock {
+  flex-shrink: 0;
+  padding-top: 0.65rem;
+  padding-bottom: 0.15rem;
+  background: oklch(0.97 0.005 145);
 }
 
 .topBar {
@@ -75,18 +83,6 @@
   position: relative;
   z-index: 1;
   transition: transform 0.18s ease;
-}
-
-.backBtn:hover {
-  border-color: oklch(0.62 0.14 145 / 0.55);
-  color: oklch(0.32 0.1 145);
-  box-shadow:
-    0 1px 0 oklch(1 0 0 / 0.9) inset,
-    0 8px 20px oklch(0.5 0.1 145 / 0.16);
-}
-
-.backBtn:hover :global(svg) {
-  transform: translateX(-1.5px);
 }
 
 .backBtn:active {
@@ -259,6 +255,8 @@
   border-radius: 1rem !important;
   background: oklch(0.96 0.008 120) !important;
   box-shadow: none !important;
+  --tw-ring-shadow: none !important;
+  outline: none !important;
   font-size: 1rem;
   font-weight: 600;
   letter-spacing: -0.02em;
@@ -273,8 +271,8 @@
 
 .input:focus-visible {
   background: oklch(0.97 0.02 145) !important;
-  outline: 2px solid oklch(0.7 0.14 145);
-  outline-offset: 0;
+  outline: none !important;
+  box-shadow: inset 0 0 0 2px oklch(0.7 0.14 145) !important;
 }
 
 .textarea {
@@ -302,8 +300,8 @@
 
 .textarea:focus-visible {
   background: oklch(0.97 0.02 145);
-  outline: 2px solid oklch(0.7 0.14 145);
-  outline-offset: 0;
+  outline: none;
+  box-shadow: inset 0 0 0 2px oklch(0.7 0.14 145);
 }
 
 .charCount {
@@ -660,51 +658,197 @@
   color: var(--muted-foreground);
 }
 
-.noneStationChip {
+.stationChoice {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.stationChoiceBtn {
   display: inline-flex;
   align-items: center;
-  min-height: 2.25rem;
-  padding: 0.35rem 0.8rem;
-  border: 1.5px solid oklch(0.88 0.015 145);
-  border-radius: 0.75rem;
-  background: oklch(0.98 0.008 120);
-  color: oklch(0.38 0.04 150);
-  font-size: 0.8rem;
+  justify-content: center;
+  min-height: 3.15rem;
+  padding: 0.7rem 0.65rem;
+  border: 1.5px solid transparent;
+  border-radius: 1rem;
+  background: oklch(0.96 0.008 120);
+  color: oklch(0.36 0.03 150);
+  font-size: 0.88rem;
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
   cursor: pointer;
 }
 
-.noneStationChipActive {
-  border-color: oklch(0.55 0.16 145);
+.stationChoiceBtnOn {
+  border-color: oklch(0.52 0.15 145);
+  background: oklch(0.55 0.16 145);
+  color: white;
+}
+
+.stationFold {
+  display: grid;
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transition:
+    grid-template-rows 0.32s ease,
+    opacity 0.22s ease;
+}
+
+.stationFoldClosed {
+  grid-template-rows: 0fr;
+  opacity: 0;
+}
+
+.stationFoldInner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.stationSearch {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.stationSearchIcon {
+  position: absolute;
+  left: 1rem;
+  color: oklch(0.55 0.03 150);
+  pointer-events: none;
+}
+
+.stationSearchInput {
+  padding-left: 2.7rem !important;
+  padding-right: 2.6rem !important;
+}
+
+.stationSearchClear {
+  position: absolute;
+  right: 0.7rem;
+  display: grid;
+  place-items: center;
+  width: 1.7rem;
+  height: 1.7rem;
+  border: 0;
+  border-radius: 999px;
+  background: oklch(0.9 0.01 145);
+  color: oklch(0.42 0.03 150);
+  cursor: pointer;
+}
+
+.stationHint {
+  margin: 0;
+  padding: 0.15rem 0.15rem 0;
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: oklch(0.55 0.02 150);
+}
+
+.stationPicked {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 0.95rem;
+  border-radius: 1.1rem;
   background: oklch(0.96 0.04 145);
-  color: oklch(0.28 0.08 145);
+  border: 1.5px solid oklch(0.55 0.16 145);
+}
+
+.stationPickedIcon {
+  display: grid;
+  place-items: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  flex-shrink: 0;
+  border-radius: 0.7rem;
+  background: oklch(0.55 0.16 145);
+  color: white;
+}
+
+.stationPickedText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.stationPickedLabel {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: oklch(0.45 0.06 145);
+}
+
+.stationPickedName {
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.stationPickedClear {
+  flex-shrink: 0;
+  border: 0;
+  background: transparent;
+  padding: 0.2rem 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: oklch(0.38 0.1 145);
+  cursor: pointer;
 }
 
 .stationList {
   display: flex;
   flex-direction: column;
-  gap: 0.45rem;
+  gap: 0.4rem;
 }
 
 .stationItem {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 0.75rem;
   width: 100%;
-  min-height: 3.15rem;
-  padding: 0.75rem 0.95rem;
+  min-height: 3.35rem;
+  padding: 0.7rem 0.85rem;
   border: 1.5px solid transparent;
   border-radius: 1rem;
-  background: oklch(0.955 0.008 120);
+  background: oklch(0.96 0.008 120);
   text-align: left;
   cursor: pointer;
 }
 
 .stationItemActive {
-  border-color: oklch(0.55 0.16 145);
+  border-color: oklch(0.52 0.15 145);
   background: oklch(0.96 0.04 145);
+}
+
+.stationItemIcon {
+  display: grid;
+  place-items: center;
+  width: 2.05rem;
+  height: 2.05rem;
+  flex-shrink: 0;
+  border-radius: 0.7rem;
+  background: oklch(0.93 0.02 145);
+  color: oklch(0.4 0.08 145);
+}
+
+.stationItemActive .stationItemIcon {
+  background: oklch(0.55 0.16 145);
+  color: white;
+}
+
+.stationItemText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+  min-width: 0;
 }
 
 .stationName {
@@ -714,7 +858,6 @@
 }
 
 .stationMeta {
-  flex-shrink: 0;
   font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: -0.02em;
@@ -759,10 +902,6 @@
   background: oklch(1 0 0);
   border-color: oklch(0.9 0.015 145);
   color: oklch(0.32 0.03 150);
-}
-
-.submitSecondary:hover {
-  background: oklch(0.98 0.008 145);
 }
 
 .submit:disabled {

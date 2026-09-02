@@ -420,20 +420,12 @@
   box-shadow: none;
 }
 
-.submit:hover {
-  background: color-mix(in oklch, var(--lime) 88%, oklch(0.55 0.12 145));
-}
-
 .submitSecondary {
   font-weight: 600;
   background: oklch(1 0 0);
   border: 1px solid var(--line);
   color: var(--ink);
   box-shadow: none;
-}
-
-.submitSecondary:hover {
-  background: oklch(0.99 0.005 95);
 }
 
 @media (max-width: 360px) {
