@@ -47,7 +47,7 @@ export type ShareMode = 'half' | 'negotiate' | 'custom'
 
 export type CostShare = {
   mode: ShareMode
-  /** mode === custom 일 때 분담 비율 (1~99) */
+  /** mode === custom 일 때 살짝이 낼 분담 비율 (1~99) */
   percent?: number
 }
 
@@ -58,6 +58,8 @@ export type CostShare = {
 export type UserPref = {
   seekRole?: SeekRole
   regions?: string[]
+  /** 거주/희망 지역에서 가장 가까운 지하철역 */
+  nearestStation?: string
   sleepHour?: number
   wakeHour?: number
   personality?: Personality
@@ -71,6 +73,8 @@ export type UserPref = {
   homeTime?: HomeTime
   cleanFreq?: CleanFreq
   prefGender?: PrefGender
+  /** true면 선호 성별로 가입한 회원에게만 공고 노출 */
+  restrictListingByPrefGender?: boolean
   /** 현재 월세 금액(원) — has_room */
   rentAmount?: number
   /** 현재 평균 관리비 금액(원) — has_room */

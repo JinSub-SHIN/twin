@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Home, Search, X } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,11 @@ import { Input } from "@/components/ui/input";
 import { DayClock } from "@/components/DayClock";
 import { useAuth } from "@/context/AuthContext";
 import { REGION_CITIES, REGION_TREE, formatRegion } from "@/lib/regions";
+import {
+  NO_NEARBY_STATION,
+  formatStationLabel,
+  searchStations,
+} from "@/lib/stations";
 import { cn } from "@/lib/utils";
 import {
   CLEAN_FREQ_OPTIONS,
@@ -39,12 +44,13 @@ import {
 } from "@/types/user";
 import styles from "./ProfileEditPage.module.css";
 
-type Step = "role" | "cost" | "region" | "detail" | "prefs";
+type Step = "role" | "cost" | "region" | "station" | "detail" | "prefs";
 
 const STEP_PATH: Record<Step, string> = {
   role: "/profile/edit/role",
   cost: "/profile/edit/cost",
   region: "/profile/edit/region",
+  station: "/profile/edit/station",
   detail: "/profile/edit/detail",
   prefs: "/profile/edit/prefs",
 };
@@ -54,6 +60,7 @@ function parseStep(value: string | undefined): Step {
     value === "role" ||
     value === "cost" ||
     value === "region" ||
+    value === "station" ||
     value === "detail" ||
     value === "prefs"
   ) {
@@ -92,21 +99,10 @@ function normalizeShareMode(mode: string | undefined | null): ShareMode | null {
   return null;
 }
 
-function toggleDistrict(list: string[], city: string, district: string) {
+function selectDistrict(current: string[], city: string, district: string) {
   const value = formatRegion(city, district);
-  const allValue = formatRegion(city, "전체");
-  const prefix = `${city} `;
-
-  if (district === "전체") {
-    const withoutCity = list.filter((item) => !item.startsWith(prefix));
-    if (list.includes(allValue)) return withoutCity;
-    return [...withoutCity, allValue];
-  }
-
-  const withoutAll = list.filter((item) => item !== allValue);
-  return withoutAll.includes(value)
-    ? withoutAll.filter((item) => item !== value)
-    : [...withoutAll, value];
+  if (current[0] === value) return [];
+  return [value];
 }
 
 function toInt(v: string) {
@@ -123,6 +119,8 @@ export function ProfileEditPage() {
   const [seekRole, setSeekRole] = useState<SeekRole | null>(null);
   const [regionCity, setRegionCity] = useState<string | null>(null);
   const [regions, setRegions] = useState<string[]>([]);
+  const [nearestStation, setNearestStation] = useState("");
+  const [stationQuery, setStationQuery] = useState("");
   const [hydrated, setHydrated] = useState(false);
 
   const [job, setJob] = useState<JobType | null>(null);
@@ -143,6 +141,8 @@ export function ProfileEditPage() {
   const [cleanFreq, setCleanFreq] = useState<CleanFreq | null>(null);
 
   const [prefGender, setPrefGender] = useState<PrefGender | null>(null);
+  const [restrictListingByPrefGender, setRestrictListingByPrefGender] =
+    useState<boolean | null>(null);
   const [rentShareMode, setRentShareMode] = useState<ShareMode | null>(null);
   const [rentSharePercent, setRentSharePercent] = useState("");
   const [mgmtShareMode, setMgmtShareMode] = useState<ShareMode | null>(null);
@@ -170,7 +170,9 @@ export function ProfileEditPage() {
     if (hydrated) return;
 
     setSeekRole(user.pref?.seekRole ?? null);
-    setRegions(user.pref?.regions ?? []);
+    setRegions(user.pref?.regions?.slice(0, 1) ?? []);
+    setNearestStation(user.pref?.nearestStation ?? "");
+    setStationQuery("");
     const first = user.pref?.regions?.[0];
     if (first) {
       const city = first.split(" ")[0];
@@ -194,6 +196,11 @@ export function ProfileEditPage() {
     setHomeTime(p?.homeTime ?? null);
     setCleanFreq(p?.cleanFreq ?? null);
     setPrefGender(p?.prefGender ?? null);
+    setRestrictListingByPrefGender(
+      p?.prefGender === "male" || p?.prefGender === "female"
+        ? (p.restrictListingByPrefGender ?? null)
+        : null,
+    );
     setRentShareMode(normalizeShareMode(p?.rentShare?.mode));
     setRentSharePercent(
       p?.rentShare?.percent != null ? String(p.rentShare.percent) : "",
@@ -223,6 +230,7 @@ export function ProfileEditPage() {
       stepParam !== "role" &&
       stepParam !== "cost" &&
       stepParam !== "region" &&
+      stepParam !== "station" &&
       stepParam !== "detail" &&
       stepParam !== "prefs"
     ) {
@@ -253,7 +261,8 @@ export function ProfileEditPage() {
       pref: {
         ...current.pref,
         seekRole: seekRole ?? undefined,
-        regions: regions.length ? regions : undefined,
+        regions: regions[0] ? [regions[0]] : undefined,
+        nearestStation: nearestStation.trim() || undefined,
         sleepHour: toInt(sleepHour),
         wakeHour: toInt(wakeHour),
         personality: personality ?? undefined,
@@ -277,6 +286,10 @@ export function ProfileEditPage() {
         homeTime: homeTime ?? undefined,
         cleanFreq: cleanFreq ?? undefined,
         prefGender: prefGender ?? undefined,
+        restrictListingByPrefGender:
+          prefGender === "male" || prefGender === "female"
+            ? Boolean(restrictListingByPrefGender)
+            : false,
         rentAmount: manDigitsToWon(rentAmount),
         mgmtAmount: manDigitsToWon(mgmtAmount),
         rentShare: rentShareMode
@@ -315,6 +328,7 @@ export function ProfileEditPage() {
     hydrated,
     seekRole,
     regions,
+    nearestStation,
     job,
     jobOther,
     sleepHour,
@@ -331,6 +345,7 @@ export function ProfileEditPage() {
     homeTime,
     cleanFreq,
     prefGender,
+    restrictListingByPrefGender,
     rentAmount,
     mgmtAmount,
     rentShareMode,
@@ -361,6 +376,12 @@ export function ProfileEditPage() {
 
   const handleNextFromRegion = () => {
     if (!seekRole || regions.length === 0) return;
+    persistDraft();
+    navigate(STEP_PATH.station);
+  };
+
+  const handleNextFromStation = () => {
+    if (!nearestStation.trim()) return;
     persistDraft();
     if (seekRole === "has_room") {
       navigate(STEP_PATH.cost);
@@ -400,6 +421,8 @@ export function ProfileEditPage() {
   const prefsInvalid =
     hasRoom &&
     (!prefGender ||
+      ((prefGender === "male" || prefGender === "female") &&
+        restrictListingByPrefGender == null) ||
       !isShareValid(rentShareMode, rentSharePercent) ||
       !isShareValid(mgmtShareMode, mgmtSharePercent));
 
@@ -475,12 +498,16 @@ export function ProfileEditPage() {
       navigate(STEP_PATH.role);
       return;
     }
-    if (step === "cost") {
+    if (step === "station") {
       navigate(STEP_PATH.region);
       return;
     }
+    if (step === "cost") {
+      navigate(STEP_PATH.station);
+      return;
+    }
     if (step === "detail") {
-      navigate(hasRoom ? STEP_PATH.cost : STEP_PATH.region);
+      navigate(hasRoom ? STEP_PATH.cost : STEP_PATH.station);
       return;
     }
     navigate(STEP_PATH.detail);
@@ -492,10 +519,23 @@ export function ProfileEditPage() {
     ? ["전체", ...(REGION_TREE[regionCity] ?? [])]
     : [];
 
-  const countCitySelections = (city: string) => {
-    const prefix = `${city} `;
-    return regions.filter((item) => item.startsWith(prefix)).length;
-  };
+  const selectedRegion = regions[0] ?? null;
+  const selectedCity = selectedRegion?.split(" ")[0] ?? null;
+  const stationSuggestions = useMemo(
+    () => searchStations(stationQuery, selectedCity),
+    [stationQuery, selectedCity],
+  );
+  const customStationLabel = stationQuery.trim()
+    ? stationQuery.trim().endsWith("역")
+      ? stationQuery.trim()
+      : `${stationQuery.trim()}역`
+    : "";
+  const showCustomStation =
+    Boolean(customStationLabel) &&
+    customStationLabel !== nearestStation &&
+    !stationSuggestions.some(
+      (station) => formatStationLabel(station) === customStationLabel,
+    );
 
   return (
     <section className={cn(styles.page, step === "prefs" && styles.pagePrefs)}>
@@ -513,14 +553,16 @@ export function ProfileEditPage() {
             if (hasRoom) {
               if (step === "role") return "추가 정보 · 1단계";
               if (step === "region") return "추가 정보 · 2단계";
-              if (step === "cost") return "추가 정보 · 3단계";
-              if (step === "detail") return "추가 정보 · 4단계";
-              return "추가 정보 · 5단계";
+              if (step === "station") return "추가 정보 · 3단계";
+              if (step === "cost") return "추가 정보 · 4단계";
+              if (step === "detail") return "추가 정보 · 5단계";
+              return "추가 정보 · 6단계";
             }
             if (step === "role") return "추가 정보 · 1단계";
             if (step === "region") return "추가 정보 · 2단계";
-            if (step === "detail") return "추가 정보 · 3단계";
-            return "추가 정보 · 4단계";
+            if (step === "station") return "추가 정보 · 3단계";
+            if (step === "detail") return "추가 정보 · 4단계";
+            return "추가 정보 · 5단계";
           })()}
         </p>
       </div>
@@ -653,9 +695,7 @@ export function ProfileEditPage() {
               )}
             </h2>
             <p className={styles.desc}>
-              광역을 고른 뒤 구/시를 선택해 주세요.
-              <br />
-              여러 지역을 고를 수 있어요.
+              광역을 고른 뒤 구/시를 하나 선택해 주세요.
             </p>
           </div>
 
@@ -664,7 +704,7 @@ export function ProfileEditPage() {
               {hasRoom ? "거주 지역" : "희망 지역"}
             </h3>
             <p className={styles.blockHint}>
-              광역을 고른 뒤 구/시를 선택해 주세요. 여러 지역을 고를 수 있어요.
+              광역을 고른 뒤 구/시를 하나 선택해 주세요.
             </p>
             <div className={styles.field}>
               <p className={styles.label}>
@@ -672,8 +712,6 @@ export function ProfileEditPage() {
               </p>
               <div className={styles.chipRow}>
                 {REGION_CITIES.map((city) => {
-                  const selectedCount = countCitySelections(city);
-                  const hasSelection = selectedCount > 0;
                   return (
                     <button
                       key={city}
@@ -681,13 +719,13 @@ export function ProfileEditPage() {
                       className={cn(
                         styles.chip,
                         regionCity === city && styles.chipActive,
-                        hasSelection &&
+                        selectedCity === city &&
                           regionCity !== city &&
                           styles.chipSelected,
                       )}
                       onClick={() => setRegionCity(city)}
                     >
-                      {hasSelection ? `${city}(${selectedCount})` : city}
+                      {city}
                     </button>
                   );
                 })}
@@ -709,11 +747,11 @@ export function ProfileEditPage() {
                         type="button"
                         className={cn(
                           styles.chip,
-                          regions.includes(value) && styles.chipActive,
+                          selectedRegion === value && styles.chipActive,
                         )}
                         onClick={() =>
                           setRegions((prev) =>
-                            toggleDistrict(prev, regionCity, district),
+                            selectDistrict(prev, regionCity, district),
                           )
                         }
                       >
@@ -729,23 +767,18 @@ export function ProfileEditPage() {
               </p>
             )}
 
-            {regions.length > 0 ? (
+            {selectedRegion ? (
               <div className={styles.field}>
                 <p className={styles.label}>선택한 지역</p>
                 <div className={styles.selectedRow}>
-                  {regions.map((item) => (
-                    <button
-                      key={item}
-                      type="button"
-                      className={styles.selectedChip}
-                      onClick={() =>
-                        setRegions((prev) => prev.filter((r) => r !== item))
-                      }
-                    >
-                      {item}
-                      <X className="size-3.5" />
-                    </button>
-                  ))}
+                  <button
+                    type="button"
+                    className={styles.selectedChip}
+                    onClick={() => setRegions([])}
+                  >
+                    {selectedRegion}
+                    <X className="size-3.5" />
+                  </button>
                 </div>
               </div>
             ) : null}
@@ -757,6 +790,127 @@ export function ProfileEditPage() {
             size="lg"
             disabled={regions.length === 0}
             onClick={handleNextFromRegion}
+          >
+            다음
+          </Button>
+        </>
+      ) : step === "station" ? (
+        <>
+          <div className={styles.intro}>
+            <h2 className={styles.title}>
+              가장 가까운
+              <br />
+              <span className={styles.accent}>지하철역</span>을 알려주세요
+            </h2>
+            <p className={styles.desc}>
+              거주하고 계신 곳에서 가장 가까운 역을 골라 주세요.
+              {selectedRegion ? ` ${selectedRegion} 기준으로 찾아볼게요.` : ""}
+            </p>
+          </div>
+
+          <section className={styles.block}>
+            <div className={styles.field}>
+              <p className={styles.label}>가장 가까운 역</p>
+              <div className={styles.selectedRow}>
+                <button
+                  type="button"
+                  className={cn(
+                    styles.noneStationChip,
+                    nearestStation === NO_NEARBY_STATION &&
+                      styles.noneStationChipActive,
+                  )}
+                  onClick={() => {
+                    setNearestStation(
+                      nearestStation === NO_NEARBY_STATION
+                        ? ""
+                        : NO_NEARBY_STATION,
+                    );
+                    setStationQuery("");
+                  }}
+                >
+                  {NO_NEARBY_STATION}
+                </button>
+                {nearestStation && nearestStation !== NO_NEARBY_STATION ? (
+                  <button
+                    type="button"
+                    className={styles.selectedChip}
+                    onClick={() => setNearestStation("")}
+                  >
+                    {nearestStation}
+                    <X className="size-3.5" />
+                  </button>
+                ) : null}
+              </div>
+            </div>
+
+            <div className={styles.field}>
+              <p className={styles.label}>
+                역 검색 <span className={styles.required}>*</span>
+              </p>
+              <Input
+                className={styles.input}
+                placeholder={
+                  selectedCity ? `${selectedCity} 역 이름 검색` : "역 이름 검색"
+                }
+                value={stationQuery}
+                onChange={(e) => setStationQuery(e.target.value)}
+              />
+            </div>
+
+            <div className={styles.stationList}>
+              {showCustomStation ? (
+                <button
+                  type="button"
+                  className={styles.stationItem}
+                  onClick={() => {
+                    setNearestStation(customStationLabel);
+                    setStationQuery("");
+                  }}
+                >
+                  <span className={styles.stationName}>
+                    {customStationLabel}
+                  </span>
+                  <span className={styles.stationMeta}>이 역으로 직접입력</span>
+                </button>
+              ) : null}
+
+              {stationSuggestions.map((station) => {
+                const label = formatStationLabel(station);
+                return (
+                  <button
+                    key={`${station.city}-${station.name}-${station.line}`}
+                    type="button"
+                    className={cn(
+                      styles.stationItem,
+                      nearestStation === label && styles.stationItemActive,
+                    )}
+                    onClick={() => {
+                      setNearestStation(label);
+                      setStationQuery("");
+                    }}
+                  >
+                    <span className={styles.stationName}>{label}</span>
+                    <span className={styles.stationMeta}>
+                      {station.city} · {station.line}
+                    </span>
+                  </button>
+                );
+              })}
+
+              {stationQuery.trim() &&
+              !showCustomStation &&
+              stationSuggestions.length === 0 ? (
+                <p className={styles.regionGuide}>맞는 역이 없어요.</p>
+              ) : null}
+            </div>
+          </section>
+
+          <Button
+            type="button"
+            className={styles.submit}
+            size="lg"
+            disabled={!nearestStation.trim()}
+            onClick={handleNextFromStation}
           >
             다음
           </Button>
@@ -1063,25 +1217,25 @@ export function ProfileEditPage() {
         <>
           <div className={styles.intro}>
             <h2 className={styles.title}>
-              마지막으로
+              원하는 <span className={styles.accent}>살짝 조건</span> 및
               <br />
-              <span className={styles.accent}>동의</span>를 확인해 주세요
+              동의 부분을 확인해 주세요
             </h2>
             <p className={styles.desc}>
-              서비스 이용을 위해 아래 항목에 동의해 주세요.
+              원하는 살짝 조건과 서비스 이용 동의를 확인해 주세요.
             </p>
           </div>
 
           {hasRoom ? (
             <section className={styles.block}>
-              <h3 className={styles.blockTitle}>원하는 룸메 조건</h3>
+              <h3 className={styles.blockTitle}>원하는 살짝 조건</h3>
               <p className={styles.blockHint}>
                 성별, 분담 방식, 함께하기 어려운 점
               </p>
 
               <div className={styles.field}>
                 <p className={styles.label}>
-                  선호 룸메 성별 <span className={styles.required}>*</span>
+                  선호 살짝 성별 <span className={styles.required}>*</span>
                 </p>
                 <div className={styles.chipRow3}>
                   {PREF_GENDER_OPTIONS.map((opt) => (
@@ -1092,12 +1246,67 @@ export function ProfileEditPage() {
                         styles.chip,
                         prefGender === opt.value && styles.chipActive,
                       )}
-                      onClick={() => setPrefGender(opt.value)}
+                      onClick={() => {
+                        setPrefGender(opt.value);
+                        if (opt.value !== "male" && opt.value !== "female") {
+                          setRestrictListingByPrefGender(null);
+                        }
+                      }}
                     >
                       {opt.label}
                     </button>
                   ))}
                 </div>
+                {prefGender === "male" || prefGender === "female" ? (
+                  <div className={styles.genderScopeCard}>
+                    <div className={styles.genderScopeHead}>
+                      <p className={styles.genderScopeTitle}>게시글 노출</p>
+                      <p className={styles.genderScopeDesc}>
+                        살짝을 찾을 때
+                        <br />
+                        {prefGender === "female" ? "여성" : "남성"}으로 가입한
+                        기준으로만
+                        <br />
+                        노출을 시켜드릴까요?
+                      </p>
+                    </div>
+                    <div className={styles.genderScopeActions}>
+                      <button
+                        type="button"
+                        className={cn(
+                          styles.genderScopeBtn,
+                          restrictListingByPrefGender === false &&
+                            styles.genderScopeBtnActive,
+                        )}
+                        onClick={() => setRestrictListingByPrefGender(false)}
+                      >
+                        <span className={styles.genderScopeBtnLabel}>
+                          아니요, 괜찮아요
+                        </span>
+                        <span className={styles.genderScopeBtnSub}>
+                          전체 성별로 공고 올릴게요
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        className={cn(
+                          styles.genderScopeBtn,
+                          restrictListingByPrefGender === true &&
+                            styles.genderScopeBtnActive,
+                        )}
+                        onClick={() => setRestrictListingByPrefGender(true)}
+                      >
+                        <span className={styles.genderScopeBtnLabel}>
+                          네, 도와주세요!
+                        </span>
+                        <span className={styles.genderScopeBtnSub}>
+                          {prefGender === "female" ? "여성" : "남성"}만 볼 수
+                          있게 해주세요
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
               </div>
 
               <div className={styles.field}>
@@ -1128,7 +1337,7 @@ export function ProfileEditPage() {
                       id="rentSharePercent"
                       className={styles.input}
                       inputMode="numeric"
-                      placeholder="예: 50"
+                      placeholder="예:50 (살짝이 낼 분담률이에요)"
                       value={rentSharePercent}
                       onChange={(e) =>
                         setRentSharePercent(
@@ -1169,7 +1378,7 @@ export function ProfileEditPage() {
                       id="mgmtSharePercent"
                       className={styles.input}
                       inputMode="numeric"
-                      placeholder="예: 50"
+                      placeholder="예:50 (살짝이 낼 분담률이에요)"
                       value={mgmtSharePercent}
                       onChange={(e) =>
                         setMgmtSharePercent(
@@ -1221,7 +1430,7 @@ export function ProfileEditPage() {
               placeholder={
                 hasRoom
                   ? "예: 투룸이고 거실 공유해요. 조용한 분과 월세 반반이면 좋겠어요"
-                  : "예: 강남·서초 쪽 원룸 구해요. 주말엔 같이 밥 해먹을 룸메면 좋아요"
+                  : "예: 강남·서초 쪽 원룸 구해요. 주말엔 같이 밥 해먹을 살짝이면 좋아요"
               }
               value={bio}
               maxLength={200}
@@ -1268,7 +1477,7 @@ export function ProfileEditPage() {
                           <span className={styles.agreeTagRequired}>필수</span>
                         </span>
                         <span className={styles.agreeItemDesc}>
-                          룸메 매칭을 위해 프로필이 다른 회원에게 보여져요
+                          살짝 매칭을 위해 프로필이 다른 회원에게 보여져요
                         </span>
                       </span>
                     </label>

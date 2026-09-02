@@ -41,12 +41,11 @@
   height: 2.65rem;
   border: 1px solid oklch(0.9 0.02 145 / 0.7);
   border-radius: 9999px;
-  background:
-    linear-gradient(
-      145deg,
-      oklch(0.99 0.01 120) 0%,
-      oklch(0.95 0.03 145) 100%
-    );
+  background: linear-gradient(
+    145deg,
+    oklch(0.99 0.01 120) 0%,
+    oklch(0.95 0.03 145) 100%
+  );
   color: oklch(0.28 0.06 145);
   box-shadow:
     0 1px 0 oklch(1 0 0 / 0.85) inset,
@@ -61,7 +60,7 @@
 }
 
 .backBtn::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   background: radial-gradient(
@@ -161,7 +160,8 @@
 .roleCardActive {
   border-color: oklch(0.55 0.16 145);
   background: oklch(0.96 0.04 145);
-  box-shadow: 0 0 0 1px color-mix(in oklch, oklch(0.55 0.16 145) 35%, transparent);
+  box-shadow: 0 0 0 1px
+    color-mix(in oklch, oklch(0.55 0.16 145) 35%, transparent);
 }
 
 .roleIconWrap {
@@ -323,6 +323,11 @@
 
 .percentField .input {
   padding-right: 2.5rem !important;
+}
+
+.percentField .input::placeholder {
+  font-size: 0.82rem;
+  letter-spacing: -0.03em;
 }
 
 .percentSuffix {
@@ -492,7 +497,7 @@
   color: oklch(0.28 0.08 145);
 }
 
-.checkRow :global([data-slot='checkbox']) {
+.checkRow :global([data-slot="checkbox"]) {
   width: 1.25rem;
   height: 1.25rem;
   border-radius: 0.4rem;
@@ -517,7 +522,7 @@
   background: oklch(1 0 0);
 }
 
-.agreeAll :global([data-slot='checkbox']) {
+.agreeAll :global([data-slot="checkbox"]) {
   width: 1.35rem;
   height: 1.35rem;
   border-radius: 0.45rem;
@@ -586,7 +591,7 @@
   cursor: pointer;
 }
 
-.agreeItem :global([data-slot='checkbox']) {
+.agreeItem :global([data-slot="checkbox"]) {
   width: 1.2rem;
   height: 1.2rem;
   margin-top: 0.1rem;
@@ -651,6 +656,67 @@
 .regionGuide {
   margin: 0;
   font-size: 0.84rem;
+  letter-spacing: -0.02em;
+  color: var(--muted-foreground);
+}
+
+.noneStationChip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.25rem;
+  padding: 0.35rem 0.8rem;
+  border: 1.5px solid oklch(0.88 0.015 145);
+  border-radius: 0.75rem;
+  background: oklch(0.98 0.008 120);
+  color: oklch(0.38 0.04 150);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  cursor: pointer;
+}
+
+.noneStationChipActive {
+  border-color: oklch(0.55 0.16 145);
+  background: oklch(0.96 0.04 145);
+  color: oklch(0.28 0.08 145);
+}
+
+.stationList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.stationItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 3.15rem;
+  padding: 0.75rem 0.95rem;
+  border: 1.5px solid transparent;
+  border-radius: 1rem;
+  background: oklch(0.955 0.008 120);
+  text-align: left;
+  cursor: pointer;
+}
+
+.stationItemActive {
+  border-color: oklch(0.55 0.16 145);
+  background: oklch(0.96 0.04 145);
+}
+
+.stationName {
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.stationMeta {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
   letter-spacing: -0.02em;
   color: var(--muted-foreground);
 }
@@ -816,4 +882,84 @@
   background: oklch(1 0 0);
   border-color: oklch(0.9 0.015 145);
   color: oklch(0.32 0.03 150);
+}
+
+.genderScopeCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin-top: 0.35rem;
+  padding: 1rem 0.95rem 0.95rem;
+  border-radius: 1.15rem;
+  background: oklch(0.985 0.01 145);
+  border: 1px solid oklch(0.9 0.02 145);
+}
+
+.genderScopeHead {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.genderScopeTitle {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: oklch(0.42 0.08 145);
+}
+
+.genderScopeDesc {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1.45;
+  letter-spacing: -0.03em;
+  color: oklch(0.28 0.04 150);
+  word-break: keep-all;
+}
+
+.genderScopeActions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.genderScopeBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.18rem;
+  width: 100%;
+  padding: 0.8rem 0.9rem;
+  border: 1.5px solid transparent;
+  border-radius: 0.95rem;
+  background: oklch(1 0 0);
+  color: oklch(0.3 0.03 150);
+  text-align: left;
+  cursor: pointer;
+}
+
+.genderScopeBtnActive {
+  border-color: oklch(0.55 0.16 145);
+  background: oklch(0.96 0.04 145);
+}
+
+.genderScopeBtnLabel {
+  font-size: 0.92rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.genderScopeBtnSub {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.4;
+  color: var(--muted-foreground);
+  word-break: keep-all;
+}
+
+.genderScopeBtnActive .genderScopeBtnSub {
+  color: oklch(0.4 0.06 145);
 }

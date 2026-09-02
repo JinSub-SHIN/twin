@@ -1,8 +1,9 @@
 import { useEffect, useMemo } from "react";
-import { ArrowLeft, MapPin } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
+import { NO_NEARBY_STATION } from "@/lib/stations";
 import { cn } from "@/lib/utils";
 import {
   CLEAN_FREQ_OPTIONS,
@@ -32,17 +33,7 @@ function optionLabel<T extends string>(
   return options.find((o) => o.value === value)?.label;
 }
 
-function formatShare(share?: CostShare) {
-  if (!share?.mode) return null;
-  if (share.mode === "half") return "1/2";
-  if (share.mode === "negotiate") return "직접 조율";
-  if (share.mode === "custom" && share.percent != null) {
-    return `내가 ${share.percent}%`;
-  }
-  return "직접 입력";
-}
-
-function formatWon(amount?: number) {
+function formatWon(amount?: number | null) {
   if (amount == null || amount <= 0) return null;
   if (amount >= 10000) {
     const man = amount / 10000;
@@ -54,6 +45,117 @@ function formatWon(amount?: number) {
   return `${amount.toLocaleString("ko-KR")}원`;
 }
 
+function shareMinePercent(share?: CostShare) {
+  if (!share?.mode) return null;
+  if (share.mode === "half") return 50;
+  if (share.mode === "custom" && share.percent != null && share.percent > 0) {
+    const mate = Math.min(99, Math.max(1, share.percent));
+    return 100 - mate;
+  }
+  return null;
+}
+
+type CostChart = {
+  key: "rent" | "mgmt";
+  label: string;
+  totalLabel: string | null;
+  myPercent: number | null;
+  negotiated: boolean;
+  myAmountLabel: string | null;
+  mateAmountLabel: string | null;
+};
+
+function buildCostChart(
+  key: CostChart["key"],
+  label: string,
+  amount: number | undefined,
+  share?: CostShare,
+): CostChart | null {
+  const myPercent = shareMinePercent(share);
+  const negotiated = share?.mode === "negotiate";
+  const totalLabel = formatWon(amount);
+  if (!totalLabel && myPercent == null && !negotiated) return null;
+
+  const mineWon =
+    amount && myPercent != null
+      ? Math.round((amount * myPercent) / 100)
+      : null;
+  const mateWon = amount && mineWon != null ? amount - mineWon : null;
+
+  return {
+    key,
+    label,
+    totalLabel,
+    myPercent,
+    negotiated,
+    myAmountLabel: formatWon(mineWon),
+    mateAmountLabel: formatWon(mateWon),
+  };
+}
+
+function CostSplitChart({ chart }: { chart: CostChart }) {
+  const matePercent =
+    chart.myPercent != null ? 100 - chart.myPercent : null;
+  const aria = [
+    chart.label,
+    chart.totalLabel ? `지금 ${chart.totalLabel}` : null,
+    chart.negotiated
+      ? "분담은 직접 조율"
+      : chart.myPercent != null
+        ? `나는 ${chart.myPercent}%${chart.myAmountLabel ? ` ${chart.myAmountLabel}` : ""}, 살짝은 ${matePercent}%${chart.mateAmountLabel ? ` ${chart.mateAmountLabel}` : ""}`
+        : null,
+  ]
+    .filter(Boolean)
+    .join(", ");
+
+  return (
+    <article className={styles.costCard} aria-label={aria}>
+      <div className={styles.costCopy}>
+        <p className={styles.costLabel}>{chart.label}</p>
+        {chart.totalLabel ? (
+          <>
+            <p className={styles.costTotal}>{chart.totalLabel}</p>
+            <p className={styles.costHint}>지금 내고 있는 금액이에요</p>
+          </>
+        ) : (
+          <p className={styles.costHint}>분담 비율이에요</p>
+        )}
+      </div>
+
+      {chart.negotiated ? (
+        <div className={styles.negotiateBar}>분담은 만나서 조율해요</div>
+      ) : chart.myPercent != null && matePercent != null ? (
+        <>
+          <div className={styles.splitBar} aria-hidden>
+            <span
+              className={styles.splitMe}
+              style={{ flexGrow: chart.myPercent, flexBasis: 0 }}
+            >
+              {chart.myPercent >= 28 ? `${chart.myPercent}%` : ""}
+            </span>
+            <span
+              className={styles.splitMate}
+              style={{ flexGrow: matePercent, flexBasis: 0 }}
+            >
+              {matePercent >= 28 ? `${matePercent}%` : ""}
+            </span>
+          </div>
+          <div className={styles.splitLegend}>
+            <span className={styles.legendMe}>
+              <i className={styles.legendDotMe} />
+              나 {chart.myAmountLabel ?? `${chart.myPercent}%`}
+            </span>
+            <span className={styles.legendMate}>
+              살짝 {chart.mateAmountLabel ?? `${matePercent}%`}
+              <i className={styles.legendDotMate} />
+            </span>
+          </div>
+        </>
+      ) : null}
+    </article>
+  );
+}
+
 function formatHour(hour?: number) {
   if (hour == null) return null;
   const h = Math.floor(hour);
@@ -63,12 +165,20 @@ function formatHour(hour?: number) {
   return `${h}시`;
 }
 
+function formatNearbyStation(station?: string) {
+  const value = station?.trim();
+  if (!value || value === NO_NEARBY_STATION) return null;
+  const withSuffix = value.endsWith("역") ? value : `${value}역`;
+  return withSuffix;
+}
+
 function buildHeadline(user: UserProfile) {
   const region = user.pref?.regions?.[0];
-  if (region) {
-    return { lead: `${region}에서`, action: "살짝 구해요." };
-  }
-  return { lead: "같이 살", action: "살짝을 구해요." };
+  const station = formatNearbyStation(user.pref?.nearestStation);
+  if (region && station) return `${region}(${station} 인근)`;
+  if (region) return region;
+  if (station) return `${station} 인근`;
+  return "살짝 공고";
 }
 
 function buildLifestyleChips(user: UserProfile) {
@@ -139,13 +249,17 @@ export function ListingPreviewPage() {
     const ageGroup = getAgeGroup(user.birthDate);
     const gender = GENDER_LABEL[user.gender] ?? "";
     const meta = [ageGroup, gender, job].filter(Boolean).join(" · ");
-    const regions = user.pref?.regions ?? [];
-    const rentAmount = formatWon(user.pref?.rentAmount);
-    const mgmtAmount = formatWon(user.pref?.mgmtAmount);
-    const rentShare = formatShare(user.pref?.rentShare);
-    const mgmtShare = formatShare(user.pref?.mgmtShare);
-    const prefGender = optionLabel(PREF_GENDER_OPTIONS, user.pref?.prefGender);
+    const prefGender = user.pref?.prefGender;
     const headline = buildHeadline(user);
+    const charts = [
+      buildCostChart("rent", "월세", user.pref?.rentAmount, user.pref?.rentShare),
+      buildCostChart(
+        "mgmt",
+        "관리비",
+        user.pref?.mgmtAmount,
+        user.pref?.mgmtShare,
+      ),
+    ].filter((item): item is CostChart => Boolean(item));
 
     return {
       headline,
@@ -153,37 +267,17 @@ export function ListingPreviewPage() {
       initial: user.nickname.trim().slice(0, 1) || "ㅅ",
       photoUrl: user.photoUrl,
       meta,
-      gender,
-      regions,
-      rentAmount,
-      mgmtAmount,
-      rentShare,
-      mgmtShare,
+      charts,
       prefGender,
       lifestyle: buildLifestyleChips(user),
       hardNos: buildHardNos(user),
       bio: user.bio?.trim() || "",
-      roomType:
-        user.pref?.seekRole === "has_room"
-          ? "방 있음"
-          : user.pref?.seekRole === "needs_room"
-            ? "방 구함"
-            : null,
     };
   }, [user]);
 
   if (!view) return null;
 
-  const hasStats =
-    Boolean(view.rentAmount || view.rentShare) ||
-    Boolean(view.mgmtAmount || view.mgmtShare) ||
-    Boolean(view.prefGender);
-
-  const metaBits = [
-    view.regions[0],
-    view.roomType,
-    view.gender || null,
-  ].filter((bit): bit is string => Boolean(bit));
+  const hasStats = view.charts.length > 0;
 
   return (
     <section className={styles.page}>
@@ -203,27 +297,7 @@ export function ListingPreviewPage() {
 
         <section className={styles.hero}>
           <p className={styles.eyebrow}>살짝 공고</p>
-          <h2 className={styles.headline}>
-            <span className={styles.headlineLead}>{view.headline.lead}</span>
-            <span className={styles.headlineAction}>{view.headline.action}</span>
-          </h2>
-
-          {metaBits.length > 0 ? (
-            <ul className={styles.metaRow}>
-              {metaBits.map((bit) => (
-                <li key={bit} className={styles.metaItem}>
-                  {bit === view.regions[0] ? (
-                    <>
-                      <MapPin size={12} strokeWidth={2.4} aria-hidden />
-                      <span>{bit}</span>
-                    </>
-                  ) : (
-                    bit
-                  )}
-                </li>
-              ))}
-            </ul>
-          ) : null}
+          <h2 className={styles.headline}>{view.headline}</h2>
 
           <div className={styles.host}>
             <div className={styles.avatar} aria-hidden>
@@ -240,44 +314,48 @@ export function ListingPreviewPage() {
           </div>
         </section>
 
+        {view.prefGender ? (
+          <section className={styles.section} aria-labelledby="pref-title">
+            <header className={styles.sectionHead}>
+              <h3 id="pref-title" className={styles.sectionTitle}>
+                선호 살짝
+              </h3>
+            </header>
+            <article
+              className={styles.costCard}
+              aria-label={`선호 살짝 ${optionLabel(PREF_GENDER_OPTIONS, view.prefGender)}`}
+            >
+              <div className={styles.prefOptions}>
+                {PREF_GENDER_OPTIONS.map((opt) => (
+                  <span
+                    key={opt.value}
+                    className={cn(
+                      styles.prefOption,
+                      view.prefGender === opt.value && styles.prefOptionActive,
+                    )}
+                  >
+                    {opt.label}
+                  </span>
+                ))}
+              </div>
+            </article>
+          </section>
+        ) : null}
+
         {hasStats ? (
           <section className={styles.section} aria-labelledby="housing-title">
             <header className={styles.sectionHead}>
               <h3 id="housing-title" className={styles.sectionTitle}>
                 주거 조건
               </h3>
+              <p className={styles.sectionDesc}>
+                지금 내는 금액과, 살짝이 나눌 분담이에요
+              </p>
             </header>
-            <div className={styles.stats}>
-              {view.rentAmount || view.rentShare ? (
-                <div className={styles.stat}>
-                  <span className={styles.statLabel}>월세</span>
-                  <span className={styles.statValue}>
-                    {view.rentAmount ?? view.rentShare}
-                  </span>
-                  {view.rentAmount && view.rentShare ? (
-                    <span className={styles.statSub}>분담 {view.rentShare}</span>
-                  ) : null}
-                </div>
-              ) : null}
-              {view.mgmtAmount || view.mgmtShare ? (
-                <div className={styles.stat}>
-                  <span className={styles.statLabel}>관리비</span>
-                  <span className={styles.statValue}>
-                    {view.mgmtAmount
-                      ? `평균 ${view.mgmtAmount}`
-                      : view.mgmtShare}
-                  </span>
-                  {view.mgmtAmount && view.mgmtShare ? (
-                    <span className={styles.statSub}>분담 {view.mgmtShare}</span>
-                  ) : null}
-                </div>
-              ) : null}
-              {view.prefGender ? (
-                <div className={styles.stat}>
-                  <span className={styles.statLabel}>선호 성별</span>
-                  <span className={styles.statValue}>{view.prefGender}</span>
-                </div>
-              ) : null}
+            <div className={styles.costCharts}>
+              {view.charts.map((chart) => (
+                <CostSplitChart key={chart.key} chart={chart} />
+              ))}
             </div>
           </section>
         ) : null}
@@ -290,13 +368,15 @@ export function ListingPreviewPage() {
               </h3>
               <p className={styles.sectionDesc}>평소 생활 패턴이에요</p>
             </header>
-            <div className={styles.chips}>
-              {view.lifestyle.map((chip) => (
-                <span key={chip} className={styles.chip}>
-                  {chip}
-                </span>
-              ))}
-            </div>
+            <article className={styles.costCard}>
+              <div className={styles.factWrap}>
+                {view.lifestyle.map((chip) => (
+                  <span key={chip} className={styles.prefOption}>
+                    {chip}
+                  </span>
+                ))}
+              </div>
+            </article>
           </section>
         ) : null}
 
@@ -308,13 +388,15 @@ export function ListingPreviewPage() {
               </h3>
               <p className={styles.sectionDesc}>이 부분은 맞춰주기 어려워요</p>
             </header>
-            <div className={styles.chips}>
-              {view.hardNos.map((item) => (
-                <span key={item} className={cn(styles.chip, styles.chipHard)}>
-                  {item}
-                </span>
-              ))}
-            </div>
+            <article className={styles.costCard}>
+              <div className={styles.factWrap}>
+                {view.hardNos.map((item) => (
+                  <span key={item} className={styles.prefOptionHard}>
+                    {item}
+                  </span>
+                ))}
+              </div>
+            </article>
           </section>
         ) : null}
 
@@ -325,14 +407,16 @@ export function ListingPreviewPage() {
             </h3>
             <p className={styles.sectionDesc}>살짝에게 전하는 소개예요</p>
           </header>
-          {view.bio ? (
-            <blockquote className={styles.bio}>{view.bio}</blockquote>
-          ) : (
-            <p className={styles.bioEmpty}>
-              아직 소개 글이 없어요. 프로필에서 한마디를 적어보면 매칭이 더
-              자연스러워져요.
-            </p>
-          )}
+          <article className={styles.costCard}>
+            {view.bio ? (
+              <p className={styles.bio}>{view.bio}</p>
+            ) : (
+              <p className={styles.bioEmpty}>
+                아직 소개 글이 없어요. 프로필에서 한마디를 적어보면 매칭이 더
+                자연스러워져요.
+              </p>
+            )}
+          </article>
         </section>
       </div>
 
