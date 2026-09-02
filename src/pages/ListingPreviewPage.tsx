@@ -295,6 +295,7 @@ export function ListingPreviewPage() {
           <span className={styles.previewBadge}>미리보기</span>
         </header>
 
+        <div className={styles.sheet}>
         <section className={styles.hero}>
           <p className={styles.eyebrow}>살짝 공고</p>
           <h2 className={styles.headline}>{view.headline}</h2>
@@ -418,6 +419,7 @@ export function ListingPreviewPage() {
             )}
           </article>
         </section>
+        </div>
       </div>
 
       <div className={styles.footer}>

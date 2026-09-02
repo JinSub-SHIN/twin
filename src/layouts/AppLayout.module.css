@@ -68,7 +68,9 @@
   display: flex;
   flex-direction: column;
   padding-top: calc(env(safe-area-inset-top) + 0.85rem);
+  padding-right: 1.15rem;
   padding-bottom: calc(4rem + env(safe-area-inset-bottom));
+  padding-left: 1.15rem;
   overflow: hidden;
   scrollbar-gutter: auto;
   background: oklch(0.97 0.005 145);
