@@ -328,6 +328,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0.32rem;
   min-height: 2.35rem;
   border-radius: 0.85rem;
   background: oklch(0.96 0.008 120);
@@ -347,6 +348,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0.32rem;
   min-height: 2.35rem;
   padding: 0 0.8rem;
   border-radius: 0.85rem;
@@ -356,6 +358,11 @@
   font-weight: 700;
   letter-spacing: -0.03em;
   color: var(--peach-ink);
+}
+
+.factEmoji {
+  font-size: 0.95rem;
+  line-height: 1;
 }
 
 .factWrap {

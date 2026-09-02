@@ -181,52 +181,54 @@ function buildHeadline(user: UserProfile) {
   return "살짝 공고";
 }
 
+type FactChip = { emoji: string; label: string };
+
 function buildLifestyleChips(user: UserProfile) {
   const p = user.pref;
-  if (!p) return [] as string[];
-  const chips: string[] = [];
+  if (!p) return [] as FactChip[];
+  const chips: FactChip[] = [];
 
   const sleep = formatHour(p.sleepHour);
   const wake = formatHour(p.wakeHour);
-  if (sleep && wake) chips.push(`${sleep} 취침 · ${wake} 기상`);
-  else if (sleep) chips.push(`${sleep} 취침`);
-  else if (wake) chips.push(`${wake} 기상`);
+  if (sleep && wake) chips.push({ emoji: "🌙", label: `${sleep} 취침 · ${wake} 기상` });
+  else if (sleep) chips.push({ emoji: "🌙", label: `${sleep} 취침` });
+  else if (wake) chips.push({ emoji: "☀️", label: `${wake} 기상` });
 
   const personality = optionLabel(PERSONALITY_OPTIONS, p.personality);
-  if (personality) chips.push(`성격 ${personality}`);
+  if (personality) chips.push({ emoji: "🙂", label: `성격 ${personality}` });
 
   const home = optionLabel(HOME_TIME_OPTIONS, p.homeTime);
-  if (home) chips.push(`집 체류 ${home}`);
+  if (home) chips.push({ emoji: "🏠", label: `집 체류 ${home}` });
 
   const clean = optionLabel(CLEAN_FREQ_OPTIONS, p.cleanFreq);
-  if (clean) chips.push(`청소 ${clean}`);
+  if (clean) chips.push({ emoji: "✨", label: `청소 ${clean}` });
 
   const drink = optionLabel(DRINK_OPTIONS, p.drinkFreq);
-  if (drink) chips.push(`음주 ${drink}`);
+  if (drink) chips.push({ emoji: "🍺", label: `음주 ${drink}` });
 
   const smoking = optionLabel(SMOKING_OPTIONS, p.smokingType);
-  if (smoking) chips.push(`흡연 ${smoking}`);
+  if (smoking) chips.push({ emoji: "🚬", label: `흡연 ${smoking}` });
 
   if (p.pet) {
     const kind =
       p.petInfo?.kind === "other"
         ? p.petInfo.kindOther || "반려동물"
         : optionLabel(PET_KIND_OPTIONS, p.petInfo?.kind) || "반려동물";
-    chips.push(`${kind} 함께`);
+    chips.push({ emoji: "🐾", label: `${kind} 함께` });
   }
 
-  if (p.wfh) chips.push("재택 근무");
+  if (p.wfh) chips.push({ emoji: "💻", label: "재택 근무" });
 
   return chips;
 }
 
 function buildHardNos(user: UserProfile) {
   const p = user.pref;
-  if (!p) return [] as string[];
-  const items: string[] = [];
-  if (p.noSmoker) items.push("흡연");
-  if (p.noDrink) items.push("음주");
-  if (p.noPet) items.push("반려동물");
+  if (!p) return [] as FactChip[];
+  const items: FactChip[] = [];
+  if (p.noSmoker) items.push({ emoji: "🚭", label: "흡연" });
+  if (p.noDrink) items.push({ emoji: "🍺", label: "음주" });
+  if (p.noPet) items.push({ emoji: "🐾", label: "반려동물" });
   return items;
 }
 
@@ -372,8 +374,11 @@ export function ListingPreviewPage() {
             <article className={styles.costCard}>
               <div className={styles.factWrap}>
                 {view.lifestyle.map((chip) => (
-                  <span key={chip} className={styles.prefOption}>
-                    {chip}
+                  <span key={chip.label} className={styles.prefOption}>
+                    <span className={styles.factEmoji} aria-hidden>
+                      {chip.emoji}
+                    </span>
+                    {chip.label}
                   </span>
                 ))}
               </div>
@@ -392,8 +397,11 @@ export function ListingPreviewPage() {
             <article className={styles.costCard}>
               <div className={styles.factWrap}>
                 {view.hardNos.map((item) => (
-                  <span key={item} className={styles.prefOptionHard}>
-                    {item}
+                  <span key={item.label} className={styles.prefOptionHard}>
+                    <span className={styles.factEmoji} aria-hidden>
+                      {item.emoji}
+                    </span>
+                    {item.label}
                   </span>
                 ))}
               </div>
