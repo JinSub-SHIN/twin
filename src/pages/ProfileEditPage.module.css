@@ -25,6 +25,56 @@
   scrollbar-gutter: auto;
 }
 
+.stepPage {
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: auto;
+}
+
+.stepPageLocked {
+  overflow: hidden;
+}
+
+.stepStack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  min-height: 100%;
+  box-sizing: border-box;
+}
+
+.stepPageLocked .stepStack {
+  height: 100%;
+}
+
+.stepPageForward {
+  animation: twin-step-forward 0.45s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.stepPageBack {
+  animation: twin-step-back 0.45s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@keyframes twin-step-forward {
+  from {
+    transform: translate3d(100%, 0, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes twin-step-back {
+  from {
+    transform: translate3d(-100%, 0, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
 .regionViewport {
   flex: 1;
   min-height: 0;
@@ -63,6 +113,7 @@
 
 .submitDock {
   flex-shrink: 0;
+  margin-top: auto;
   padding-top: 0.65rem;
   padding-bottom: 0.15rem;
   background: oklch(0.97 0.005 145);
@@ -791,6 +842,21 @@
   border-radius: 1.1rem;
   background: oklch(0.96 0.04 145);
   border: 1.5px solid oklch(0.55 0.16 145);
+}
+
+.stationPickedMain {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+  flex: 1;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
 }
 
 .stationPickedIcon {

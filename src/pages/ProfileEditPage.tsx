@@ -99,12 +99,6 @@ function normalizeShareMode(mode: string | undefined | null): ShareMode | null {
   return null;
 }
 
-function selectDistrict(current: string[], city: string, district: string) {
-  const value = formatRegion(city, district);
-  if (current[0] === value) return [];
-  return [value];
-}
-
 function toInt(v: string) {
   if (!v.trim()) return undefined;
   const n = Number(v);
@@ -119,6 +113,7 @@ export function ProfileEditPage() {
   const [seekRole, setSeekRole] = useState<SeekRole | null>(null);
   const [regionCity, setRegionCity] = useState<string | null>(null);
   const [regionPhase, setRegionPhase] = useState<"city" | "district">("city");
+  const [stepAnim, setStepAnim] = useState<"none" | "forward" | "back">("none");
   const [regions, setRegions] = useState<string[]>([]);
   const [nearestStation, setNearestStation] = useState("");
   const [stationQuery, setStationQuery] = useState("");
@@ -250,9 +245,14 @@ export function ProfileEditPage() {
   const showWfhOption =
     job === "employee" || job === "freelancer" || job === "other";
 
-  const persistDraft = () => {
+  const persistDraft = (overrides?: {
+    regions?: string[];
+    nearestStation?: string;
+  }) => {
     const current = userRef.current;
     if (!current) return;
+    const nextRegions = overrides?.regions ?? regions;
+    const nextStation = overrides?.nearestStation ?? nearestStation;
 
     updateUser({
       job: job ?? undefined,
@@ -265,8 +265,8 @@ export function ProfileEditPage() {
       pref: {
         ...current.pref,
         seekRole: seekRole ?? undefined,
-        regions: regions[0] ? [regions[0]] : undefined,
-        nearestStation: nearestStation.trim() || undefined,
+        regions: nextRegions[0] ? [nextRegions[0]] : undefined,
+        nearestStation: nextStation.trim() || undefined,
         sleepHour: toInt(sleepHour),
         wakeHour: toInt(wakeHour),
         personality: personality ?? undefined,
@@ -374,30 +374,32 @@ export function ProfileEditPage() {
     if (roleChanged) {
       setRegions([]);
       setRegionCity(null);
+      setRegionPhase("city");
     }
     setAutosaveTipOpen(true);
   };
 
-  const handleNextFromRegion = () => {
-    if (!seekRole || regions.length === 0) return;
-    persistDraft();
-    navigate(STEP_PATH.station);
+  const goForward = (path: string) => {
+    setStepAnim("forward");
+    navigate(path);
   };
 
-  const handleNextFromStation = () => {
-    if (!nearestStation.trim()) return;
-    persistDraft();
-    if (seekRole === "has_room") {
-      navigate(STEP_PATH.cost);
-      return;
-    }
-    navigate(STEP_PATH.detail);
+  const goBackTo = (path: string) => {
+    setStepAnim("back");
+    navigate(path);
+  };
+
+  const pickStation = (station: string) => {
+    setNearestStation(station);
+    setStationQuery("");
+    persistDraft({ nearestStation: station });
+    goForward(seekRole === "has_room" ? STEP_PATH.cost : STEP_PATH.detail);
   };
 
   const handleNextFromCost = () => {
     if (!toInt(rentAmount) || !toInt(mgmtAmount)) return;
     persistDraft();
-    navigate(STEP_PATH.detail);
+    goForward(STEP_PATH.detail);
   };
 
   const isShareValid = (mode: ShareMode | null, percent: string) => {
@@ -449,7 +451,7 @@ export function ProfileEditPage() {
   const handleNextFromDetail = () => {
     if (lifestyleInvalid) return;
     persistDraft();
-    navigate(STEP_PATH.prefs);
+    goForward(STEP_PATH.prefs);
   };
 
   const leaveTo = (next: "profile" | "post" | "find") => {
@@ -489,7 +491,7 @@ export function ProfileEditPage() {
 
   const confirmAutosaveTip = () => {
     setAutosaveTipOpen(false);
-    navigate(STEP_PATH.region);
+    goForward(STEP_PATH.region);
   };
 
   const handleBack = () => {
@@ -503,22 +505,22 @@ export function ProfileEditPage() {
         setRegionPhase("city");
         return;
       }
-      navigate(STEP_PATH.role);
+      goBackTo(STEP_PATH.role);
       return;
     }
     if (step === "station") {
-      navigate(STEP_PATH.region);
+      goBackTo(STEP_PATH.region);
       return;
     }
     if (step === "cost") {
-      navigate(STEP_PATH.station);
+      goBackTo(STEP_PATH.station);
       return;
     }
     if (step === "detail") {
-      navigate(hasRoom ? STEP_PATH.cost : STEP_PATH.station);
+      goBackTo(hasRoom ? STEP_PATH.cost : STEP_PATH.station);
       return;
     }
-    navigate(STEP_PATH.detail);
+    goBackTo(STEP_PATH.detail);
   };
 
   if (!isLoggedIn || !user) return null;
@@ -575,12 +577,17 @@ export function ProfileEditPage() {
         </p>
       </div>
 
+      <div className={cn(styles.stepBody, styles.stepBodyLocked)}>
       <div
+        key={step}
         className={cn(
-          styles.stepBody,
-          step === "region" && styles.stepBodyLocked,
+          styles.stepPage,
+          step === "region" && styles.stepPageLocked,
+          stepAnim === "forward" && styles.stepPageForward,
+          stepAnim === "back" && styles.stepPageBack,
         )}
       >
+      <div className={styles.stepStack}>
       {step === "role" ? (
         <>
           <div className={styles.intro}>
@@ -772,10 +779,11 @@ export function ProfileEditPage() {
                           selectedRegion === value && styles.chipActive,
                         )}
                         onClick={() => {
-                          if (!regionCity) return;
-                          setRegions((prev) =>
-                            selectDistrict(prev, regionCity, district),
-                          );
+                          if (!regionCity || !seekRole) return;
+                          const next = [formatRegion(regionCity, district)];
+                          setRegions(next);
+                          persistDraft({ regions: next });
+                          goForward(STEP_PATH.station);
                         }}
                       >
                         {district}
@@ -825,10 +833,7 @@ export function ProfileEditPage() {
                 nearestStation === NO_NEARBY_STATION &&
                   styles.stationChoiceBtnOn,
               )}
-              onClick={() => {
-                setNearestStation(NO_NEARBY_STATION);
-                setStationQuery("");
-              }}
+              onClick={() => pickStation(NO_NEARBY_STATION)}
             >
               가까운 역 없음
             </button>
@@ -846,15 +851,23 @@ export function ProfileEditPage() {
             >
               {nearestStation && nearestStation !== NO_NEARBY_STATION ? (
                 <div className={styles.stationPicked}>
-                  <span className={styles.stationPickedIcon} aria-hidden>
-                    <MapPin className="size-4" strokeWidth={2.3} />
-                  </span>
-                  <span className={styles.stationPickedText}>
-                    <span className={styles.stationPickedLabel}>선택한 역</span>
-                    <span className={styles.stationPickedName}>
-                      {nearestStation}
+                  <button
+                    type="button"
+                    className={styles.stationPickedMain}
+                    onClick={() => pickStation(nearestStation)}
+                  >
+                    <span className={styles.stationPickedIcon} aria-hidden>
+                      <MapPin className="size-4" strokeWidth={2.3} />
                     </span>
-                  </span>
+                    <span className={styles.stationPickedText}>
+                      <span className={styles.stationPickedLabel}>
+                        선택한 역
+                      </span>
+                      <span className={styles.stationPickedName}>
+                        {nearestStation}
+                      </span>
+                    </span>
+                  </button>
                   <button
                     type="button"
                     className={styles.stationPickedClear}
@@ -917,10 +930,7 @@ export function ProfileEditPage() {
                     tabIndex={
                       nearestStation === NO_NEARBY_STATION ? -1 : undefined
                     }
-                    onClick={() => {
-                      setNearestStation(customStationLabel);
-                      setStationQuery("");
-                    }}
+                    onClick={() => pickStation(customStationLabel)}
                   >
                     <span className={styles.stationItemIcon} aria-hidden>
                       <MapPin className="size-4" strokeWidth={2.3} />
@@ -949,10 +959,7 @@ export function ProfileEditPage() {
                       tabIndex={
                         nearestStation === NO_NEARBY_STATION ? -1 : undefined
                       }
-                      onClick={() => {
-                        setNearestStation(label);
-                        setStationQuery("");
-                      }}
+                      onClick={() => pickStation(label)}
                     >
                       <span className={styles.stationItemIcon} aria-hidden>
                         <MapPin className="size-4" strokeWidth={2.3} />
@@ -1584,9 +1591,8 @@ export function ProfileEditPage() {
           </section>
         </>
       )}
-      </div>
 
-      {step !== "role" && !(step === "region" && regionPhase === "city") ? (
+      {step !== "role" && step !== "region" && step !== "station" ? (
         <div className={styles.submitDock}>
           {step === "prefs" ? (
             <div className={styles.submitGroup}>
@@ -1624,23 +1630,9 @@ export function ProfileEditPage() {
               type="button"
               className={styles.submit}
               size="lg"
-              disabled={
-                step === "cost"
-                  ? costInvalid
-                  : step === "region"
-                    ? regions.length === 0
-                    : step === "station"
-                      ? !nearestStation.trim()
-                      : lifestyleInvalid
-              }
+              disabled={step === "cost" ? costInvalid : lifestyleInvalid}
               onClick={
-                step === "cost"
-                  ? handleNextFromCost
-                  : step === "region"
-                    ? handleNextFromRegion
-                    : step === "station"
-                      ? handleNextFromStation
-                      : handleNextFromDetail
+                step === "cost" ? handleNextFromCost : handleNextFromDetail
               }
             >
               다음
@@ -1648,6 +1640,9 @@ export function ProfileEditPage() {
           )}
         </div>
       ) : null}
+      </div>
+      </div>
+      </div>
 
       <Dialog open={autosaveTipOpen} onOpenChange={setAutosaveTipOpen}>
         <DialogContent className={styles.dialogContent} showCloseButton={false}>

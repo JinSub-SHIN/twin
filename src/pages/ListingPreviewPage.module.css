@@ -175,11 +175,26 @@
 }
 
 .hostPref {
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
   margin: 0.28rem 0 0;
+}
+
+.hostPrefSeek {
+  margin: 0;
   font-size: 0.76rem;
   font-weight: 650;
   letter-spacing: -0.02em;
   color: oklch(0.38 0.08 145);
+}
+
+.hostPrefNote {
+  margin: 0;
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  color: oklch(0.48 0.04 145);
 }
 
 /* —— Sections (flow, not stacked bordered cards) —— */

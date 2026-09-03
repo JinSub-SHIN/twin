@@ -42,6 +42,7 @@ export type ListingView = {
   meta: string;
   charts: CostChart[];
   prefGender?: PrefGender;
+  restrictListingByPrefGender?: boolean;
   lifestyle: FactChip[];
   hardNos: FactChip[];
   bio: string;
@@ -238,6 +239,7 @@ export function buildListingView(user: UserProfile): ListingView {
       ),
     ].filter((item): item is CostChart => Boolean(item)),
     prefGender: user.pref?.prefGender,
+    restrictListingByPrefGender: user.pref?.restrictListingByPrefGender,
     lifestyle: buildLifestyleChips(user),
     hardNos: buildHardNos(user),
     bio: user.bio?.trim() || "",

@@ -85,6 +85,12 @@ export function ListingCard({
 }) {
   const hasStats = view.charts.length > 0;
   const burden = buildMateBurden(view.charts);
+  const prefGenderWord =
+    view.prefGender === "female"
+      ? "여성"
+      : view.prefGender === "male"
+        ? "남성"
+        : null;
 
   return (
     <div className={styles.sheet}>
@@ -104,13 +110,18 @@ export function ListingCard({
             <p className={styles.hostName}>{view.nickname}</p>
             {view.meta ? <p className={styles.hostMeta}>{view.meta}</p> : null}
             {view.prefGender ? (
-              <p className={styles.hostPref}>
-                {view.prefGender === "female"
-                  ? "여성 살짝을 찾아요"
-                  : view.prefGender === "male"
-                    ? "남성 살짝을 찾아요"
+              <div className={styles.hostPref}>
+                <p className={styles.hostPrefSeek}>
+                  {prefGenderWord
+                    ? `${prefGenderWord} 살짝을 찾아요`
                     : "성별은 상관없어요"}
-              </p>
+                </p>
+                {view.restrictListingByPrefGender && prefGenderWord ? (
+                  <p className={styles.hostPrefNote}>
+                    {prefGenderWord}만 볼 수 있는 공고예요
+                  </p>
+                ) : null}
+              </div>
             ) : null}
           </div>
         </div>
