@@ -1,6 +1,5 @@
 import { Outlet, useLocation } from 'react-router-dom'
-import { BottomNav } from '@/components/BottomNav'
-import { Header } from '@/components/Header'
+import { BottomNav, Header } from '@/components/layout'
 import { cn } from '@/lib/utils'
 import styles from './AppLayout.module.css'
 

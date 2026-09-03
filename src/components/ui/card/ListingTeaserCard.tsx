@@ -1,6 +1,6 @@
 import { MapPin } from "lucide-react";
 import type { ListingSummary } from "@/lib/listingView";
-import styles from "@/pages/ExplorePage.module.css";
+import styles from "@/pages/find/ExplorePage.module.css";
 
 export function ListingTeaserCard({
   summary,

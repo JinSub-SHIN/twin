@@ -12,10 +12,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { AppleSignInButton } from "@/components/AppleSignInButton";
-import { GoogleSignInButton } from "@/components/GoogleSignInButton";
-import { KakaoSignInButton } from "@/components/KakaoSignInButton";
-import { NaverSignInButton } from "@/components/NaverSignInButton";
+import {
+  AppleSignInButton,
+  GoogleSignInButton,
+  KakaoSignInButton,
+  NaverSignInButton,
+} from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 import type { Gender, SocialProvider, UserProfile } from "@/types/user";

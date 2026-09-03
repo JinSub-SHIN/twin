@@ -3,7 +3,7 @@ import {
   type CostChart,
   type ListingView,
 } from "@/lib/listingView";
-import styles from "@/pages/ListingPreviewPage.module.css";
+import styles from "@/pages/regist/ListingPreviewPage.module.css";
 
 function CostSplitChart({ chart }: { chart: CostChart }) {
   const aria = [

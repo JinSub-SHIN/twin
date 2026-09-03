@@ -2,7 +2,7 @@ import { useEffect, useMemo } from "react";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ListingCard } from "@/components/ListingCard";
+import { ListingCard } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
 import { buildListingView } from "@/lib/listingView";
 import { cn } from "@/lib/utils";

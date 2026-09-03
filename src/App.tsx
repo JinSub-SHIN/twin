@@ -1,14 +1,14 @@
 import { Route, Routes, Navigate } from 'react-router-dom'
 import { AuthProvider } from '@/context/AuthContext'
 import { AppLayout } from '@/layouts/AppLayout'
-import { ExplorePage } from '@/pages/ExplorePage'
-import { HomePage } from '@/pages/HomePage'
-import { ListingDetailPage } from '@/pages/ListingDetailPage'
-import { ListingPreviewPage } from '@/pages/ListingPreviewPage'
-import { LoginPage } from '@/pages/LoginPage'
-import { ProfileEditPage } from '@/pages/ProfileEditPage'
-import { ProfilePage } from '@/pages/ProfilePage'
-import { SignupPage } from '@/pages/SignupPage'
+import { LoginPage } from '@/pages/auth/LoginPage'
+import { SignupPage } from '@/pages/auth/SignupPage'
+import { ExplorePage } from '@/pages/find/ExplorePage'
+import { ListingDetailPage } from '@/pages/find/ListingDetailPage'
+import { HomePage } from '@/pages/home/HomePage'
+import { ProfileEditPage } from '@/pages/mypage/ProfileEditPage'
+import { ProfilePage } from '@/pages/mypage/ProfilePage'
+import { ListingPreviewPage } from '@/pages/regist/ListingPreviewPage'
 
 function App() {
   return (

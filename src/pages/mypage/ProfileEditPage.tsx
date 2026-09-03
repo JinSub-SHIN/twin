@@ -12,7 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { DayClock } from "@/components/DayClock";
+import { DayClock } from "@/components/ui/clock";
 import { useAuth } from "@/context/AuthContext";
 import { REGION_CITIES, REGION_TREE, formatRegion } from "@/lib/regions";
 import {

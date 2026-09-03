@@ -2,11 +2,11 @@ import { useEffect, useMemo } from "react";
 import { ArrowLeft } from "lucide-react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ListingCard } from "@/components/ListingCard";
+import { ListingCard } from "@/components/ui/card";
 import { getListingById } from "@/lib/demoListings";
 import { buildListingView } from "@/lib/listingView";
 import { cn } from "@/lib/utils";
-import styles from "./ListingPreviewPage.module.css";
+import styles from "@/pages/regist/ListingPreviewPage.module.css";
 
 export function ListingDetailPage() {
   const navigate = useNavigate();

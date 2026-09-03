@@ -1,7 +1,7 @@
 import { useMemo, useState, type MouseEvent } from "react";
 import { ChevronDown, MapPin, X } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ListingTeaserCard } from "@/components/ListingTeaserCard";
+import { ListingTeaserCard } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
