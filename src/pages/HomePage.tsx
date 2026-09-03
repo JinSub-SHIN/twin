@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useMemo } from "react";
 import { Bell, ChevronRight, MapPin } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -10,8 +10,6 @@ import {
 } from "@/lib/listingView";
 import type { UserProfile } from "@/types/user";
 import styles from "./HomePage.module.css";
-
-const RECENT_SLIDE_MS = 2000;
 
 const HERO_IMAGE = "/images/hero-share.jpg";
 
@@ -48,72 +46,6 @@ export function HomePage() {
 
   const recent = listings.slice(0, 6);
   const recommended = listings.slice(6, 9);
-  const railRef = useRef<HTMLDivElement>(null);
-  const slideIndexRef = useRef(0);
-  const slidePausedRef = useRef(false);
-
-  useEffect(() => {
-    const rail = railRef.current;
-    if (!rail || recent.length <= 1) return;
-
-    const cards = () => Array.from(rail.children) as HTMLElement[];
-
-    const cardLeft = (card: HTMLElement) => {
-      const first = cards()[0];
-      return first ? card.offsetLeft - first.offsetLeft : card.offsetLeft;
-    };
-
-    const syncIndex = () => {
-      const list = cards();
-      if (!list.length) return;
-      const nearest = list.reduce((best, card, i) => {
-        const dist = Math.abs(rail.scrollLeft - cardLeft(card));
-        const bestDist = Math.abs(rail.scrollLeft - cardLeft(list[best]));
-        return dist < bestDist ? i : best;
-      }, 0);
-      slideIndexRef.current = nearest;
-    };
-
-    const goTo = (index: number, behavior: ScrollBehavior) => {
-      const list = cards();
-      if (!list.length) return;
-      const next = ((index % list.length) + list.length) % list.length;
-      slideIndexRef.current = next;
-      rail.scrollTo({ left: cardLeft(list[next]), behavior });
-    };
-
-    const tick = () => {
-      if (slidePausedRef.current || document.hidden) return;
-      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-      const next = slideIndexRef.current + 1;
-      goTo(next, next >= cards().length ? "auto" : "smooth");
-    };
-
-    const pause = () => {
-      slidePausedRef.current = true;
-    };
-
-    const resume = () => {
-      syncIndex();
-      slidePausedRef.current = false;
-    };
-
-    const id = window.setInterval(tick, RECENT_SLIDE_MS);
-    rail.addEventListener("pointerdown", pause);
-    rail.addEventListener("pointerup", resume);
-    rail.addEventListener("pointercancel", resume);
-    rail.addEventListener("pointerleave", resume);
-    rail.addEventListener("scrollend", syncIndex);
-
-    return () => {
-      window.clearInterval(id);
-      rail.removeEventListener("pointerdown", pause);
-      rail.removeEventListener("pointerup", resume);
-      rail.removeEventListener("pointercancel", resume);
-      rail.removeEventListener("pointerleave", resume);
-      rail.removeEventListener("scrollend", syncIndex);
-    };
-  }, [recent.length]);
 
   const openListing = (id: string) => {
     navigate(`/explore/listing/${id}`, { state: { returnTo: "/" } });
@@ -156,7 +88,7 @@ export function HomePage() {
           </div>
 
           <div className={styles.railWrap}>
-          <div ref={railRef} className={styles.rail}>
+          <div className={styles.rail}>
             {recent.map((item) => {
               const pref = prefLine(item.summary);
               return (
