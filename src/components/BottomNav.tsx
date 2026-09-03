@@ -6,7 +6,7 @@ import styles from './BottomNav.module.css'
 const NAV_ITEMS = [
   { to: '/', label: '홈', icon: Home, end: true },
   { to: '/explore', label: '찾기', icon: Search },
-  { to: '/profile', label: '내정보', icon: UserRound },
+  { to: '/profile', label: '프로필', icon: UserRound },
 ] as const
 
 type BottomNavProps = {

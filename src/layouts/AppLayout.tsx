@@ -12,13 +12,13 @@ export function AppLayout() {
   const isProfileEdit = pathname.startsWith('/profile/edit')
   const isListingPreview = pathname.startsWith('/explore/listing')
   const isAuthPage = isSignup || isLogin
-  const hideHeader = isAuthPage || isProfileEdit || isListingPreview
+  const hideHeader = isAuthPage || isProfileEdit || isListingPreview || isHome
   const showBottomNav = !isAuthPage
 
   return (
-    <div className={cn(styles.shell, isHome ? styles.shellHome : styles.shellDefault)}>
-      {!isHome && <div aria-hidden className={styles.glow} />}
-      {!hideHeader && <Header immersive={isHome} />}
+    <div className={cn(styles.shell, styles.shellDefault)}>
+      <div aria-hidden className={styles.glow} />
+      {!hideHeader && <Header immersive={false} />}
       <main
         className={cn(
           styles.main,
@@ -30,7 +30,7 @@ export function AppLayout() {
       >
         <Outlet />
       </main>
-      {showBottomNav && <BottomNav immersive={isHome} />}
+      {showBottomNav && <BottomNav immersive={false} />}
     </div>
   )
 }

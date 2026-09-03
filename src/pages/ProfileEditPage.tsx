@@ -374,8 +374,8 @@ export function ProfileEditPage() {
     if (roleChanged) {
       setRegions([]);
       setRegionCity(null);
-      setRegionPhase("city");
     }
+    setRegionPhase("city");
     setAutosaveTipOpen(true);
   };
 
@@ -491,6 +491,7 @@ export function ProfileEditPage() {
 
   const confirmAutosaveTip = () => {
     setAutosaveTipOpen(false);
+    setRegionPhase("city");
     goForward(STEP_PATH.region);
   };
 
