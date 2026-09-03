@@ -4,7 +4,7 @@
   flex: 1;
   min-height: 0;
   height: 100%;
-  gap: 0.75rem;
+  gap: 0.45rem;
   box-sizing: border-box;
 }
 
@@ -12,12 +12,12 @@
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 0.85rem;
+  gap: 0.55rem;
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-gutter: auto;
-  padding: 0.2rem 0.15rem 0.45rem;
+  padding: 0.1rem 0.1rem 0.2rem;
 }
 
 .stepBodyLocked {
@@ -40,7 +40,7 @@
 .stepStack {
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
+  gap: 0.55rem;
   min-height: 100%;
   box-sizing: border-box;
 }
@@ -96,7 +96,7 @@
 .regionPane {
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
+  gap: 0.55rem;
   width: 50%;
   height: 100%;
   overflow-y: auto;
@@ -107,15 +107,15 @@
 .submitGroup {
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
-  margin-top: 0.35rem;
+  gap: 0.5rem;
+  margin-top: 0.2rem;
 }
 
 .submitDock {
   flex-shrink: 0;
   margin-top: auto;
-  padding-top: 0.65rem;
-  padding-bottom: 0.15rem;
+  padding-top: 0.45rem;
+  padding-bottom: 0.1rem;
   background: oklch(0.97 0.005 145);
 }
 
@@ -130,8 +130,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2.65rem;
-  height: 2.65rem;
+  width: 2.3rem;
+  height: 2.3rem;
   border: 1px solid oklch(0.9 0.02 145 / 0.7);
   border-radius: 9999px;
   background: linear-gradient(
@@ -178,7 +178,7 @@
 }
 
 .stepLabel {
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--muted-foreground);
@@ -187,14 +187,14 @@
 .intro {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.28rem;
 }
 
 .title {
   font-family: "Noto Sans KR", var(--font-sans), sans-serif;
-  font-size: 1.75rem;
+  font-size: 1.42rem;
   font-weight: 800;
-  line-height: 1.25;
+  line-height: 1.22;
   letter-spacing: -0.05em;
 }
 
@@ -203,8 +203,8 @@
 }
 
 .desc {
-  font-size: 0.9375rem;
-  line-height: 1.55;
+  font-size: 0.8125rem;
+  line-height: 1.4;
   letter-spacing: -0.02em;
   color: var(--muted-foreground);
 }
@@ -212,16 +212,16 @@
 .roleList {
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
-  margin-top: 0.25rem;
+  gap: 0.45rem;
+  margin-top: 0.1rem;
 }
 
 .roleCard {
   display: flex;
   align-items: center;
-  gap: 0.9rem;
+  gap: 0.7rem;
   width: 100%;
-  padding: 1.15rem 1.05rem;
+  padding: 0.85rem 0.85rem;
   border: 1.5px solid transparent;
   border-radius: 1.25rem;
   background: oklch(0.955 0.008 120);
@@ -248,10 +248,10 @@
 .roleIconWrap {
   display: grid;
   place-items: center;
-  width: 2.85rem;
-  height: 2.85rem;
+  width: 2.4rem;
+  height: 2.4rem;
   flex-shrink: 0;
-  border-radius: 0.95rem;
+  border-radius: 0.8rem;
   background: oklch(0.92 0.05 145);
   color: oklch(0.35 0.1 145);
 }
@@ -270,15 +270,15 @@
 }
 
 .roleTitle {
-  font-size: 1.02rem;
+  font-size: 0.92rem;
   font-weight: 800;
   letter-spacing: -0.03em;
   color: oklch(0.22 0.03 150);
 }
 
 .roleDesc {
-  font-size: 0.84rem;
-  line-height: 1.4;
+  font-size: 0.76rem;
+  line-height: 1.35;
   letter-spacing: -0.02em;
   color: var(--muted-foreground);
 }
@@ -297,17 +297,17 @@
 .block {
   display: flex;
   flex-direction: column;
-  gap: 1.15rem;
-  padding: 1.25rem 1.15rem 1.35rem;
+  gap: 0.8rem;
+  padding: 0.9rem 0.85rem 0.95rem;
   border: 1px solid oklch(0.93 0.01 145);
-  border-radius: 1.25rem;
+  border-radius: 1.05rem;
   background: oklch(1 0 0);
   box-shadow: 0 1px 2px oklch(0.35 0.02 150 / 0.04);
 }
 
 .blockTitle {
   margin: 0;
-  font-size: 1.06rem;
+  font-size: 0.95rem;
   font-weight: 800;
   letter-spacing: -0.04em;
   line-height: 1.3;
@@ -315,9 +315,9 @@
 }
 
 .blockHint {
-  margin: -0.75rem 0 0;
-  font-size: 0.8125rem;
-  line-height: 1.45;
+  margin: -0.5rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.4;
   letter-spacing: -0.02em;
   color: oklch(0.55 0.02 150);
 }
@@ -325,7 +325,7 @@
 .field {
   display: flex;
   flex-direction: column;
-  gap: 0.55rem;
+  gap: 0.4rem;
 }
 
 .twoCol {
@@ -335,17 +335,17 @@
 }
 
 .input {
-  height: 3.25rem;
+  height: 2.75rem;
   border: 0 !important;
-  border-radius: 1rem !important;
+  border-radius: 0.85rem !important;
   background: oklch(0.96 0.008 120) !important;
   box-shadow: none !important;
   --tw-ring-shadow: none !important;
   outline: none !important;
-  font-size: 1rem;
+  font-size: 0.92rem;
   font-weight: 600;
   letter-spacing: -0.02em;
-  padding-inline: 1rem !important;
+  padding-inline: 0.85rem !important;
 }
 
 .input::placeholder {
@@ -362,17 +362,17 @@
 
 .textarea {
   width: 100%;
-  min-height: 7rem;
+  min-height: 5.25rem;
   resize: vertical;
   border: 0;
-  border-radius: 1rem;
+  border-radius: 0.85rem;
   background: oklch(0.965 0.006 145);
   box-shadow: none;
-  font-size: 1rem;
+  font-size: 0.92rem;
   font-weight: 600;
   letter-spacing: -0.02em;
-  line-height: 1.5;
-  padding: 1rem 1.05rem;
+  line-height: 1.45;
+  padding: 0.8rem 0.85rem;
   color: inherit;
   font-family: inherit;
 }
@@ -456,7 +456,7 @@
 
 .fieldNotice {
   margin: 0;
-  padding: 0.7rem 0.85rem;
+  padding: 0.55rem 0.7rem;
   border-radius: 0.85rem;
   background: color-mix(in oklch, var(--primary) 16%, white);
   border: 1px solid color-mix(in oklch, var(--primary) 28%, var(--border));
@@ -468,7 +468,7 @@
 }
 
 .label {
-  font-size: 0.9rem;
+  font-size: 0.82rem;
   font-weight: 800;
   letter-spacing: -0.03em;
   color: oklch(0.24 0.03 150);
@@ -482,32 +482,32 @@
 /* Toss-like option tiles */
 .chipRow {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(5.4rem, 1fr));
-  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(4.8rem, 1fr));
+  gap: 0.4rem;
 }
 
 .chipRow3 {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 
 .chipRow2 {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 
 .chip {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 3.15rem;
-  padding: 0.7rem 0.65rem;
+  min-height: 2.55rem;
+  padding: 0.5rem 0.5rem;
   border: 1.5px solid transparent;
-  border-radius: 1rem;
+  border-radius: 0.85rem;
   background: oklch(0.96 0.008 120);
-  font-size: 0.9rem;
+  font-size: 0.82rem;
   font-weight: 700;
   letter-spacing: -0.03em;
   color: oklch(0.38 0.02 150);
@@ -554,12 +554,12 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  min-height: 3.35rem;
-  padding: 0.85rem 1rem;
+  min-height: 2.7rem;
+  padding: 0.6rem 0.8rem;
   border: 1.5px solid transparent;
-  border-radius: 1rem;
+  border-radius: 0.85rem;
   background: oklch(0.96 0.008 120);
-  font-size: 0.92rem;
+  font-size: 0.84rem;
   font-weight: 700;
   letter-spacing: -0.03em;
   color: oklch(0.3 0.03 150);
@@ -600,7 +600,7 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 1rem 1.05rem;
+  padding: 0.8rem 0.9rem;
   cursor: pointer;
   background: oklch(1 0 0);
 }
@@ -621,7 +621,7 @@
 }
 
 .agreeAllTitle {
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 800;
   letter-spacing: -0.03em;
   color: oklch(0.22 0.03 150);
@@ -670,7 +670,7 @@
   display: flex;
   align-items: flex-start;
   gap: 0.7rem;
-  padding: 0.7rem 1.05rem;
+  padding: 0.55rem 0.9rem;
   cursor: pointer;
 }
 
@@ -730,9 +730,9 @@
 .subForm {
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
-  padding: 1rem;
-  border-radius: 1.1rem;
+  gap: 0.55rem;
+  padding: 0.75rem;
+  border-radius: 0.95rem;
   background: oklch(0.97 0.008 120);
 }
 
@@ -753,10 +753,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 3.15rem;
-  padding: 0.7rem 0.65rem;
+  min-height: 2.55rem;
+  padding: 0.5rem 0.55rem;
   border: 1.5px solid transparent;
-  border-radius: 1rem;
+  border-radius: 0.85rem;
   background: oklch(0.96 0.008 120);
   color: oklch(0.36 0.03 150);
   font-size: 0.88rem;
@@ -788,7 +788,7 @@
 .stationFoldInner {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.55rem;
   min-height: 0;
   overflow: hidden;
 }
@@ -837,9 +837,9 @@
 .stationPicked {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.85rem 0.95rem;
-  border-radius: 1.1rem;
+  gap: 0.6rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.95rem;
   background: oklch(0.96 0.04 145);
   border: 1.5px solid oklch(0.55 0.16 145);
 }
@@ -862,8 +862,8 @@
 .stationPickedIcon {
   display: grid;
   place-items: center;
-  width: 2.2rem;
-  height: 2.2rem;
+  width: 1.9rem;
+  height: 1.9rem;
   flex-shrink: 0;
   border-radius: 0.7rem;
   background: oklch(0.55 0.16 145);
@@ -886,7 +886,7 @@
 }
 
 .stationPickedName {
-  font-size: 1rem;
+  font-size: 0.92rem;
   font-weight: 800;
   letter-spacing: -0.03em;
 }
@@ -914,8 +914,8 @@
   align-items: center;
   gap: 0.75rem;
   width: 100%;
-  min-height: 3.35rem;
-  padding: 0.7rem 0.85rem;
+  min-height: 2.75rem;
+  padding: 0.55rem 0.7rem;
   border: 1.5px solid transparent;
   border-radius: 1rem;
   background: oklch(0.96 0.008 120);
@@ -988,9 +988,9 @@
 
 .submit {
   width: 100%;
-  height: 3.4rem;
-  border-radius: 1rem;
-  font-size: 1.05rem;
+  height: 2.95rem;
+  border-radius: 0.9rem;
+  font-size: 0.95rem;
   font-weight: 800;
   letter-spacing: -0.03em;
   box-shadow: 0 8px 20px oklch(0.55 0.16 145 / 0.25);
@@ -1126,10 +1126,10 @@
 .genderScopeCard {
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
-  margin-top: 0.35rem;
-  padding: 1rem 0.95rem 0.95rem;
-  border-radius: 1.15rem;
+  gap: 0.6rem;
+  margin-top: 0.2rem;
+  padding: 0.75rem 0.75rem 0.7rem;
+  border-radius: 0.95rem;
   background: oklch(0.985 0.01 145);
   border: 1px solid oklch(0.9 0.02 145);
 }
@@ -1150,7 +1150,7 @@
 
 .genderScopeDesc {
   margin: 0;
-  font-size: 0.92rem;
+  font-size: 0.84rem;
   font-weight: 700;
   line-height: 1.45;
   letter-spacing: -0.03em;
@@ -1170,7 +1170,7 @@
   align-items: flex-start;
   gap: 0.18rem;
   width: 100%;
-  padding: 0.8rem 0.9rem;
+  padding: 0.6rem 0.75rem;
   border: 1.5px solid transparent;
   border-radius: 0.95rem;
   background: oklch(1 0 0);
@@ -1185,7 +1185,7 @@
 }
 
 .genderScopeBtnLabel {
-  font-size: 0.92rem;
+  font-size: 0.84rem;
   font-weight: 800;
   letter-spacing: -0.03em;
 }

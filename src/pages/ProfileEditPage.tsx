@@ -556,7 +556,7 @@ export function ProfileEditPage() {
           onClick={handleBack}
           aria-label="뒤로"
         >
-          <ArrowLeft className="size-[1.15rem]" strokeWidth={2.4} />
+          <ArrowLeft className="size-[1.05rem]" strokeWidth={2.4} />
         </button>
         <p className={styles.stepLabel}>
           {(() => {
@@ -613,7 +613,7 @@ export function ProfileEditPage() {
                   onClick={() => handleSelectRole(opt.value)}
                 >
                   <span className={styles.roleIconWrap} aria-hidden>
-                    <Icon className="size-5" />
+                    <Icon className="size-4" />
                   </span>
                   <span className={styles.roleText}>
                     <span className={styles.roleTitle}>{opt.title}</span>

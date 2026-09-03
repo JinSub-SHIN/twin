@@ -1,7 +1,7 @@
 .wrap {
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
+  gap: 0.45rem;
 }
 
 .modeRow {
@@ -15,12 +15,12 @@
   align-items: center;
   justify-content: center;
   gap: 0.45rem;
-  min-height: 3.15rem;
-  padding: 0.65rem 0.75rem;
+  min-height: 2.55rem;
+  padding: 0.5rem 0.65rem;
   border: 1.5px solid transparent;
   border-radius: 1rem;
   background: oklch(0.955 0.008 120);
-  font-size: 0.9rem;
+  font-size: 0.82rem;
   font-weight: 700;
   letter-spacing: -0.03em;
   color: oklch(0.4 0.02 150);
@@ -84,11 +84,11 @@
 .clockFrame {
   display: grid;
   place-items: center;
-  padding: 0.35rem 0 0.15rem;
+  padding: 0.1rem 0 0;
 }
 
 .svg {
-  width: min(100%, 17.5rem);
+  width: min(100%, 13.25rem);
   height: auto;
   touch-action: none;
   user-select: none;
