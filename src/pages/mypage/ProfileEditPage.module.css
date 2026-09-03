@@ -561,6 +561,66 @@
   gap: 0.5rem;
 }
 
+.hardNoGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.hardNoBtn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.7rem;
+  padding: 0.6rem 0.8rem;
+  overflow: hidden;
+  border: 1.5px solid transparent;
+  border-radius: 0.85rem;
+  background: oklch(0.96 0.008 120);
+  font-size: 0.84rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: oklch(0.3 0.03 150);
+  cursor: pointer;
+}
+
+.hardNoBtn:active {
+  transform: scale(0.985);
+}
+
+.hardNoBtnOn {
+  border-color: oklch(0.64 0.2 25);
+  background: oklch(0.97 0.025 25);
+  color: oklch(0.48 0.16 25);
+}
+
+.hardNoBtnOn::before,
+.hardNoBtnOn::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 12%;
+  width: 76%;
+  height: 1.6px;
+  background: oklch(0.64 0.2 25);
+  border-radius: 999px;
+  pointer-events: none;
+}
+
+.hardNoBtnOn::before {
+  transform: translateY(-50%) rotate(28deg);
+}
+
+.hardNoBtnOn::after {
+  transform: translateY(-50%) rotate(-28deg);
+}
+
+.hardNoBtn span {
+  position: relative;
+  z-index: 1;
+}
+
 .checkRow {
   display: flex;
   align-items: center;

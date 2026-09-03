@@ -1477,28 +1477,24 @@ export function ProfileEditPage() {
               </div>
 
               <p className={styles.label}>함께하기 어려운 점</p>
-              <div className={styles.checkGrid2}>
-                <label className={styles.checkRow}>
-                  <Checkbox
-                    checked={noSmoker}
-                    onCheckedChange={(v) => setNoSmoker(v === true)}
-                  />
-                  <span>흡연</span>
-                </label>
-                <label className={styles.checkRow}>
-                  <Checkbox
-                    checked={noDrink}
-                    onCheckedChange={(v) => setNoDrink(v === true)}
-                  />
-                  <span>음주</span>
-                </label>
-                <label className={styles.checkRow}>
-                  <Checkbox
-                    checked={noPet}
-                    onCheckedChange={(v) => setNoPet(v === true)}
-                  />
-                  <span>반려동물</span>
-                </label>
+              <div className={styles.hardNoGrid}>
+                {(
+                  [
+                    ["흡연", noSmoker, setNoSmoker],
+                    ["음주", noDrink, setNoDrink],
+                    ["반려동물", noPet, setNoPet],
+                  ] as const
+                ).map(([label, on, setOn]) => (
+                  <button
+                    key={label}
+                    type="button"
+                    className={cn(styles.hardNoBtn, on && styles.hardNoBtnOn)}
+                    aria-pressed={on}
+                    onClick={() => setOn((value) => !value)}
+                  >
+                    <span>{label}</span>
+                  </button>
+                ))}
               </div>
             </section>
           ) : null}
