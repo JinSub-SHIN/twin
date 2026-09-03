@@ -116,7 +116,7 @@
   margin-top: auto;
   padding-top: 0.45rem;
   padding-bottom: 0.1rem;
-  background: oklch(0.97 0.005 145);
+  background: var(--background);
 }
 
 .topBar {

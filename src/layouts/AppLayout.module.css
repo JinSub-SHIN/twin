@@ -21,19 +21,6 @@
   color: var(--foreground);
 }
 
-.glow {
-  pointer-events: none;
-  position: absolute;
-  inset-inline: 0;
-  top: 0;
-  height: 16rem;
-  background: radial-gradient(
-    ellipse at top,
-    oklch(0.9 0.12 125 / 0.55),
-    transparent 65%
-  );
-}
-
 .main {
   position: relative;
   z-index: 10;
@@ -65,7 +52,7 @@
   scrollbar-gutter: auto;
   padding-top: calc(env(safe-area-inset-top) + 0.55rem);
   padding-bottom: calc(4rem + env(safe-area-inset-bottom) + 0.35rem);
-  background: oklch(0.97 0.005 145);
+  background: var(--background);
 }
 
 .mainListingPreview {
@@ -77,5 +64,5 @@
   padding-left: 1.15rem;
   overflow: hidden;
   scrollbar-gutter: auto;
-  background: oklch(0.97 0.005 145);
+  background: var(--background);
 }

@@ -16,7 +16,6 @@ export function AppLayout() {
 
   return (
     <div className={cn(styles.shell, styles.shellDefault)}>
-      <div aria-hidden className={styles.glow} />
       {!hideHeader && <Header immersive={false} />}
       <main
         className={cn(

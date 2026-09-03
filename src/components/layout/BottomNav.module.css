@@ -18,8 +18,7 @@
 
 .navDefault {
   border-top: 1px solid var(--border);
-  background: color-mix(in oklch, var(--background) 95%, transparent);
-  backdrop-filter: blur(12px);
+  background: var(--background);
 }
 
 .list {

@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   min-height: 100%;
-  background: oklch(0.975 0.012 120);
+  background: var(--background);
   color: oklch(0.22 0.03 150);
   animation: home-in 0.35s ease both;
 }
@@ -176,9 +176,9 @@
 
 .railCard,
 .rowCard {
-  border: 1px solid oklch(0.9 0.02 145);
-  background: oklch(1 0 0);
-  box-shadow: 0 6px 18px oklch(0.4 0.03 145 / 0.05);
+  border: 1px solid oklch(0.91 0.012 145);
+  background: var(--card);
+  box-shadow: 0 6px 18px oklch(0.4 0.03 145 / 0.04);
   text-align: left;
   color: inherit;
   cursor: pointer;
@@ -198,7 +198,7 @@
 .railCard:active,
 .rowCard:active {
   transform: scale(0.98);
-  background: oklch(0.98 0.015 120);
+  background: oklch(0.94 0.012 145);
 }
 
 .cardKicker {
@@ -312,7 +312,7 @@
   margin: 0 1.15rem;
   border: 1px dashed oklch(0.86 0.03 145);
   border-radius: 1.1rem;
-  background: oklch(0.96 0.02 145);
+  background: var(--card);
   font-size: 0.82rem;
   font-weight: 700;
   letter-spacing: -0.03em;
@@ -327,7 +327,7 @@
   padding: 1.1rem 1.05rem 1.15rem;
   border: 1px solid oklch(0.9 0.025 145);
   border-radius: 1.1rem;
-  background: oklch(0.97 0.03 145);
+  background: var(--card);
 }
 
 .profileTitle {
