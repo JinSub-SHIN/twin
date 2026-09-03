@@ -53,6 +53,19 @@
   color: var(--ink);
 }
 
+.lockedSheet {
+  overflow: hidden;
+  border-radius: 1.35rem;
+}
+
+.lockedSheet > * {
+  filter: blur(18px);
+  transform: scale(1.05);
+  transform-origin: center top;
+  pointer-events: none;
+  user-select: none;
+}
+
 /* —— Top bar —— */
 .topBar {
   display: grid;
@@ -535,6 +548,12 @@
 
 .footerSingle {
   grid-template-columns: 1fr;
+}
+
+.footerInContent {
+  margin-top: 0.15rem;
+  padding: 0.15rem 0 0.2rem;
+  background: none;
 }
 
 @media (max-width: 360px) {

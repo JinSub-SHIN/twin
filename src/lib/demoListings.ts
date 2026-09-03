@@ -29,6 +29,7 @@ type Seed = {
   rent: number;
   mgmt: number;
   prefGender: PrefGender;
+  restrictListingByPrefGender?: boolean;
   createdAt?: string;
   personality?: Personality;
   drinkFreq?: DrinkFreq;
@@ -74,6 +75,7 @@ function makeListing(seed: Seed): DemoListing {
         homeTime: seed.homeTime,
         cleanFreq: seed.cleanFreq,
         prefGender: seed.prefGender,
+        restrictListingByPrefGender: seed.restrictListingByPrefGender,
         wfh: seed.wfh,
         pet: seed.pet,
         petInfo: seed.petKind ? { kind: seed.petKind } : undefined,
@@ -181,6 +183,7 @@ export const DEMO_LISTINGS: DemoListing[] = [
     homeTime: "rarely",
     cleanFreq: "weekly",
     prefGender: "male",
+    restrictListingByPrefGender: true,
     pet: true,
     petKind: "cat",
     rent: 450000,

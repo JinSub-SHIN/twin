@@ -3,8 +3,9 @@ import { ArrowLeft } from "lucide-react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ListingCard } from "@/components/ui/card";
+import { GenderLockDialog } from "@/components/ui/dialog";
 import { getListingById } from "@/lib/demoListings";
-import { buildListingView } from "@/lib/listingView";
+import { buildListingView, isListingLocked } from "@/lib/listingView";
 import { cn } from "@/lib/utils";
 import styles from "@/pages/regist/ListingPreviewPage.module.css";
 
@@ -27,6 +28,8 @@ export function ListingDetailPage() {
 
   if (!listing || !view) return null;
 
+  const locked = isListingLocked(view.restrictListingByPrefGender);
+
   return (
     <section className={styles.page}>
       <div className={styles.content}>
@@ -42,14 +45,25 @@ export function ListingDetailPage() {
           <h1 className={styles.topTitle}>살짝 공고</h1>
         </header>
 
-        <ListingCard view={view} idPrefix={listing.id} />
+        <div className={locked ? styles.lockedSheet : undefined}>
+          <ListingCard view={view} idPrefix={listing.id} />
+        </div>
+
+        {locked ? null : (
+          <div className={cn(styles.footer, styles.footerSingle, styles.footerInContent)}>
+            <Button type="button" className={styles.submit} size="lg">
+              살짝 신청하기
+            </Button>
+          </div>
+        )}
       </div>
 
-      <div className={cn(styles.footer, styles.footerSingle)}>
-        <Button type="button" className={styles.submit} size="lg">
-          살짝 신청하기
-        </Button>
-      </div>
+      <GenderLockDialog
+        open={locked}
+        onOpenChange={(open) => {
+          if (!open) navigate(returnTo);
+        }}
+      />
     </section>
   );
 }

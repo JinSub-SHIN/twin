@@ -257,8 +257,13 @@ export type ListingSummary = {
   rentLabel: string | null;
   mateLabel: string | null;
   prefGenderLabel: string | null;
+  restrictListingByPrefGender: boolean;
   bio: string;
 };
+
+export function isListingLocked(restricted?: boolean) {
+  return Boolean(restricted);
+}
 
 export function buildListingSummary(user: UserProfile): ListingSummary {
   const view = buildListingView(user);
@@ -277,6 +282,7 @@ export function buildListingSummary(user: UserProfile): ListingSummary {
     prefGenderLabel: view.prefGender
       ? (optionLabel(PREF_GENDER_OPTIONS, view.prefGender) ?? null)
       : null,
+    restrictListingByPrefGender: Boolean(view.restrictListingByPrefGender),
     bio: view.bio,
   };
 }

@@ -10,3 +10,4 @@ export {
   DialogTitle,
   DialogTrigger,
 } from "./dialog";
+export { GenderLockDialog } from "./GenderLockDialog";
