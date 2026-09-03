@@ -1369,7 +1369,7 @@ export function ProfileEditPage() {
                           아니요, 괜찮아요
                         </span>
                         <span className={styles.genderScopeBtnSub}>
-                          전체 성별로 공고 올릴게요
+                          남녀 상관없이 공고를 볼 수 있게 올릴게요
                         </span>
                       </button>
                       <button
