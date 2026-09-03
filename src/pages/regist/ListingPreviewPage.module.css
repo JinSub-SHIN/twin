@@ -24,6 +24,7 @@
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
+  scrollbar-width: none;
   padding: 0.15rem 0.1rem 1.25rem;
 }
 
