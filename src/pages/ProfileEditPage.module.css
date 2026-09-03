@@ -20,6 +20,40 @@
   padding: 0.2rem 0.15rem 0.45rem;
 }
 
+.stepBodyLocked {
+  overflow: hidden;
+  scrollbar-gutter: auto;
+}
+
+.regionViewport {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.regionTrack {
+  display: flex;
+  width: 200%;
+  height: 100%;
+  transform: translate3d(0, 0, 0);
+  transition: transform 0.45s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.regionTrackNext {
+  transform: translate3d(-50%, 0, 0);
+}
+
+.regionPane {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  width: 50%;
+  height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 0.1rem;
+}
+
 .submitGroup {
   display: flex;
   flex-direction: column;

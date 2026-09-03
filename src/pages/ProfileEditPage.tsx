@@ -118,6 +118,7 @@ export function ProfileEditPage() {
   const { user, isLoggedIn, updateUser } = useAuth();
   const [seekRole, setSeekRole] = useState<SeekRole | null>(null);
   const [regionCity, setRegionCity] = useState<string | null>(null);
+  const [regionPhase, setRegionPhase] = useState<"city" | "district">("city");
   const [regions, setRegions] = useState<string[]>([]);
   const [nearestStation, setNearestStation] = useState("");
   const [stationQuery, setStationQuery] = useState("");
@@ -176,7 +177,10 @@ export function ProfileEditPage() {
     const first = user.pref?.regions?.[0];
     if (first) {
       const city = first.split(" ")[0];
-      setRegionCity(REGION_CITIES.includes(city) ? city : null);
+      if (REGION_CITIES.includes(city)) {
+        setRegionCity(city);
+        setRegionPhase("district");
+      }
     }
 
     setJob(user.job ?? null);
@@ -495,6 +499,10 @@ export function ProfileEditPage() {
       return;
     }
     if (step === "region") {
+      if (regionPhase === "district") {
+        setRegionPhase("city");
+        return;
+      }
       navigate(STEP_PATH.role);
       return;
     }
@@ -567,7 +575,12 @@ export function ProfileEditPage() {
         </p>
       </div>
 
-      <div className={styles.stepBody}>
+      <div
+        className={cn(
+          styles.stepBody,
+          step === "region" && styles.stepBodyLocked,
+        )}
+      >
       {step === "role" ? (
         <>
           <div className={styles.intro}>
@@ -668,70 +681,88 @@ export function ProfileEditPage() {
           </section>
         </>
       ) : step === "region" ? (
-        <>
-          <div className={styles.intro}>
-            <h2 className={styles.title}>
-              {hasRoom ? (
-                <>
-                  어느 지역에
-                  <br />
-                  <span className={styles.accent}>거주</span>하고 계신가요?
-                </>
-              ) : (
-                <>
-                  어느 지역에
-                  <br />
-                  <span className={styles.accent}>거주</span>하실 예정인가요?
-                </>
-              )}
-            </h2>
-            <p className={styles.desc}>
-              광역을 고른 뒤 구/시를 하나 선택해 주세요.
-            </p>
-          </div>
+        <div className={styles.regionViewport}>
+          <div
+            className={cn(
+              styles.regionTrack,
+              regionPhase === "district" && styles.regionTrackNext,
+            )}
+          >
+            <div className={styles.regionPane}>
+              <div className={styles.intro}>
+                <h2 className={styles.title}>
+                  {hasRoom ? (
+                    <>
+                      어느 지역에
+                      <br />
+                      <span className={styles.accent}>거주</span>하고 계신가요?
+                    </>
+                  ) : (
+                    <>
+                      어느 지역에
+                      <br />
+                      <span className={styles.accent}>거주</span>하실 예정인가요?
+                    </>
+                  )}
+                </h2>
+                <p className={styles.desc}>광역을 하나 골라 주세요.</p>
+              </div>
 
-          <section className={styles.block}>
-            <h3 className={styles.blockTitle}>
-              {hasRoom ? "거주 지역" : "희망 지역"}
-            </h3>
-            <p className={styles.blockHint}>
-              광역을 고른 뒤 구/시를 하나 선택해 주세요.
-            </p>
-            <div className={styles.field}>
-              <p className={styles.label}>
-                1. 전체 지역 <span className={styles.required}>*</span>
-              </p>
-              <div className={styles.chipRow}>
-                {REGION_CITIES.map((city) => {
-                  return (
+              <section className={styles.block}>
+                <h3 className={styles.blockTitle}>
+                  {hasRoom ? "거주 지역" : "희망 지역"}
+                </h3>
+                <div className={styles.chipRow}>
+                  {REGION_CITIES.map((city) => (
                     <button
                       key={city}
                       type="button"
                       className={cn(
                         styles.chip,
                         regionCity === city && styles.chipActive,
-                        selectedCity === city &&
-                          regionCity !== city &&
-                          styles.chipSelected,
                       )}
-                      onClick={() => setRegionCity(city)}
+                      onClick={() => {
+                        if (regionCity !== city) setRegions([]);
+                        setRegionCity(city);
+                        setRegionPhase("district");
+                      }}
                     >
                       {city}
                     </button>
-                  );
-                })}
-              </div>
+                  ))}
+                </div>
+              </section>
             </div>
 
-            {regionCity ? (
-              <div className={styles.field}>
-                <p className={styles.label}>
-                  2. {regionCity} 구/시{" "}
-                  <span className={styles.required}>*</span>
-                </p>
+            <div className={styles.regionPane}>
+              <div className={styles.intro}>
+                <h2 className={styles.title}>
+                  {regionCity ? (
+                    <>
+                      <span className={styles.accent}>{regionCity}</span>에서
+                      <br />
+                      어느 구/시인가요?
+                    </>
+                  ) : (
+                    <>
+                      어느 구/시에
+                      <br />
+                      사시나요?
+                    </>
+                  )}
+                </h2>
+                <p className={styles.desc}>하나만 선택해 주세요.</p>
+              </div>
+
+              <section className={styles.block}>
+                <h3 className={styles.blockTitle}>
+                  {regionCity ? `${regionCity} 구/시` : "구/시"}
+                </h3>
                 <div className={styles.chipRow}>
                   {districts.map((district) => {
-                    const value = formatRegion(regionCity, district);
+                    const value = regionCity
+                      ? formatRegion(regionCity, district)
+                      : district;
                     return (
                       <button
                         key={value}
@@ -740,41 +771,22 @@ export function ProfileEditPage() {
                           styles.chip,
                           selectedRegion === value && styles.chipActive,
                         )}
-                        onClick={() =>
+                        onClick={() => {
+                          if (!regionCity) return;
                           setRegions((prev) =>
                             selectDistrict(prev, regionCity, district),
-                          )
-                        }
+                          );
+                        }}
                       >
                         {district}
                       </button>
                     );
                   })}
                 </div>
-              </div>
-            ) : (
-              <p className={styles.regionGuide}>
-                먼저 전체 지역을 선택해 주세요.
-              </p>
-            )}
-
-            {selectedRegion ? (
-              <div className={styles.field}>
-                <p className={styles.label}>선택한 지역</p>
-                <div className={styles.selectedRow}>
-                  <button
-                    type="button"
-                    className={styles.selectedChip}
-                    onClick={() => setRegions([])}
-                  >
-                    {selectedRegion}
-                    <X className="size-3.5" />
-                  </button>
-                </div>
-              </div>
-            ) : null}
-          </section>
-        </>
+              </section>
+            </div>
+          </div>
+        </div>
       ) : step === "station" ? (
         <>
           <div className={styles.intro}>
@@ -1574,7 +1586,7 @@ export function ProfileEditPage() {
       )}
       </div>
 
-      {step !== "role" ? (
+      {step !== "role" && !(step === "region" && regionPhase === "city") ? (
         <div className={styles.submitDock}>
           {step === "prefs" ? (
             <div className={styles.submitGroup}>
