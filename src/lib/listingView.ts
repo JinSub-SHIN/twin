@@ -248,6 +248,8 @@ export function buildListingView(user: UserProfile): ListingView {
 
 export type ListingSummary = {
   headline: string;
+  region: string | null;
+  station: string | null;
   nickname: string;
   initial: string;
   photoUrl?: string;
@@ -264,6 +266,8 @@ export function buildListingSummary(user: UserProfile): ListingSummary {
   const burden = buildMateBurden(view.charts);
   return {
     headline: view.headline,
+    region: user.pref?.regions?.[0]?.trim() || null,
+    station: formatNearbyStation(user.pref?.nearestStation),
     nickname: view.nickname,
     initial: view.initial,
     photoUrl: view.photoUrl,

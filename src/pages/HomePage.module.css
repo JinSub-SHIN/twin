@@ -238,6 +238,14 @@
   color: oklch(0.42 0.13 145);
 }
 
+.cardStation {
+  margin-top: 0.2rem;
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  color: oklch(0.5 0.03 145);
+}
+
 .cardChips {
   display: flex;
   flex-wrap: wrap;

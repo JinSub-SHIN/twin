@@ -14,9 +14,11 @@ import styles from "./HomePage.module.css";
 const HERO_IMAGE = "/images/hero-share.jpg";
 
 function priceLabel(summary: ListingSummary) {
-  if (summary.mateLabel) return `살짝 ${summary.mateLabel}`;
-  if (summary.rentLabel) return `월세 ${summary.rentLabel}`;
-  return "분담 조율";
+  return summary.mateLabel || summary.rentLabel || "분담 조율";
+}
+
+function placeLabel(summary: ListingSummary) {
+  return summary.region || summary.headline;
 }
 
 function hostGenderLabel(user: UserProfile) {
@@ -103,8 +105,13 @@ export function HomePage() {
                     위치
                   </span>
                   <span className={styles.cardPlace}>
-                    {item.summary.headline}
+                    {placeLabel(item.summary)}
                   </span>
+                  {item.summary.station ? (
+                    <span className={styles.cardStation}>
+                      {item.summary.station}
+                    </span>
+                  ) : null}
                   <strong className={styles.cardPrice}>
                     {priceLabel(item.summary)}
                   </strong>
@@ -154,7 +161,10 @@ export function HomePage() {
                   <span className={styles.rowMain}>
                     <span className={styles.cardKicker}>
                       <MapPin size={12} strokeWidth={2.4} />
-                      {item.summary.headline}
+                      {placeLabel(item.summary)}
+                      {item.summary.station
+                        ? ` · ${item.summary.station}`
+                        : ""}
                     </span>
                     <strong className={styles.cardPrice}>
                       {priceLabel(item.summary)}
