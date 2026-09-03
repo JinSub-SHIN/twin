@@ -547,35 +547,61 @@ export function ProfileEditPage() {
       (station) => formatStationLabel(station) === customStationLabel,
     );
 
+  const stepTotal = hasRoom ? 6 : 5;
+  const stepIndex = hasRoom
+    ? step === "role"
+      ? 1
+      : step === "region"
+        ? 2
+        : step === "station"
+          ? 3
+          : step === "cost"
+            ? 4
+            : step === "detail"
+              ? 5
+              : 6
+    : step === "role"
+      ? 1
+      : step === "region"
+        ? 2
+        : step === "station"
+          ? 3
+          : step === "detail"
+            ? 4
+            : 5;
+  const stepPercent = Math.round((stepIndex / stepTotal) * 100);
+
   return (
     <section className={styles.page}>
-      <div className={styles.topBar}>
-        <button
-          type="button"
-          className={styles.backBtn}
-          onClick={handleBack}
-          aria-label="뒤로"
+      <header className={styles.topBar}>
+        <div className={styles.navRow}>
+          <button
+            type="button"
+            className={styles.backBtn}
+            onClick={handleBack}
+            aria-label="뒤로"
+          >
+            <ArrowLeft className="size-5" strokeWidth={2.1} />
+          </button>
+          <p className={styles.stepLabel}>추가 정보</p>
+          <span aria-hidden />
+        </div>
+        <div
+          className={styles.progress}
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={stepPercent}
+          aria-label="추가 정보 진행"
         >
-          <ArrowLeft className="size-[1.05rem]" strokeWidth={2.4} />
-        </button>
-        <p className={styles.stepLabel}>
-          {(() => {
-            if (hasRoom) {
-              if (step === "role") return "추가 정보 · 1단계";
-              if (step === "region") return "추가 정보 · 2단계";
-              if (step === "station") return "추가 정보 · 3단계";
-              if (step === "cost") return "추가 정보 · 4단계";
-              if (step === "detail") return "추가 정보 · 5단계";
-              return "추가 정보 · 6단계";
-            }
-            if (step === "role") return "추가 정보 · 1단계";
-            if (step === "region") return "추가 정보 · 2단계";
-            if (step === "station") return "추가 정보 · 3단계";
-            if (step === "detail") return "추가 정보 · 4단계";
-            return "추가 정보 · 5단계";
-          })()}
-        </p>
-      </div>
+          <span
+            className={styles.progressFill}
+            style={{ width: `${stepPercent}%` }}
+          >
+            <span className={styles.progressPct}>{stepPercent}%</span>
+          </span>
+        </div>
+      </header>
 
       <div className={cn(styles.stepBody, styles.stepBodyLocked)}>
       <div
