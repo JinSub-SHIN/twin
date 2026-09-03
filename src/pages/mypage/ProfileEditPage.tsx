@@ -600,6 +600,12 @@ export function ProfileEditPage() {
             style={{ width: `${stepPercent}%` }}
           >
             <span className={styles.progressPct}>{stepPercent}%</span>
+            <span className={styles.progressChevrons} aria-hidden>
+              <span className={styles.progressChevronsTrack}>
+                <span>{'>>>'}</span>
+                <span>{'>>>'}</span>
+              </span>
+            </span>
           </span>
         </div>
       </header>
