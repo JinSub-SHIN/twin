@@ -12,7 +12,6 @@ export function AppLayout() {
   const isListingPreview = pathname.startsWith('/explore/listing')
   const isAuthPage = isSignup || isLogin
   const hideHeader = isAuthPage || isProfileEdit || isListingPreview || isHome
-  const showBottomNav = !isAuthPage
 
   return (
     <div className={cn(styles.shell, styles.shellDefault)}>
@@ -20,15 +19,18 @@ export function AppLayout() {
       <main
         className={cn(
           styles.main,
-          isHome ? styles.mainHome : styles.mainDefault,
-          isAuthPage && styles.mainAuth,
+          isHome
+            ? styles.mainHome
+            : !isSignup && !isProfileEdit && !isListingPreview && styles.mainDefault,
+          isLogin && styles.mainAuth,
+          isSignup && styles.mainSignup,
           isProfileEdit && styles.mainProfileEdit,
           isListingPreview && styles.mainListingPreview,
         )}
       >
         <Outlet />
       </main>
-      {showBottomNav && <BottomNav immersive={false} />}
+      <BottomNav immersive={false} />
     </div>
   )
 }

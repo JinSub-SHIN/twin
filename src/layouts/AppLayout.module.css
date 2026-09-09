@@ -42,7 +42,16 @@
 
 .mainAuth {
   padding: calc(env(safe-area-inset-top) + 1rem) 1.25rem
-    calc(env(safe-area-inset-bottom) + 1.5rem);
+    calc(4.5rem + env(safe-area-inset-bottom));
+}
+
+.mainSignup {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: calc(env(safe-area-inset-top) + 0.55rem) 1.25rem
+    calc(4.75rem + env(safe-area-inset-bottom));
+  background: var(--background);
 }
 
 .mainProfileEdit {
