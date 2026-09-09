@@ -9,3 +9,29 @@ export type SignupRequest = {
 }
 
 export type SignupResponse = unknown
+
+export type CheckIdResponse = {
+  available: boolean
+}
+
+export type PhoneCarrier = 'SKT' | 'KT' | 'LGU+' | '알뜰폰'
+
+export type PhoneRequestBody = {
+  phone: string
+  carrier: PhoneCarrier
+  birth6: string
+  gender_code: string
+}
+
+export type PhoneRequestResponse = {
+  code: string
+}
+
+export type PhoneConfirmBody = {
+  phone: string
+  code: string
+}
+
+export type PhoneConfirmResponse = {
+  success: boolean
+}

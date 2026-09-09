@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -12,7 +12,13 @@ import {
 } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
-import { checkLoginId, signupUser } from "@/service/auth";
+import {
+  checkLoginId,
+  confirmPhoneCode,
+  requestPhoneCode,
+  signupUser,
+  type PhoneCarrier,
+} from "@/service/auth";
 import { ApiError } from "@/service/http";
 import type { Gender, SocialProvider, UserProfile } from "@/types/user";
 import styles from "./SignupPage.module.css";
@@ -30,10 +36,21 @@ type StepAnim = "none" | "forward" | "back";
 
 const CARRIER_OPTIONS: Carrier[] = ["SKT", "KT", "LGU+", "MVNO"];
 
-const MOCK_CODE = "123456";
 const LOGIN_ID_PATTERN = /^[a-zA-Z0-9_]{4,20}$/;
 const CHECK_MIN_MS = 1200;
 const PIN_LENGTH = 6;
+
+function pickPhoneCode(data: unknown) {
+  if (!data || typeof data !== "object") return "";
+  const code = (data as { code?: unknown }).code;
+  if (typeof code === "number" && Number.isFinite(code)) {
+    return String(code).replace(/\D/g, "").slice(0, PIN_LENGTH);
+  }
+  if (typeof code === "string") {
+    return code.replace(/\D/g, "").slice(0, PIN_LENGTH);
+  }
+  return "";
+}
 
 function formatPhone(value: string) {
   const digits = value.replace(/\D/g, "").slice(0, 11);
@@ -108,8 +125,16 @@ export function SignupPage() {
   const [submitting, setSubmitting] = useState(false);
   const [verifyCode, setVerifyCode] = useState("");
   const [codeSent, setCodeSent] = useState(false);
+  const [sendingCode, setSendingCode] = useState(false);
+  const [confirmingCode, setConfirmingCode] = useState(false);
   const [notice, setNotice] = useState("");
+  const [pushCode, setPushCode] = useState("");
+  const [pushOpen, setPushOpen] = useState(false);
+  const [pushLeaving, setPushLeaving] = useState(false);
   const noticeTimerRef = useRef<number | null>(null);
+  const pushTimerRef = useRef<number | null>(null);
+  const pushHideTimerRef = useRef<number | null>(null);
+  const pushOpenRef = useRef(false);
 
   const loginIdRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
@@ -125,6 +150,7 @@ export function SignupPage() {
   }, [isLoggedIn, navigate]);
 
   useEffect(() => {
+    if (step === "phone" && phoneVerified) return;
     const focusMap: Partial<Record<Step, HTMLInputElement | null>> = {
       id: loginIdRef.current,
       password: passwordRef.current,
@@ -133,13 +159,21 @@ export function SignupPage() {
     };
     const timer = window.setTimeout(() => focusMap[step]?.focus(), 460);
     return () => window.clearTimeout(timer);
-  }, [step]);
+  }, [step, phoneVerified]);
 
   useEffect(() => {
-    if (step !== "phone" || !carrier) return;
+    if (step !== "phone" || !carrier || phoneVerified) return;
     const timer = window.setTimeout(() => birthRef.current?.focus(), 420);
     return () => window.clearTimeout(timer);
-  }, [step, carrier]);
+  }, [step, carrier, phoneVerified]);
+
+  useEffect(() => {
+    return () => {
+      if (noticeTimerRef.current) window.clearTimeout(noticeTimerRef.current);
+      if (pushTimerRef.current) window.clearTimeout(pushTimerRef.current);
+      if (pushHideTimerRef.current) window.clearTimeout(pushHideTimerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     if (step !== "idCheck") return;
@@ -217,7 +251,13 @@ export function SignupPage() {
       return;
     }
     if (step === "phone") {
+      if (phoneVerified) {
+        hidePush();
+        goBackTo(isEmailSignup ? "passwordConfirm" : "social");
+        return;
+      }
       if (codeSent) {
+        hidePush();
         setCodeSent(false);
         setVerifyCode("");
         setPhoneVerified(false);
@@ -277,11 +317,13 @@ export function SignupPage() {
   };
 
   const handleSelectCarrier = (next: Carrier) => {
+    if (phoneVerified) return;
     setCarrier(next);
     setError("");
   };
 
   const handleResidentChange = (nextRaw: string) => {
+    if (phoneVerified) return;
     const nextDigits = residentDigits(nextRaw);
     setResidentId(nextDigits);
     setError("");
@@ -298,17 +340,68 @@ export function SignupPage() {
     noticeTimerRef.current = window.setTimeout(() => setNotice(""), 3200);
   };
 
-  const handleSendCode = () => {
-    if (!showVerify) return;
-    setCodeSent(true);
-    setVerifyCode("");
-    setPhoneVerified(false);
+  const hidePush = () => {
+    if (!pushOpenRef.current) return;
+    pushOpenRef.current = false;
+    setPushLeaving(true);
+    if (pushTimerRef.current) window.clearTimeout(pushTimerRef.current);
+    if (pushHideTimerRef.current) window.clearTimeout(pushHideTimerRef.current);
+    pushHideTimerRef.current = window.setTimeout(() => {
+      setPushOpen(false);
+      setPushLeaving(false);
+      setPushCode("");
+    }, 320);
+  };
+
+  const showPushCode = (code: string) => {
+    if (pushTimerRef.current) window.clearTimeout(pushTimerRef.current);
+    if (pushHideTimerRef.current) window.clearTimeout(pushHideTimerRef.current);
+    pushOpenRef.current = true;
+    setPushCode(code);
+    setPushLeaving(false);
+    setPushOpen(true);
+    pushTimerRef.current = window.setTimeout(() => hidePush(), 4200);
+  };
+
+  const toApiCarrier = (value: Carrier): PhoneCarrier => {
+    return value === "MVNO" ? "알뜰폰" : value;
+  };
+
+  const handleSendCode = async () => {
+    if (!showVerify || !carrier || sendingCode || phoneVerified) return;
+    const digits = residentDigits(residentId);
+    setSendingCode(true);
     setError("");
-    showNotice("위 정보로 발송된 인증번호를 입력해주세요.");
-    window.setTimeout(() => verifyRef.current?.focus(), 80);
+    try {
+      const result = await requestPhoneCode({
+        phone,
+        carrier: toApiCarrier(carrier),
+        birth6: digits.slice(0, 6),
+        gender_code: digits.slice(6, 7),
+      });
+      const code = pickPhoneCode(result);
+      setCodeSent(true);
+      setVerifyCode("");
+      setPhoneVerified(false);
+      if (code) {
+        showPushCode(code);
+      } else {
+        showNotice("위 정보로 발송된 인증번호를 입력해주세요.");
+      }
+      window.setTimeout(() => verifyRef.current?.focus(), 80);
+    } catch (err) {
+      setError(
+        err instanceof ApiError
+          ? err.message
+          : "인증번호 발송에 실패했어요. 다시 시도해 주세요.",
+      );
+    } finally {
+      setSendingCode(false);
+    }
   };
 
   const handleVerifyChange = (value: string) => {
+    if (phoneVerified) return;
     const digits = value.replace(/\D/g, "").slice(0, PIN_LENGTH);
     setVerifyCode(digits);
     setError("");
@@ -316,12 +409,42 @@ export function SignupPage() {
       setPhoneVerified(false);
       return;
     }
-    if (digits !== MOCK_CODE) {
-      setPhoneVerified(false);
-      setError("인증번호가 올바르지 않습니다.");
-      return;
+    void confirmCode(digits);
+  };
+
+  const handlePushTap = () => {
+    if (pushCode && !phoneVerified) {
+      handleVerifyChange(pushCode);
     }
-    setPhoneVerified(true);
+    hidePush();
+  };
+
+  const confirmCode = async (code: string) => {
+    if (confirmingCode) return;
+    setConfirmingCode(true);
+    setError("");
+    try {
+      const result = await confirmPhoneCode({ phone, code });
+      if (!result.success) {
+        setPhoneVerified(false);
+        setError("인증번호가 올바르지 않습니다.");
+        return;
+      }
+      setPhoneVerified(true);
+      hidePush();
+      verifyRef.current?.blur();
+      phoneRef.current?.blur();
+      birthRef.current?.blur();
+    } catch (err) {
+      setPhoneVerified(false);
+      setError(
+        err instanceof ApiError
+          ? err.message
+          : "인증번호 확인에 실패했어요. 다시 시도해 주세요.",
+      );
+    } finally {
+      setConfirmingCode(false);
+    }
   };
 
   const handleSubmit = async () => {
@@ -636,9 +759,19 @@ export function SignupPage() {
               <>
                 <div className={styles.intro}>
                   <h2 className={styles.title}>
-                    휴대폰 번호를
-                    <br />
-                    입력해주세요
+                    {phoneVerified ? (
+                      <>
+                        휴대폰 인증이
+                        <br />
+                        완료됐어요
+                      </>
+                    ) : (
+                      <>
+                        휴대폰 번호를
+                        <br />
+                        입력해주세요
+                      </>
+                    )}
                   </h2>
                 </div>
                 <form
@@ -654,11 +787,14 @@ export function SignupPage() {
                       id="phone"
                       type="tel"
                       inputMode="numeric"
-                      className={styles.input}
+                      className={cn(styles.input, phoneVerified && styles.inputLocked)}
                       autoComplete="tel"
                       placeholder="010-1234-5678"
                       value={phone}
+                      disabled={phoneVerified}
+                      readOnly={phoneVerified}
                       onChange={(e) => {
+                        if (phoneVerified) return;
                         const next = formatPhone(e.target.value);
                         setPhone(next);
                         setError("");
@@ -683,7 +819,9 @@ export function SignupPage() {
                             className={cn(
                               styles.choiceBtn,
                               carrier === item && styles.choiceBtnActive,
+                              phoneVerified && styles.choiceBtnLocked,
                             )}
+                            disabled={phoneVerified}
                             onClick={() => handleSelectCarrier(item)}
                           >
                             {item === "MVNO" ? "알뜰폰" : item}
@@ -705,46 +843,46 @@ export function SignupPage() {
                           autoComplete="off"
                           value={residentId}
                           maxLength={7}
+                          disabled={phoneVerified}
+                          readOnly={phoneVerified}
                           onChange={(e) => handleResidentChange(e.target.value)}
                           aria-label="생년월일 주민번호 앞자리"
                         />
                         <button
                           type="button"
-                          className={styles.ssnRow}
-                          onClick={() => birthRef.current?.focus()}
+                          className={cn(
+                            styles.ssnRow,
+                            phoneVerified && styles.ssnLocked,
+                          )}
+                          disabled={phoneVerified}
+                          tabIndex={phoneVerified ? -1 : 0}
+                          onClick={() => {
+                            if (phoneVerified) return;
+                            birthRef.current?.focus();
+                          }}
                         >
-                          <span className={styles.ssnGroup}>
-                            {Array.from({ length: 6 }, (_, index) => (
-                              <span
-                                key={index}
-                                className={cn(
-                                  styles.ssnBox,
-                                  residentId[index] && styles.ssnBoxFilled,
-                                  residentId.length === index &&
-                                    styles.ssnBoxActive,
-                                )}
-                              >
-                                {residentId[index] ?? ""}
-                              </span>
-                            ))}
-                          </span>
+                          {Array.from({ length: 6 }, (_, index) => (
+                            <span
+                              key={index}
+                              className={cn(
+                                styles.ssnBox,
+                                residentId[index] && styles.ssnBoxFilled,
+                                residentId.length === index &&
+                                  styles.ssnBoxActive,
+                              )}
+                            >
+                              {residentId[index] ?? ""}
+                            </span>
+                          ))}
                           <span className={styles.ssnDash}>-</span>
                           <span
                             className={cn(
                               styles.ssnBox,
-                              styles.ssnGender,
                               residentId[6] && styles.ssnBoxFilled,
                               residentId.length === 6 && styles.ssnBoxActive,
                             )}
                           >
                             {residentId[6] ?? ""}
-                          </span>
-                          <span className={styles.ssnMask} aria-hidden>
-                            {Array.from({ length: 6 }, (_, index) => (
-                              <span key={index} className={styles.ssnStar}>
-                                *
-                              </span>
-                            ))}
                           </span>
                         </button>
                       </div>
@@ -761,27 +899,43 @@ export function SignupPage() {
                           type="text"
                           inputMode="numeric"
                           autoComplete="one-time-code"
-                          className={cn(styles.input, styles.codeInput)}
+                          className={cn(
+                            styles.input,
+                            styles.codeInput,
+                            phoneVerified && styles.inputLocked,
+                          )}
                           placeholder="6자리 숫자"
                           value={verifyCode}
                           maxLength={PIN_LENGTH}
+                          disabled={phoneVerified || confirmingCode}
+                          readOnly={phoneVerified}
                           onChange={(e) => handleVerifyChange(e.target.value)}
                         />
                         <button
                           type="button"
-                          className={styles.codeSendBtn}
-                          onClick={handleSendCode}
+                          className={cn(
+                            styles.codeSendBtn,
+                            phoneVerified && styles.codeSendBtnDone,
+                          )}
+                          disabled={sendingCode || phoneVerified}
+                          onClick={() => void handleSendCode()}
                         >
-                          {codeSent ? "재전송" : "인증번호 발송하기"}
+                          {phoneVerified
+                            ? "인증 완료"
+                            : sendingCode
+                              ? "발송 중..."
+                              : codeSent
+                                ? "재전송"
+                                : "인증번호 발송하기"}
                         </button>
                       </div>
-                      {codeSent && !phoneVerified ? (
-                        <p className={styles.fieldHint}>
-                          테스트용 인증번호: {MOCK_CODE}
-                        </p>
-                      ) : null}
                       {phoneVerified ? (
-                        <p className={styles.fieldHint}>인증이 완료됐어요.</p>
+                        <p className={styles.verifiedBanner} role="status">
+                          <span className={styles.verifiedIcon} aria-hidden>
+                            <Check className="size-3.5" strokeWidth={3} />
+                          </span>
+                          인증이 완료됐어요. 다음으로 진행해 주세요.
+                        </p>
                       ) : null}
                     </div>
                   ) : null}
@@ -854,6 +1008,35 @@ export function SignupPage() {
       {notice ? (
         <div className={styles.notice} role="status">
           {notice}
+        </div>
+      ) : null}
+
+      {pushOpen ? (
+        <div className={styles.pushLayer} aria-live="polite">
+          <button
+            type="button"
+            className={cn(styles.pushCard, pushLeaving && styles.pushLeaving)}
+            onClick={handlePushTap}
+          >
+            <span className={styles.pushGrip} aria-hidden />
+            <span className={styles.pushRow}>
+              <img
+                src="/favicon.svg"
+                alt=""
+                className={styles.pushIcon}
+              />
+              <span className={styles.pushCopy}>
+                <span className={styles.pushMeta}>
+                  <span className={styles.pushApp}>살짝</span>
+                  <span className={styles.pushTime}>지금</span>
+                </span>
+                <span className={styles.pushTitle}>인증번호가 도착했어요</span>
+                <span className={styles.pushText}>
+                  인증번호 <strong>{pushCode}</strong>
+                </span>
+              </span>
+            </span>
+          </button>
         </div>
       ) : null}
     </section>
