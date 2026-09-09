@@ -3,6 +3,14 @@ import { ArrowLeft, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
   AppleSignInButton,
@@ -20,7 +28,7 @@ import {
   type PhoneCarrier,
 } from "@/service/auth";
 import { ApiError } from "@/service/http";
-import type { Gender, SocialProvider, UserProfile } from "@/types/user";
+import type { Gender, SocialProvider } from "@/types/user";
 import styles from "./SignupPage.module.css";
 
 type Step =
@@ -108,7 +116,7 @@ function sleep(ms: number) {
 
 export function SignupPage() {
   const navigate = useNavigate();
-  const { signup, isLoggedIn } = useAuth();
+  const { isLoggedIn } = useAuth();
   const [step, setStep] = useState<Step>("social");
   const [stepAnim, setStepAnim] = useState<StepAnim>("none");
   const [provider, setProvider] = useState<SocialProvider | null>(null);
@@ -123,6 +131,7 @@ export function SignupPage() {
   const [agreedPrivacy, setAgreedPrivacy] = useState(false);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [doneOpen, setDoneOpen] = useState(false);
   const [verifyCode, setVerifyCode] = useState("");
   const [codeSent, setCodeSent] = useState(false);
   const [sendingCode, setSendingCode] = useState(false);
@@ -477,17 +486,6 @@ export function SignupPage() {
     }
 
     const birth = toIsoBirthDate(residentId);
-    const user: UserProfile = {
-      provider,
-      ...(isEmailSignup ? { loginId: loginId.trim() } : {}),
-      nickname: isEmailSignup ? loginId.trim() : "살짝유저",
-      birthDate: birth,
-      gender,
-      phone: phone.trim(),
-      agreedTerms,
-      agreedPrivacy,
-      createdAt: new Date().toISOString(),
-    };
 
     if (isEmailSignup) {
       setSubmitting(true);
@@ -512,8 +510,14 @@ export function SignupPage() {
       }
     }
 
-    signup(user);
-    navigate("/profile", { replace: true });
+    setDoneOpen(true);
+  };
+
+  const goLogin = () => {
+    navigate("/login", {
+      replace: true,
+      state: isEmailSignup ? { loginId: loginId.trim() } : undefined,
+    });
   };
 
   const showNext =
@@ -1010,6 +1014,43 @@ export function SignupPage() {
           {notice}
         </div>
       ) : null}
+
+      <Dialog
+        open={doneOpen}
+        onOpenChange={(open) => {
+          if (!open) goLogin();
+        }}
+      >
+        <DialogContent className={styles.dialogContent} showCloseButton={false}>
+          <div className={styles.modalInner}>
+            <div className={styles.modalIconWrap} aria-hidden>
+              <span className={styles.modalIcon}>
+                <Check className="size-5" strokeWidth={3} />
+              </span>
+            </div>
+            <DialogHeader className={styles.modalHeader}>
+              <DialogTitle className={styles.modalTitle}>
+                회원가입이 완료됐어요
+              </DialogTitle>
+              <DialogDescription className={styles.modalDesc}>
+                가입한 아이디로 로그인해 주세요.
+                <br />
+                로그인하면 살짝을 바로 시작할 수 있어요.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className={styles.dialogFooter}>
+              <Button
+                type="button"
+                className={styles.modalAction}
+                size="lg"
+                onClick={goLogin}
+              >
+                로그인하러 가기
+              </Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {pushOpen ? (
         <div className={styles.pushLayer} aria-live="polite">

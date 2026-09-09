@@ -176,9 +176,9 @@
 
 .railCard,
 .rowCard {
-  border: 1px solid oklch(0.91 0.012 145);
-  background: var(--card);
-  box-shadow: 0 6px 18px oklch(0.4 0.03 145 / 0.04);
+  border: 1px solid oklch(0.92 0.012 145);
+  background: oklch(1 0 0);
+  box-shadow: 0 8px 20px oklch(0.32 0.02 150 / 0.05);
   text-align: left;
   color: inherit;
   cursor: pointer;
@@ -198,7 +198,7 @@
 .railCard:active,
 .rowCard:active {
   transform: scale(0.98);
-  background: oklch(0.94 0.012 145);
+  background: oklch(0.985 0.006 145);
 }
 
 .cardKicker {
@@ -207,9 +207,9 @@
   gap: 0.22rem;
   max-width: 100%;
   font-size: 0.68rem;
-  font-weight: 650;
+  font-weight: 750;
   letter-spacing: -0.02em;
-  color: oklch(0.5 0.04 145);
+  color: oklch(0.46 0.08 145);
 }
 
 .cardKicker :global(svg) {
@@ -220,11 +220,12 @@
   display: -webkit-box;
   margin-top: 0.45rem;
   overflow: hidden;
-  font-size: 0.92rem;
+  font-size: 0.94rem;
   font-weight: 800;
   line-height: 1.3;
   letter-spacing: -0.04em;
   word-break: keep-all;
+  color: oklch(0.22 0.03 150);
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
@@ -232,16 +233,16 @@
 .cardPrice {
   margin-top: auto;
   padding-top: 0.7rem;
-  font-size: 1.02rem;
+  font-size: 1.08rem;
   font-weight: 800;
   letter-spacing: -0.04em;
-  color: oklch(0.42 0.13 145);
+  color: oklch(0.28 0.06 148);
 }
 
 .cardStation {
   margin-top: 0.2rem;
   font-size: 0.72rem;
-  font-weight: 650;
+  font-weight: 700;
   letter-spacing: -0.02em;
   color: oklch(0.5 0.03 145);
 }
@@ -259,11 +260,12 @@
   height: 1.35rem;
   padding: 0 0.42rem;
   border-radius: 999px;
-  background: oklch(0.95 0.04 145);
+  background: oklch(0.96 0.02 145);
+  box-shadow: 0 1px 2px oklch(0.3 0.02 150 / 0.05);
   font-size: 0.64rem;
-  font-weight: 650;
+  font-weight: 750;
   letter-spacing: -0.02em;
-  color: oklch(0.38 0.08 145);
+  color: oklch(0.36 0.06 148);
 }
 
 .rows {
@@ -325,9 +327,10 @@
   align-items: flex-start;
   margin: 0 1.15rem;
   padding: 1.1rem 1.05rem 1.15rem;
-  border: 1px solid oklch(0.9 0.025 145);
+  border: 1px solid oklch(0.9 0.03 145);
   border-radius: 1.1rem;
-  background: var(--card);
+  background: oklch(0.96 0.03 145);
+  box-shadow: none;
 }
 
 .profileTitle {
@@ -335,6 +338,7 @@
   font-size: 0.92rem;
   font-weight: 800;
   letter-spacing: -0.03em;
+  color: oklch(0.22 0.03 150);
 }
 
 .profileDesc {
@@ -342,7 +346,7 @@
   font-size: 0.78rem;
   line-height: 1.5;
   letter-spacing: -0.02em;
-  color: oklch(0.46 0.03 150);
+  color: oklch(0.46 0.03 148);
 }
 
 .profileCta {
@@ -352,19 +356,19 @@
   height: 2.3rem;
   margin-top: 0.85rem;
   padding: 0 0.95rem;
-  border: 1px solid oklch(0.86 0.04 145);
+  border: 0;
   border-radius: 999px;
-  background: oklch(1 0 0);
-  color: oklch(0.32 0.06 145);
+  background: oklch(0.86 0.2 125);
+  color: oklch(0.2 0.05 145);
   font-size: 0.78rem;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: -0.02em;
   text-decoration: none;
 }
 
 .profileCta:active {
   transform: scale(0.97);
-  background: oklch(0.96 0.03 145);
+  background: oklch(0.8 0.18 125);
 }
 
 @keyframes home-in {

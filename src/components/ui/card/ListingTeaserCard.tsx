@@ -1,6 +1,7 @@
 import { MapPin } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { ListingSummary } from "@/lib/listingView";
-import styles from "@/pages/find/ExplorePage.module.css";
+import styles from "./ListingTeaserCard.module.css";
 
 export function ListingTeaserCard({
   summary,
@@ -9,6 +10,8 @@ export function ListingTeaserCard({
   summary: ListingSummary;
   onClick: () => void;
 }) {
+  const place = summary.region || summary.headline;
+  const meta = summary.meta.replaceAll(" · ", " ");
   const pref =
     summary.prefGenderLabel === "상관없음"
       ? "성별 상관없음"
@@ -18,45 +21,37 @@ export function ListingTeaserCard({
 
   return (
     <button type="button" className={styles.teaser} onClick={onClick}>
-      <div className={styles.teaserTop}>
-        <div className={styles.teaserAvatar} aria-hidden>
-          {summary.photoUrl ? (
-            <img
-              src={summary.photoUrl}
-              alt=""
-              className={styles.teaserAvatarImg}
-            />
-          ) : (
-            <span>{summary.initial}</span>
-          )}
-        </div>
+      <Avatar className={styles.photo} aria-hidden>
+        {summary.photoUrl ? (
+          <AvatarImage src={summary.photoUrl} alt="" />
+        ) : null}
+        <AvatarFallback className={styles.photoFallback}>
+          {summary.nickname.trim().slice(0, 2) || summary.initial}
+        </AvatarFallback>
+      </Avatar>
 
-        <div className={styles.teaserWho}>
-          <p className={styles.teaserName}>{summary.nickname}</p>
-          {summary.meta ? (
-            <p className={styles.teaserMeta}>{summary.meta}</p>
+      <div className={styles.body}>
+        <div className={styles.head}>
+          <p className={styles.place}>{place}</p>
+          {summary.mateLabel ? (
+            <strong className={styles.price}>{summary.mateLabel}</strong>
           ) : null}
         </div>
 
-        {summary.mateLabel ? (
-          <div className={styles.teaserRent}>
-            <span className={styles.teaserRentLabel}>살짝 부담</span>
-            <strong className={styles.teaserRentValue}>
-              {summary.mateLabel}
-            </strong>
+        {meta ? <p className={styles.meta}>{meta}</p> : null}
+
+        {summary.station || pref ? (
+          <div className={styles.tags}>
+            {summary.station ? (
+              <span className={styles.tag}>
+                <MapPin size={11} strokeWidth={2.4} />
+                {summary.station}
+              </span>
+            ) : null}
+            {pref ? <span className={styles.tag}>{pref}</span> : null}
           </div>
         ) : null}
       </div>
-
-      <div className={styles.teaserTags}>
-        <span className={styles.teaserTag}>
-          <MapPin size={12} strokeWidth={2.4} />
-          {summary.headline}
-        </span>
-        {pref ? <span className={styles.teaserTag}>{pref}</span> : null}
-      </div>
-
-      {summary.bio ? <p className={styles.teaserBio}>{summary.bio}</p> : null}
     </button>
   );
 }

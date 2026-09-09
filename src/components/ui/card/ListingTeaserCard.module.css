@@ -1,0 +1,109 @@
+.teaser {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
+  width: 100%;
+  padding: 0.95rem;
+  border: 1px solid oklch(0.92 0.012 145);
+  border-radius: 1.2rem;
+  background: oklch(1 0 0);
+  box-shadow: 0 8px 20px oklch(0.32 0.02 150 / 0.05);
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+}
+
+.teaser:active {
+  transform: scale(0.992);
+  background: oklch(0.985 0.006 145);
+}
+
+.photo {
+  width: 4rem;
+  height: 4rem;
+}
+
+.photoFallback {
+  font-family: "Noto Sans KR", var(--font-sans), sans-serif;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: -0.06em;
+  background: var(--secondary);
+  color: var(--primary);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+  padding-top: 0.06rem;
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.65rem;
+}
+
+.place {
+  margin: 0;
+  min-width: 0;
+  font-size: 0.98rem;
+  font-weight: 800;
+  line-height: 1.3;
+  letter-spacing: -0.04em;
+  color: oklch(0.22 0.03 150);
+  word-break: keep-all;
+}
+
+.price {
+  flex-shrink: 0;
+  font-family: "Noto Sans KR", var(--font-sans), sans-serif;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1.3;
+  color: oklch(0.28 0.06 148);
+  white-space: nowrap;
+}
+
+.meta {
+  margin: 0.22rem 0 0;
+  overflow: hidden;
+  font-size: 0.78rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  color: oklch(0.48 0.02 150);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-top: 0.5rem;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.18rem;
+  min-height: 1.5rem;
+  padding: 0 0.5rem;
+  border-radius: 999px;
+  background: oklch(0.96 0.02 145);
+  box-shadow: 0 1px 2px oklch(0.3 0.02 150 / 0.05);
+  font-size: 0.72rem;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  color: oklch(0.36 0.06 148);
+  word-break: keep-all;
+}
+
+.tag svg {
+  flex-shrink: 0;
+  color: oklch(0.5 0.1 145);
+}

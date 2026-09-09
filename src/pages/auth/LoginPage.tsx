@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { ArrowLeft } from 'lucide-react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -18,15 +18,12 @@ import {
   NaverSignInButton,
 } from '@/components/ui/button'
 import { useAuth } from '@/context/AuthContext'
+import { loadUser } from '@/lib/authStorage'
 import { cn } from '@/lib/utils'
-import type { SocialProvider, UserProfile } from '@/types/user'
+import { loginUser } from '@/service/auth'
+import { ApiError } from '@/service/http'
+import type { Gender, SocialProvider, UserProfile } from '@/types/user'
 import styles from './LoginPage.module.css'
-
-/** 임시 통과 계정 (서버 연동 전) */
-const DEMO_ACCOUNT = {
-  loginId: 'saljjak',
-  password: 'saljjak123',
-} as const
 
 type FieldErrors = {
   loginId?: string
@@ -50,21 +47,72 @@ function createDemoUser(
   }
 }
 
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === 'object'
+    ? (value as Record<string, unknown>)
+    : null
+}
+
+function readString(record: Record<string, unknown> | null, key: string) {
+  const value = record?.[key]
+  return typeof value === 'string' && value.trim() ? value.trim() : ''
+}
+
+function readGender(value: unknown): Gender | null {
+  if (value === 'male' || value === 'female' || value === 'other') return value
+  return null
+}
+
+function userFromLogin(loginId: string, body: unknown): UserProfile {
+  const root = asRecord(body)
+  const nested = asRecord(root?.user) ?? asRecord(root?.data) ?? root
+  const id = readString(nested, 'id') || readString(nested, 'loginId') || loginId
+  const gender = readGender(nested?.gender)
+  const existing = loadUser()
+  const sameUser = existing?.loginId === id ? existing : null
+
+  return {
+    provider: 'email',
+    loginId: id,
+    nickname: readString(nested, 'nickname') || sameUser?.nickname || id,
+    birthDate:
+      readString(nested, 'birth') ||
+      readString(nested, 'birthDate') ||
+      sameUser?.birthDate ||
+      '',
+    gender: gender ?? sameUser?.gender ?? 'other',
+    phone: readString(nested, 'phone') || sameUser?.phone || '',
+    agreedTerms: true,
+    agreedPrivacy: true,
+    createdAt: sameUser?.createdAt ?? new Date().toISOString(),
+    ...(sameUser?.pref ? { pref: sameUser.pref } : {}),
+    ...(sameUser?.job ? { job: sameUser.job } : {}),
+    ...(sameUser?.photoUrl ? { photoUrl: sameUser.photoUrl } : {}),
+    ...(sameUser?.bio ? { bio: sameUser.bio } : {}),
+  }
+}
+
 export function LoginPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { signup, isLoggedIn } = useAuth()
-  const [loginId, setLoginId] = useState('')
+  const [loginId, setLoginId] = useState(() => {
+    const fromSignup = location.state as { loginId?: string } | null
+    return fromSignup?.loginId?.trim() ?? ''
+  })
   const [password, setPassword] = useState('')
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
   const [error, setError] = useState('')
+  const [submitting, setSubmitting] = useState(false)
   const [failModalOpen, setFailModalOpen] = useState(false)
 
   useEffect(() => {
     if (isLoggedIn) navigate('/profile', { replace: true })
   }, [isLoggedIn, navigate])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (submitting) return
     setError('')
 
     const nextErrors: FieldErrors = {}
@@ -77,15 +125,26 @@ export function LoginPage() {
     }
 
     setFieldErrors({})
+    setSubmitting(true)
 
     const id = loginId.trim()
-    if (id !== DEMO_ACCOUNT.loginId || password !== DEMO_ACCOUNT.password) {
-      setFailModalOpen(true)
-      return
+    try {
+      const result = await loginUser({ id, password })
+      signup(userFromLogin(id, result))
+      navigate('/profile', { replace: true })
+    } catch (err) {
+      if (err instanceof ApiError && (err.status === 400 || err.status === 401)) {
+        setFailModalOpen(true)
+        return
+      }
+      setError(
+        err instanceof ApiError
+          ? err.message
+          : '로그인에 실패했어요. 다시 시도해 주세요.',
+      )
+    } finally {
+      setSubmitting(false)
     }
-
-    signup(createDemoUser('email', id))
-    navigate('/profile', { replace: true })
   }
 
   const handleSocial = (provider: Exclude<SocialProvider, 'email'>) => {
@@ -172,8 +231,13 @@ export function LoginPage() {
           ) : null}
         </div>
 
-        <Button type="submit" className={styles.submit} size="lg">
-          로그인
+        <Button
+          type="submit"
+          className={styles.submit}
+          size="lg"
+          disabled={submitting}
+        >
+          {submitting ? '로그인하는 중...' : '로그인'}
         </Button>
       </form>
 
