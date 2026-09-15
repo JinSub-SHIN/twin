@@ -1,6 +1,7 @@
 import { ArrowUpRight, Bell } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { COUNSELOR_IMG } from "./CounselorAvatar";
+import { HomeTour } from "./HomeTour";
 import { HowToGuide } from "./HowToGuide";
 import styles from "./HomePage.module.css";
 
@@ -18,7 +19,9 @@ export function HomePage() {
         </button>
       </header>
 
-      <div className={styles.hero}>
+      <HomeTour />
+
+      <div className={styles.hero} data-tour="hero">
         <img src={HERO_IMAGE} alt="" className={styles.heroImage} />
         <div className={styles.heroOverlay} />
         <div className={styles.heroCopy}>
@@ -42,6 +45,7 @@ export function HomePage() {
       <button
         type="button"
         className={styles.counselor}
+        data-tour="counselor"
         onClick={() => navigate("/counselor")}
       >
         <span className={styles.counselorCopy}>

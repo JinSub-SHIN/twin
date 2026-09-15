@@ -78,7 +78,7 @@ export function HowToGuide() {
   };
 
   return (
-    <section className={styles.wrap} aria-labelledby="howto-title">
+    <section className={styles.wrap} aria-labelledby="howto-title" data-tour="howto">
       <div className={styles.head}>
         <p className={styles.kicker}>이용방법</p>
         <h3 id="howto-title" className={styles.title}>

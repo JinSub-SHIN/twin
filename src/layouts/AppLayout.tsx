@@ -16,7 +16,7 @@ export function AppLayout() {
   const hideNav = isCounselor
 
   return (
-    <div className={cn(styles.shell, styles.shellDefault)}>
+    <div className={cn(styles.shell, styles.shellDefault)} data-app-shell>
       {!hideHeader && <Header immersive={false} />}
       <main
         className={cn(
