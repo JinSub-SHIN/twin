@@ -19,11 +19,11 @@
   padding: 0.5rem 0.65rem;
   border: 1.5px solid transparent;
   border-radius: 1rem;
-  background: oklch(0.955 0.008 120);
+  background: var(--muted);
   font-size: 0.82rem;
   font-weight: 700;
   letter-spacing: -0.03em;
-  color: oklch(0.4 0.02 150);
+  color: var(--muted-foreground);
   cursor: pointer;
   transition:
     border-color 0.15s ease,
@@ -52,7 +52,7 @@
 }
 
 .modeSleep {
-  border-color: oklch(0.5 0.14 270);
+  border-color: var(--muted-foreground);
   background: oklch(0.55 0.12 270);
   color: white;
   box-shadow: 0 6px 16px oklch(0.55 0.12 270 / 0.22);
@@ -65,7 +65,7 @@
 .modeWake {
   border-color: oklch(0.68 0.15 85);
   background: oklch(0.78 0.15 85);
-  color: oklch(0.28 0.06 75);
+  color: var(--foreground);
   box-shadow: 0 6px 16px oklch(0.72 0.16 85 / 0.25);
 }
 
@@ -97,14 +97,14 @@
 }
 
 .face {
-  fill: color-mix(in oklch, var(--card) 88%, oklch(0.92 0.04 125));
-  stroke: oklch(0.78 0.04 145);
+  fill: var(--card);
+  stroke: var(--border);
   stroke-width: 2;
 }
 
 .innerFace {
-  fill: color-mix(in oklch, white 70%, var(--card));
-  stroke: oklch(0.86 0.03 145);
+  fill: var(--muted);
+  stroke: var(--border);
   stroke-width: 1;
 }
 
@@ -115,19 +115,19 @@
 }
 
 .tick {
-  stroke: oklch(0.78 0.03 145);
+  stroke: var(--border);
   stroke-width: 1.5;
   stroke-linecap: round;
 }
 
 .tickMajor {
-  stroke: oklch(0.45 0.06 145);
+  stroke: var(--muted-foreground);
   stroke-width: 2.25;
   stroke-linecap: round;
 }
 
 .hourText {
-  fill: oklch(0.38 0.05 145);
+  fill: var(--foreground);
   font-size: 11px;
   font-weight: 800;
   pointer-events: none;
@@ -196,7 +196,7 @@
 }
 
 .centerTitle {
-  fill: oklch(0.32 0.06 145);
+  fill: var(--foreground);
   font-size: 12px;
   font-weight: 800;
   pointer-events: none;

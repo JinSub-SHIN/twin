@@ -1,13 +1,13 @@
 .page {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1.25rem;
 }
 
 .pageLoggedIn {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1.25rem;
   min-height: calc(
     100dvh - 3.5rem - env(safe-area-inset-top) - 4.5rem -
       env(safe-area-inset-bottom) - 2rem
@@ -40,61 +40,53 @@
   background: transparent;
 }
 
-.logoutAction {
-  width: 100%;
-  height: 3rem;
-  border-radius: 1rem;
-  font-size: 0.95rem;
-  font-weight: 700;
-  border-color: var(--border);
-  background: transparent;
-  color: var(--muted-foreground);
-}
-
 .intro {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.4rem;
   animation: twin-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .eyebrow {
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-transform: none;
   color: var(--muted-foreground);
 }
 
 .title {
+  margin: 0;
   font-family: var(--font-heading);
-  font-size: 2.35rem;
+  font-size: 1.42rem;
   font-weight: 800;
-  line-height: 1.05;
-  letter-spacing: -0.05em;
+  line-height: 1.3;
+  letter-spacing: -0.045em;
 }
 
 .accent {
-  color: oklch(0.52 0.14 145);
+  color: var(--highlight);
 }
 
 .desc {
-  font-size: 0.875rem;
-  line-height: 1.7;
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  letter-spacing: -0.02em;
   color: var(--muted-foreground);
 }
 
 .identity {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
   animation: twin-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
   animation-delay: 0.08s;
 }
 
 .avatar {
-  width: 4rem;
-  height: 4rem;
+  width: 3.1rem;
+  height: 3.1rem;
 }
 
 .avatarFallback {
@@ -108,14 +100,14 @@
 
 .name {
   font-family: var(--font-heading);
-  font-size: 1.25rem;
+  font-size: 1.05rem;
   font-weight: 700;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.03em;
 }
 
 .hint {
-  margin-top: 0.25rem;
-  font-size: 0.875rem;
+  margin-top: 0.15rem;
+  font-size: 0.78rem;
   color: var(--muted-foreground);
 }
 

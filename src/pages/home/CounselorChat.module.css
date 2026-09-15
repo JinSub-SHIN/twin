@@ -25,7 +25,7 @@
   font-size: 0.68rem;
   font-weight: 750;
   letter-spacing: -0.02em;
-  color: oklch(0.46 0.08 145);
+  color: var(--highlight);
 }
 
 .title {
@@ -41,10 +41,10 @@
   flex: 1;
   min-height: 0;
   overflow: hidden;
-  border: 1px solid oklch(0.9 0.03 145);
+  border: 1px solid var(--border);
   border-radius: 1.15rem;
-  background: oklch(1 0 0);
-  box-shadow: 0 8px 20px oklch(0.32 0.02 150 / 0.05);
+  background: var(--card);
+  box-shadow: 0 8px 20px oklch(0.2 0.02 150 / 0.12);
 }
 
 .list {
@@ -98,7 +98,7 @@
   width: 2.2rem;
   height: 2.2rem;
   border-radius: 999px;
-  background: oklch(0.95 0.03 145);
+  background: var(--muted);
 }
 
 .avatar img {
@@ -121,14 +121,14 @@
 
 .bubbleBot {
   border-radius: 1rem 1rem 1rem 0.28rem;
-  background: oklch(0.96 0.02 145);
-  color: oklch(0.22 0.03 150);
+  background: var(--muted);
+  color: var(--foreground);
 }
 
 .bubbleMe {
   border-radius: 1rem 1rem 0.28rem 1rem;
-  background: oklch(0.86 0.2 125);
-  color: oklch(0.2 0.05 145);
+  background: var(--primary);
+  color: var(--primary-foreground);
 }
 
 .typing {
@@ -138,7 +138,7 @@
   height: 2.1rem;
   padding: 0 0.8rem;
   border-radius: 1rem 1rem 1rem 0.28rem;
-  background: oklch(0.96 0.02 145);
+  background: var(--muted);
 }
 
 .typing span {
@@ -170,7 +170,7 @@
   border: 1px solid oklch(0.9 0.03 145);
   border-radius: 999px;
   background: oklch(0.992 0.002 145);
-  color: oklch(0.32 0.05 148);
+  color: var(--foreground);
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: -0.03em;
@@ -198,7 +198,7 @@
   border: 1px solid oklch(0.9 0.02 145);
   border-radius: 999px;
   background: oklch(0.985 0.006 145);
-  color: oklch(0.22 0.03 150);
+  color: var(--foreground);
   font-size: 0.84rem;
   letter-spacing: -0.03em;
   outline: none;
@@ -222,7 +222,7 @@
   border: 0;
   border-radius: 999px;
   background: oklch(0.86 0.2 125);
-  color: oklch(0.2 0.05 145);
+  color: var(--primary-foreground);
   cursor: pointer;
 }
 

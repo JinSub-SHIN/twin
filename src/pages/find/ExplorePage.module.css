@@ -34,7 +34,7 @@
 }
 
 .accent {
-  color: oklch(0.48 0.14 145);
+  color: var(--highlight);
 }
 
 .filterRow {
@@ -49,10 +49,10 @@
   gap: 0.35rem;
   min-height: 2.35rem;
   padding: 0.4rem 0.75rem 0.4rem 0.7rem;
-  border: 1px solid oklch(0.9 0.015 145);
+  border: 1px solid var(--border);
   border-radius: 999px;
   background: var(--card);
-  color: oklch(0.42 0.02 150);
+  color: var(--foreground);
   font-size: 0.86rem;
   font-weight: 700;
   letter-spacing: -0.03em;
@@ -60,13 +60,13 @@
 }
 
 .filterChip svg:first-child {
-  color: oklch(0.48 0.1 145);
+  color: var(--highlight);
 }
 
 .filterChipActive {
-  border-color: oklch(0.72 0.1 145);
-  background: oklch(0.95 0.04 145);
-  color: oklch(0.3 0.1 145);
+  border-color: var(--ring);
+  background: var(--accent);
+  color: var(--accent-foreground);
 }
 
 .filterClear {
@@ -77,8 +77,8 @@
   height: 1.9rem;
   border: 0;
   border-radius: 999px;
-  background: oklch(0.96 0.008 145);
-  color: oklch(0.45 0.03 150);
+  background: var(--muted);
+  color: var(--muted-foreground);
   cursor: pointer;
 }
 
@@ -133,14 +133,14 @@
   font-size: 0.82rem;
   font-weight: 800;
   letter-spacing: -0.03em;
-  color: oklch(0.26 0.03 150);
+  color: var(--foreground);
 }
 
 .dialogGuide {
   margin: 0;
   font-size: 0.8rem;
   line-height: 1.5;
-  color: oklch(0.52 0.02 150);
+  color: var(--muted-foreground);
 }
 
 .dialogFooter {
@@ -177,7 +177,7 @@
   border: 0;
   border-radius: 999px;
   background: oklch(0.94 0.05 145);
-  color: oklch(0.3 0.1 145);
+  color: var(--highlight);
   font-size: 0.76rem;
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -203,7 +203,7 @@
   border: 0;
   border-radius: 0.8rem;
   background: oklch(0.965 0.006 145);
-  color: oklch(0.36 0.02 150);
+  color: var(--foreground);
   font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: -0.03em;
@@ -232,7 +232,7 @@
   background: oklch(1 0 0 / 0.55);
   font-size: 0.64rem;
   font-weight: 800;
-  color: oklch(0.4 0.05 145);
+  color: var(--muted-foreground);
 }
 
 .modalChipActive .modalChipCount {
@@ -266,7 +266,7 @@
   font-size: 0.92rem;
   font-weight: 800;
   letter-spacing: -0.03em;
-  color: oklch(0.22 0.03 150);
+  color: var(--foreground);
 }
 
 .feedLabel {
@@ -274,13 +274,13 @@
   font-size: 0.8rem;
   font-weight: 650;
   letter-spacing: -0.02em;
-  color: oklch(0.52 0.02 150);
+  color: var(--muted-foreground);
 }
 
 .feedLabel em {
   font-style: normal;
   font-weight: 800;
-  color: oklch(0.4 0.12 145);
+  color: var(--highlight);
 }
 
 .empty {
@@ -298,7 +298,7 @@
   font-size: 0.92rem;
   font-weight: 800;
   letter-spacing: -0.03em;
-  color: oklch(0.28 0.03 150);
+  color: var(--foreground);
 }
 
 .emptyDesc {
@@ -306,6 +306,5 @@
   font-size: 0.8rem;
   font-weight: 500;
   letter-spacing: -0.02em;
-  color: oklch(0.52 0.02 150);
+  color: var(--muted-foreground);
 }
-

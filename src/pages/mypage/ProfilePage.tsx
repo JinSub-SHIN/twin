@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 import { getAdditionalRemaining, getAgeGroup } from "@/types/user";
@@ -21,7 +21,7 @@ const JOB_LABEL = {
 } as const;
 
 export function ProfilePage() {
-  const { user, isLoggedIn, completion, logout } = useAuth();
+  const { user, isLoggedIn, completion } = useAuth();
 
   if (!isLoggedIn || !user) {
     return (
@@ -108,18 +108,6 @@ export function ProfilePage() {
         >
           {remaining.length > 0 ? "추가 정보 입력" : "추가 정보 수정"}
         </Link>
-      </div>
-
-      <div className={styles.bottomActions}>
-        <Button
-          type="button"
-          variant="outline"
-          className={styles.logoutAction}
-          size="lg"
-          onClick={logout}
-        >
-          로그아웃
-        </Button>
       </div>
     </section>
   );

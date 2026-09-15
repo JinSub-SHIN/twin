@@ -133,8 +133,8 @@
   margin-bottom: 0.4rem;
   overflow: hidden;
   border-radius: 999px;
-  background: oklch(0.88 0.02 145);
-  box-shadow: inset 0 0 0 1px oklch(0.82 0.03 145);
+  background: var(--muted);
+  box-shadow: inset 0 0 0 1px var(--border);
 }
 
 .progressFill {
@@ -227,13 +227,13 @@
   border: 0;
   border-radius: 0.7rem;
   background: transparent;
-  color: oklch(0.22 0.03 150);
+  color: var(--foreground);
   cursor: pointer;
 }
 
 .backBtn:active {
   transform: scale(0.92);
-  background: oklch(0.94 0.01 145);
+  background: var(--muted);
 }
 
 .stepLabel {
@@ -242,7 +242,7 @@
   font-size: 0.92rem;
   font-weight: 700;
   letter-spacing: -0.04em;
-  color: oklch(0.22 0.03 150);
+  color: var(--foreground);
 }
 
 .intro {
@@ -260,7 +260,7 @@
 }
 
 .accent {
-  color: oklch(0.48 0.14 145);
+  color: var(--highlight);
 }
 
 .desc {
@@ -285,7 +285,7 @@
   padding: 0.85rem 0.85rem;
   border: 1.5px solid transparent;
   border-radius: 1.25rem;
-  background: oklch(0.955 0.008 120);
+  background: var(--muted);
   text-align: left;
   cursor: pointer;
   transition:
@@ -300,10 +300,10 @@
 }
 
 .roleCardActive {
-  border-color: oklch(0.55 0.16 145);
-  background: oklch(0.96 0.04 145);
+  border-color: var(--highlight);
+  background: var(--accent);
   box-shadow: 0 0 0 1px
-    color-mix(in oklch, oklch(0.55 0.16 145) 35%, transparent);
+    color-mix(in oklch, var(--highlight) 35%, transparent);
 }
 
 .roleIconWrap {
@@ -313,8 +313,8 @@
   height: 2.4rem;
   flex-shrink: 0;
   border-radius: 0.8rem;
-  background: oklch(0.92 0.05 145);
-  color: oklch(0.35 0.1 145);
+  background: var(--accent);
+  color: var(--highlight);
 }
 
 .roleCardActive .roleIconWrap {
@@ -334,7 +334,7 @@
   font-size: 0.92rem;
   font-weight: 800;
   letter-spacing: -0.03em;
-  color: oklch(0.22 0.03 150);
+  color: var(--foreground);
 }
 
 .roleDesc {
@@ -348,11 +348,11 @@
   width: 1.15rem;
   height: 1.15rem;
   flex-shrink: 0;
-  color: oklch(0.7 0.02 150);
+  color: var(--muted-foreground);
 }
 
 .roleCardActive .roleArrow {
-  color: oklch(0.45 0.12 145);
+  color: var(--highlight);
 }
 
 .block {
@@ -360,9 +360,9 @@
   flex-direction: column;
   gap: 0.8rem;
   padding: 0.9rem 0.85rem 0.95rem;
-  border: 1px solid oklch(0.93 0.01 145);
+  border: 1px solid var(--border);
   border-radius: 1.05rem;
-  background: oklch(1 0 0);
+  background: var(--card);
   box-shadow: 0 1px 2px oklch(0.35 0.02 150 / 0.04);
 }
 
@@ -372,7 +372,7 @@
   font-weight: 800;
   letter-spacing: -0.04em;
   line-height: 1.3;
-  color: oklch(0.2 0.03 150);
+  color: var(--foreground);
 }
 
 .blockHint {
@@ -380,7 +380,7 @@
   font-size: 0.75rem;
   line-height: 1.4;
   letter-spacing: -0.02em;
-  color: oklch(0.55 0.02 150);
+  color: var(--muted-foreground);
 }
 
 .field {
@@ -399,7 +399,7 @@
   height: 2.75rem;
   border: 0 !important;
   border-radius: 0.85rem !important;
-  background: oklch(0.96 0.008 120) !important;
+  background: var(--muted) !important;
   box-shadow: none !important;
   --tw-ring-shadow: none !important;
   outline: none !important;
@@ -407,18 +407,19 @@
   font-weight: 600;
   letter-spacing: -0.02em;
   padding-inline: 0.85rem !important;
+  color: var(--foreground) !important;
 }
 
 .input::placeholder {
-  color: oklch(0.55 0.02 150 / 0.34) !important;
+  color: color-mix(in oklch, var(--muted-foreground) 34%, transparent) !important;
   font-weight: 400 !important;
   opacity: 1 !important;
 }
 
 .input:focus-visible {
-  background: oklch(0.97 0.02 145) !important;
+  background: var(--accent) !important;
   outline: none !important;
-  box-shadow: inset 0 0 0 2px oklch(0.7 0.14 145) !important;
+  box-shadow: inset 0 0 0 2px var(--ring) !important;
 }
 
 .textarea {
@@ -427,27 +428,27 @@
   resize: vertical;
   border: 0;
   border-radius: 0.85rem;
-  background: oklch(0.965 0.006 145);
+  background: var(--muted);
   box-shadow: none;
   font-size: 0.92rem;
   font-weight: 600;
   letter-spacing: -0.02em;
   line-height: 1.45;
   padding: 0.8rem 0.85rem;
-  color: inherit;
+  color: var(--foreground);
   font-family: inherit;
 }
 
 .textarea::placeholder {
-  color: oklch(0.55 0.02 150 / 0.34);
+  color: color-mix(in oklch, var(--muted-foreground) 34%, transparent);
   font-weight: 400;
   opacity: 1;
 }
 
 .textarea:focus-visible {
-  background: oklch(0.97 0.02 145);
+  background: var(--accent);
   outline: none;
-  box-shadow: inset 0 0 0 2px oklch(0.7 0.14 145);
+  box-shadow: inset 0 0 0 2px var(--ring);
 }
 
 .charCount {
@@ -456,7 +457,7 @@
   font-size: 0.78rem;
   font-weight: 500;
   letter-spacing: -0.02em;
-  color: oklch(0.55 0.02 150 / 0.65);
+  color: color-mix(in oklch, var(--muted-foreground) 65%, transparent);
 }
 
 .percentField {
@@ -480,7 +481,7 @@
   font-size: 0.95rem;
   font-weight: 800;
   letter-spacing: -0.02em;
-  color: oklch(0.4 0.05 145);
+  color: var(--muted-foreground);
   pointer-events: none;
 }
 
@@ -502,7 +503,7 @@
   font-size: 0.95rem;
   font-weight: 800;
   letter-spacing: -0.02em;
-  color: oklch(0.4 0.05 145);
+  color: var(--muted-foreground);
   pointer-events: none;
 }
 
@@ -519,24 +520,24 @@
   margin: 0;
   padding: 0.55rem 0.7rem;
   border-radius: 0.85rem;
-  background: color-mix(in oklch, var(--primary) 16%, white);
+  background: color-mix(in oklch, var(--primary) 16%, var(--card));
   border: 1px solid color-mix(in oklch, var(--primary) 28%, var(--border));
   font-size: 0.78rem;
   font-weight: 600;
   line-height: 1.5;
   letter-spacing: -0.02em;
-  color: oklch(0.34 0.06 145);
+  color: var(--foreground);
 }
 
 .label {
   font-size: 0.82rem;
   font-weight: 800;
   letter-spacing: -0.03em;
-  color: oklch(0.24 0.03 150);
+  color: var(--foreground);
 }
 
 .required {
-  color: oklch(0.58 0.22 25);
+  color: var(--destructive);
   font-weight: 800;
 }
 
@@ -567,11 +568,11 @@
   padding: 0.5rem 0.5rem;
   border: 1.5px solid transparent;
   border-radius: 0.85rem;
-  background: oklch(0.96 0.008 120);
+  background: var(--muted);
   font-size: 0.82rem;
   font-weight: 700;
   letter-spacing: -0.03em;
-  color: oklch(0.38 0.02 150);
+  color: var(--muted-foreground);
   cursor: pointer;
   transition:
     background 0.15s ease,
@@ -585,7 +586,7 @@
 }
 
 .chipActive {
-  border-color: oklch(0.52 0.15 145);
+  border-color: var(--highlight);
   background: oklch(0.55 0.16 145);
   color: white;
   box-shadow: 0 6px 16px oklch(0.55 0.16 145 / 0.22);
@@ -593,9 +594,9 @@
 
 /* 다른 광역을 보고 있어도, 이미 고른 광역은 선택 유지 표시 */
 .chipSelected {
-  border-color: oklch(0.62 0.12 145);
-  background: oklch(0.94 0.05 145);
-  color: oklch(0.32 0.1 145);
+  border-color: var(--highlight);
+  background: var(--accent);
+  color: var(--highlight);
   box-shadow: none;
 }
 
@@ -627,11 +628,11 @@
   overflow: hidden;
   border: 1.5px solid transparent;
   border-radius: 0.85rem;
-  background: oklch(0.96 0.008 120);
+  background: var(--muted);
   font-size: 0.84rem;
   font-weight: 700;
   letter-spacing: -0.03em;
-  color: oklch(0.3 0.03 150);
+  color: var(--foreground);
   cursor: pointer;
 }
 
@@ -640,9 +641,9 @@
 }
 
 .hardNoBtnOn {
-  border-color: oklch(0.64 0.2 25);
-  background: oklch(0.97 0.025 25);
-  color: oklch(0.48 0.16 25);
+  border-color: var(--destructive);
+  background: color-mix(in oklch, var(--destructive) 16%, var(--card));
+  color: var(--destructive);
 }
 
 .hardNoBtnOn::before,
@@ -653,7 +654,7 @@
   left: 12%;
   width: 76%;
   height: 1.6px;
-  background: oklch(0.64 0.2 25);
+  background: var(--destructive);
   border-radius: 999px;
   pointer-events: none;
 }
@@ -679,11 +680,11 @@
   padding: 0.6rem 0.8rem;
   border: 1.5px solid transparent;
   border-radius: 0.85rem;
-  background: oklch(0.96 0.008 120);
+  background: var(--muted);
   font-size: 0.84rem;
   font-weight: 700;
   letter-spacing: -0.03em;
-  color: oklch(0.3 0.03 150);
+  color: var(--foreground);
   cursor: pointer;
   transition:
     background 0.15s ease,
@@ -696,9 +697,9 @@
 }
 
 .checkRow:has([data-checked]) {
-  border-color: oklch(0.52 0.15 145);
-  background: oklch(0.96 0.04 145);
-  color: oklch(0.28 0.08 145);
+  border-color: var(--highlight);
+  background: var(--accent);
+  color: var(--highlight);
 }
 
 .checkRow :global([data-slot="checkbox"]) {
@@ -711,9 +712,9 @@
 .agreeCard {
   display: flex;
   flex-direction: column;
-  border: 1px solid oklch(0.92 0.01 145);
+  border: 1px solid var(--border);
   border-radius: 1.1rem;
-  background: oklch(0.985 0.004 145);
+  background: var(--card);
   overflow: hidden;
 }
 
@@ -723,7 +724,7 @@
   gap: 0.75rem;
   padding: 0.8rem 0.9rem;
   cursor: pointer;
-  background: oklch(1 0 0);
+  background: var(--card);
 }
 
 .agreeAll :global([data-slot="checkbox"]) {
@@ -745,14 +746,14 @@
   font-size: 0.9rem;
   font-weight: 800;
   letter-spacing: -0.03em;
-  color: oklch(0.22 0.03 150);
+  color: var(--foreground);
 }
 
 .agreeAllDesc {
   font-size: 0.78rem;
   font-weight: 500;
   letter-spacing: -0.02em;
-  color: oklch(0.55 0.02 150);
+  color: var(--muted-foreground);
 }
 
 .agreeCollapse {
@@ -777,14 +778,14 @@
 .agreeDivider {
   height: 1px;
   margin: 0 1.05rem;
-  background: oklch(0.92 0.01 145);
+  background: var(--border);
 }
 
 .agreeList {
   display: flex;
   flex-direction: column;
   padding: 0.25rem 0 0.35rem;
-  background: oklch(1 0 0);
+  background: var(--card);
 }
 
 .agreeItem {
@@ -820,7 +821,7 @@
   font-size: 0.9rem;
   font-weight: 600;
   letter-spacing: -0.03em;
-  color: oklch(0.28 0.03 150);
+  color: var(--foreground);
   line-height: 1.35;
 }
 
@@ -833,11 +834,11 @@
 }
 
 .agreeTagRequired {
-  color: oklch(0.48 0.11 145);
+  color: var(--highlight);
 }
 
 .agreeTagOptional {
-  color: oklch(0.62 0.02 150);
+  color: var(--muted-foreground);
 }
 
 .agreeItemDesc {
@@ -845,7 +846,7 @@
   font-weight: 500;
   line-height: 1.4;
   letter-spacing: -0.02em;
-  color: oklch(0.58 0.015 150);
+  color: var(--muted-foreground);
 }
 
 .subForm {
@@ -854,7 +855,7 @@
   gap: 0.55rem;
   padding: 0.75rem;
   border-radius: 0.95rem;
-  background: oklch(0.97 0.008 120);
+  background: var(--muted);
 }
 
 .regionGuide {
@@ -878,8 +879,8 @@
   padding: 0.5rem 0.55rem;
   border: 1.5px solid transparent;
   border-radius: 0.85rem;
-  background: oklch(0.96 0.008 120);
-  color: oklch(0.36 0.03 150);
+  background: var(--muted);
+  color: var(--foreground);
   font-size: 0.88rem;
   font-weight: 700;
   letter-spacing: -0.03em;
@@ -887,7 +888,7 @@
 }
 
 .stationChoiceBtnOn {
-  border-color: oklch(0.52 0.15 145);
+  border-color: var(--highlight);
   background: oklch(0.55 0.16 145);
   color: white;
 }
@@ -923,7 +924,7 @@
 .stationSearchIcon {
   position: absolute;
   left: 1rem;
-  color: oklch(0.55 0.03 150);
+  color: var(--muted-foreground);
   pointer-events: none;
 }
 
@@ -941,8 +942,8 @@
   height: 1.7rem;
   border: 0;
   border-radius: 999px;
-  background: oklch(0.9 0.01 145);
-  color: oklch(0.42 0.03 150);
+  background: var(--muted);
+  color: var(--muted-foreground);
   cursor: pointer;
 }
 
@@ -952,7 +953,7 @@
   font-size: 0.8rem;
   font-weight: 500;
   letter-spacing: -0.02em;
-  color: oklch(0.55 0.02 150);
+  color: var(--muted-foreground);
 }
 
 .stationPicked {
@@ -961,8 +962,8 @@
   gap: 0.6rem;
   padding: 0.65rem 0.75rem;
   border-radius: 0.95rem;
-  background: oklch(0.96 0.04 145);
-  border: 1.5px solid oklch(0.55 0.16 145);
+  background: var(--accent);
+  border: 1.5px solid var(--highlight);
 }
 
 .stationPickedMain {
@@ -1003,7 +1004,7 @@
   font-size: 0.72rem;
   font-weight: 600;
   letter-spacing: -0.01em;
-  color: oklch(0.45 0.06 145);
+  color: var(--muted-foreground);
 }
 
 .stationPickedName {
@@ -1020,7 +1021,7 @@
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: -0.02em;
-  color: oklch(0.38 0.1 145);
+  color: var(--highlight);
   cursor: pointer;
 }
 
@@ -1039,14 +1040,14 @@
   padding: 0.55rem 0.7rem;
   border: 1.5px solid transparent;
   border-radius: 1rem;
-  background: oklch(0.96 0.008 120);
+  background: var(--muted);
   text-align: left;
   cursor: pointer;
 }
 
 .stationItemActive {
-  border-color: oklch(0.52 0.15 145);
-  background: oklch(0.96 0.04 145);
+  border-color: var(--highlight);
+  background: var(--accent);
 }
 
 .stationItemIcon {
@@ -1056,8 +1057,8 @@
   height: 2.05rem;
   flex-shrink: 0;
   border-radius: 0.7rem;
-  background: oklch(0.93 0.02 145);
-  color: oklch(0.4 0.08 145);
+  background: var(--accent);
+  color: var(--highlight);
 }
 
 .stationItemActive .stationItemIcon {
@@ -1120,9 +1121,9 @@
 .submitSecondary {
   box-shadow: none;
   font-weight: 700;
-  background: oklch(1 0 0);
-  border-color: oklch(0.9 0.015 145);
-  color: oklch(0.32 0.03 150);
+  background: var(--card);
+  border-color: var(--border);
+  color: var(--foreground);
 }
 
 .submit:disabled {
@@ -1141,7 +1142,7 @@
   background:
     radial-gradient(
       ellipse 120% 80% at 50% -10%,
-      color-mix(in oklch, var(--primary) 45%, white),
+      color-mix(in oklch, var(--primary) 28%, var(--card)),
       transparent 55%
     ),
     var(--card);
@@ -1170,7 +1171,7 @@
   width: 3.4rem;
   height: 3.4rem;
   border-radius: 9999px;
-  background: color-mix(in oklch, var(--primary) 55%, white);
+  background: color-mix(in oklch, var(--primary) 35%, var(--card));
   box-shadow: 0 8px 20px color-mix(in oklch, var(--primary) 35%, transparent);
 }
 
@@ -1179,7 +1180,7 @@
   font-size: 1.35rem;
   font-weight: 800;
   line-height: 1;
-  color: oklch(0.32 0.1 145);
+  color: var(--highlight);
 }
 
 .modalHeader {
@@ -1200,7 +1201,7 @@
   font-weight: 800;
   letter-spacing: -0.03em;
   line-height: 1.35;
-  color: oklch(0.28 0.05 145);
+  color: var(--foreground);
 }
 
 .modalDesc {
@@ -1239,9 +1240,9 @@
 .modalActionSecondary {
   box-shadow: none;
   font-weight: 700;
-  background: oklch(1 0 0);
-  border-color: oklch(0.9 0.015 145);
-  color: oklch(0.32 0.03 150);
+  background: var(--card);
+  border-color: var(--border);
+  color: var(--foreground);
 }
 
 .genderScopeCard {
@@ -1251,8 +1252,8 @@
   margin-top: 0.2rem;
   padding: 0.75rem 0.75rem 0.7rem;
   border-radius: 0.95rem;
-  background: oklch(0.985 0.01 145);
-  border: 1px solid oklch(0.9 0.02 145);
+  background: var(--muted);
+  border: 1px solid var(--border);
 }
 
 .genderScopeHead {
@@ -1266,7 +1267,7 @@
   font-size: 0.82rem;
   font-weight: 800;
   letter-spacing: -0.02em;
-  color: oklch(0.42 0.08 145);
+  color: var(--highlight);
 }
 
 .genderScopeDesc {
@@ -1275,7 +1276,7 @@
   font-weight: 700;
   line-height: 1.45;
   letter-spacing: -0.03em;
-  color: oklch(0.28 0.04 150);
+  color: var(--foreground);
   word-break: keep-all;
 }
 
@@ -1294,15 +1295,15 @@
   padding: 0.6rem 0.75rem;
   border: 1.5px solid transparent;
   border-radius: 0.95rem;
-  background: oklch(1 0 0);
-  color: oklch(0.3 0.03 150);
+  background: var(--card);
+  color: var(--foreground);
   text-align: left;
   cursor: pointer;
 }
 
 .genderScopeBtnActive {
-  border-color: oklch(0.55 0.16 145);
-  background: oklch(0.96 0.04 145);
+  border-color: var(--highlight);
+  background: var(--accent);
 }
 
 .genderScopeBtnLabel {
@@ -1321,5 +1322,5 @@
 }
 
 .genderScopeBtnActive .genderScopeBtnSub {
-  color: oklch(0.4 0.06 145);
+  color: var(--muted-foreground);
 }

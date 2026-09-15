@@ -76,7 +76,7 @@
   font-size: 0.62rem;
   font-weight: 750;
   letter-spacing: -0.03em;
-  color: oklch(0.38 0.05 145);
+  color: var(--muted-foreground);
 }
 
 .brand img {
@@ -89,14 +89,14 @@
   font-size: 0.62rem;
   font-weight: 800;
   letter-spacing: -0.04em;
-  color: oklch(0.22 0.03 150);
+  color: var(--foreground);
 }
 
 .stepNo em {
   margin-left: 0.08rem;
   font-style: normal;
   font-weight: 650;
-  color: oklch(0.62 0.03 150);
+  color: var(--muted-foreground);
 }
 
 .close {
@@ -109,7 +109,7 @@
   border: 1px solid oklch(0.9 0.02 140);
   border-radius: 999px;
   background: oklch(1 0 0);
-  color: oklch(0.4 0.03 150);
+  color: var(--muted-foreground);
   cursor: pointer;
 }
 
@@ -122,7 +122,7 @@
   font-size: 0.6rem;
   font-weight: 750;
   letter-spacing: -0.01em;
-  color: oklch(0.46 0.1 145);
+  color: var(--highlight);
 }
 
 .title {
@@ -137,7 +137,7 @@
   font-size: 0.74rem;
   line-height: 1.45;
   letter-spacing: -0.02em;
-  color: oklch(0.44 0.03 150);
+  color: var(--muted-foreground);
 }
 
 .progress {
@@ -184,7 +184,7 @@
 .back {
   border: 1px solid oklch(0.88 0.025 140);
   background: oklch(0.995 0.004 140);
-  color: oklch(0.32 0.03 150);
+  color: var(--foreground);
 }
 
 .back:disabled {
@@ -195,7 +195,7 @@
 .next {
   border: 0;
   background: oklch(0.86 0.2 125);
-  color: oklch(0.2 0.05 145);
+  color: var(--primary-foreground);
   box-shadow: 0 8px 16px oklch(0.72 0.16 125 / 0.28);
 }
 

@@ -87,6 +87,41 @@
   --sidebar-ring: oklch(0.78 0.18 125);
   --ink: oklch(0.16 0.02 155);
   --fog: oklch(0.94 0.02 100);
+  --highlight: oklch(0.48 0.14 145);
+  color-scheme: light;
+}
+
+.dark {
+  --background: oklch(0.27 0.008 150);
+  --foreground: oklch(0.92 0.01 145);
+  --card: oklch(0.32 0.01 150);
+  --card-foreground: oklch(0.92 0.01 145);
+  --popover: oklch(0.31 0.01 150);
+  --popover-foreground: oklch(0.92 0.01 145);
+  --primary: oklch(0.84 0.17 125);
+  --primary-foreground: oklch(0.22 0.03 145);
+  --secondary: oklch(0.35 0.012 150);
+  --secondary-foreground: oklch(0.93 0.01 145);
+  --muted: oklch(0.31 0.01 150);
+  --muted-foreground: oklch(0.76 0.015 150);
+  --accent: oklch(0.34 0.02 145);
+  --accent-foreground: oklch(0.92 0.015 145);
+  --destructive: oklch(0.74 0.14 25);
+  --border: oklch(0.39 0.012 150);
+  --input: oklch(0.35 0.01 150);
+  --ring: oklch(0.78 0.15 125);
+  --sidebar: oklch(0.28 0.008 150);
+  --sidebar-foreground: oklch(0.92 0.01 145);
+  --sidebar-primary: oklch(0.84 0.17 125);
+  --sidebar-primary-foreground: oklch(0.22 0.03 145);
+  --sidebar-accent: oklch(0.34 0.02 145);
+  --sidebar-accent-foreground: oklch(0.92 0.015 145);
+  --sidebar-border: oklch(0.39 0.012 150);
+  --sidebar-ring: oklch(0.78 0.15 125);
+  --ink: oklch(0.92 0.01 145);
+  --fog: oklch(0.31 0.01 150);
+  --highlight: oklch(0.82 0.14 128);
+  color-scheme: dark;
 }
 
 @layer base {
@@ -102,7 +137,7 @@
   }
 
   body {
-    @apply bg-[oklch(0.992_0.002_145)] text-foreground antialiased;
+    @apply bg-background text-foreground antialiased;
     overscroll-behavior: none;
     -webkit-tap-highlight-color: transparent;
   }
@@ -130,7 +165,7 @@
 
   input::placeholder,
   textarea::placeholder {
-    color: oklch(0.55 0.02 150 / 0.38);
+    color: color-mix(in oklch, var(--muted-foreground) 38%, transparent);
     font-weight: 400;
     opacity: 1;
   }

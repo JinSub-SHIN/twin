@@ -16,6 +16,7 @@ type AuthContextValue = {
   signup: (user: UserProfile) => void
   updateUser: (patch: Partial<UserProfile>) => void
   logout: () => void
+  withdraw: () => void
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -42,6 +43,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null)
   }, [])
 
+  const withdraw = useCallback(() => {
+    clearUser()
+    setUser(null)
+  }, [])
+
   const value = useMemo(
     () => ({
       user,
@@ -50,8 +56,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signup,
       updateUser,
       logout,
+      withdraw,
     }),
-    [user, signup, updateUser, logout],
+    [user, signup, updateUser, logout, withdraw],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

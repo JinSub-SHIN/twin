@@ -45,7 +45,7 @@
 }
 
 .accent {
-  color: oklch(0.52 0.14 145);
+  color: var(--highlight);
 }
 
 .desc {
@@ -80,7 +80,7 @@
 }
 
 .input::placeholder {
-  color: oklch(0.55 0.02 150 / 0.34);
+  color: color-mix(in oklch, var(--muted-foreground) 34%, transparent);
   font-weight: 400;
   opacity: 1;
 }
@@ -171,7 +171,7 @@
 
 .footerLink {
   font-weight: 700;
-  color: oklch(0.42 0.12 145);
+  color: var(--highlight);
   text-decoration: underline;
   text-underline-offset: 0.2em;
 }
@@ -220,7 +220,7 @@
   font-size: 1.45rem;
   font-weight: 800;
   line-height: 1;
-  color: oklch(0.32 0.1 145);
+  color: var(--highlight);
 }
 
 .modalHeader {
@@ -234,7 +234,7 @@
   font-size: 1.15rem;
   font-weight: 800;
   letter-spacing: -0.03em;
-  color: oklch(0.28 0.05 145);
+  color: var(--foreground);
 }
 
 .modalDesc {
