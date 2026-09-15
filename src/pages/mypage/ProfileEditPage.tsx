@@ -1348,57 +1348,53 @@ export function ProfileEditPage() {
                     </button>
                   ))}
                 </div>
-                {prefGender === "male" || prefGender === "female" ? (
-                  <div className={styles.genderScopeCard}>
-                    <div className={styles.genderScopeHead}>
-                      <p className={styles.genderScopeTitle}>게시글 노출</p>
-                      <p className={styles.genderScopeDesc}>
-                        살짝을 찾을 때
-                        <br />
-                        {prefGender === "female" ? "여성" : "남성"}으로 가입한
-                        기준으로만
-                        <br />
-                        노출을 시켜드릴까요?
-                      </p>
-                    </div>
-                    <div className={styles.genderScopeActions}>
-                      <button
-                        type="button"
-                        className={cn(
-                          styles.genderScopeBtn,
-                          restrictListingByPrefGender === false &&
-                            styles.genderScopeBtnActive,
-                        )}
-                        onClick={() => setRestrictListingByPrefGender(false)}
-                      >
-                        <span className={styles.genderScopeBtnLabel}>
-                          아니요, 괜찮아요
-                        </span>
-                        <span className={styles.genderScopeBtnSub}>
-                          남녀 상관없이 공고를 볼 수 있게 올릴게요
-                        </span>
-                      </button>
-                      <button
-                        type="button"
-                        className={cn(
-                          styles.genderScopeBtn,
-                          restrictListingByPrefGender === true &&
-                            styles.genderScopeBtnActive,
-                        )}
-                        onClick={() => setRestrictListingByPrefGender(true)}
-                      >
-                        <span className={styles.genderScopeBtnLabel}>
-                          네, 도와주세요!
-                        </span>
-                        <span className={styles.genderScopeBtnSub}>
-                          {prefGender === "female" ? "여성" : "남성"}만 볼 수
-                          있게 해주세요
-                        </span>
-                      </button>
-                    </div>
-                  </div>
-                ) : null}
               </div>
+              {prefGender === "male" || prefGender === "female" ? (
+                <div className={styles.field}>
+                  <p className={styles.label}>
+                    게시글 노출 <span className={styles.required}>*</span>
+                  </p>
+                  <p className={styles.fieldHint}>
+                    {prefGender === "female" ? "여성" : "남성"}으로 가입한
+                    회원에게만 공고를 보여줄지 골라 주세요.
+                  </p>
+                  <div className={styles.genderScopeActions}>
+                    <button
+                      type="button"
+                      className={cn(
+                        styles.genderScopeBtn,
+                        restrictListingByPrefGender === false &&
+                          styles.genderScopeBtnActive,
+                      )}
+                      onClick={() => setRestrictListingByPrefGender(false)}
+                    >
+                      <span className={styles.genderScopeBtnLabel}>
+                        아니요, 괜찮아요
+                      </span>
+                      <span className={styles.genderScopeBtnSub}>
+                        남녀 상관없이 공고를 볼 수 있게 올릴게요
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      className={cn(
+                        styles.genderScopeBtn,
+                        restrictListingByPrefGender === true &&
+                          styles.genderScopeBtnActive,
+                      )}
+                      onClick={() => setRestrictListingByPrefGender(true)}
+                    >
+                      <span className={styles.genderScopeBtnLabel}>
+                        네, 도와주세요!
+                      </span>
+                      <span className={styles.genderScopeBtnSub}>
+                        {prefGender === "female" ? "여성" : "남성"}만 볼 수 있게
+                        해주세요
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              ) : null}
 
               <div className={styles.field}>
                 <p className={styles.label}>

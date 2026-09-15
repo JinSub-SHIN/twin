@@ -9,10 +9,10 @@
   position: absolute;
   z-index: 1;
   box-shadow:
-    0 0 0 1.5px oklch(0.86 0.2 125),
-    0 0 0 8px oklch(0.86 0.2 125 / 0.16),
-    0 18px 40px oklch(0.7 0.16 125 / 0.12),
-    0 0 0 9999px rgb(10 16 12 / 0.58);
+    0 0 0 1.5px var(--primary),
+    0 0 0 8px color-mix(in oklch, var(--primary) 22%, transparent),
+    0 18px 40px oklch(0 0 0 / 0.22),
+    0 0 0 9999px oklch(0.12 0.02 150 / 0.62);
   pointer-events: none;
   animation: hole-in 0.35s ease both;
   transition:
@@ -28,14 +28,10 @@
   z-index: 2;
   padding: 0.72rem 0.8rem 0.75rem;
   overflow: hidden;
-  border: 1px solid oklch(0.9 0.04 135);
+  border: 1px solid var(--border);
   border-radius: 1.05rem;
-  background: linear-gradient(
-    180deg,
-    oklch(1 0 0 / 0.96),
-    oklch(0.985 0.012 140 / 0.96)
-  );
-  box-shadow: 0 14px 32px oklch(0.18 0.03 150 / 0.2);
+  background: var(--popover);
+  box-shadow: 0 14px 32px oklch(0 0 0 / 0.28);
   backdrop-filter: blur(16px);
   pointer-events: auto;
   animation: card-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -46,9 +42,9 @@
   top: -6px;
   width: 12px;
   height: 12px;
-  border-top: 1px solid oklch(0.9 0.04 135);
-  border-left: 1px solid oklch(0.9 0.04 135);
-  background: oklch(0.995 0.006 140);
+  border-top: 1px solid var(--border);
+  border-left: 1px solid var(--border);
+  background: var(--popover);
   transform: rotate(45deg);
 }
 
@@ -57,8 +53,8 @@
   bottom: -6px;
   border-top: 0;
   border-left: 0;
-  border-right: 1px solid oklch(0.9 0.04 135);
-  border-bottom: 1px solid oklch(0.9 0.04 135);
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
 }
 
 .head {
@@ -106,9 +102,9 @@
   width: 1.5rem;
   height: 1.5rem;
   margin-right: -0.15rem;
-  border: 1px solid oklch(0.9 0.02 140);
+  border: 1px solid var(--border);
   border-radius: 999px;
-  background: oklch(1 0 0);
+  background: var(--muted);
   color: var(--muted-foreground);
   cursor: pointer;
 }
@@ -151,11 +147,11 @@
 .barOn {
   height: 0.18rem;
   border-radius: 999px;
-  background: oklch(0.92 0.02 145);
+  background: var(--muted);
 }
 
 .barOn {
-  background: oklch(0.78 0.18 125);
+  background: var(--primary);
 }
 
 .actions {
@@ -164,7 +160,7 @@
   gap: 0.35rem;
   margin-top: 0.75rem;
   padding-top: 0.65rem;
-  border-top: 1px solid oklch(0.93 0.02 140);
+  border-top: 1px solid var(--border);
 }
 
 .back,
@@ -182,8 +178,8 @@
 }
 
 .back {
-  border: 1px solid oklch(0.88 0.025 140);
-  background: oklch(0.995 0.004 140);
+  border: 1px solid var(--border);
+  background: var(--muted);
   color: var(--foreground);
 }
 
@@ -194,9 +190,9 @@
 
 .next {
   border: 0;
-  background: oklch(0.86 0.2 125);
+  background: var(--primary);
   color: var(--primary-foreground);
-  box-shadow: 0 8px 16px oklch(0.72 0.16 125 / 0.28);
+  box-shadow: 0 8px 16px oklch(0 0 0 / 0.22);
 }
 
 .next:active,

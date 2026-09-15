@@ -27,7 +27,7 @@
   height: 2rem;
   object-fit: contain;
   border-radius: 999px;
-  background: oklch(0.95 0.03 145);
+  background: var(--muted);
 }
 
 .topStatus {
@@ -55,7 +55,7 @@
 
 .backBtn:active {
   transform: scale(0.92);
-  background: oklch(0.94 0.02 145);
+  background: var(--muted);
 }
 
 .topTitle {

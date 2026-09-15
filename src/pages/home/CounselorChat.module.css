@@ -145,7 +145,7 @@
   width: 0.32rem;
   height: 0.32rem;
   border-radius: 999px;
-  background: oklch(0.55 0.06 145);
+  background: var(--muted-foreground);
   animation: bounce 0.9s ease-in-out infinite;
 }
 
@@ -167,9 +167,9 @@
 .chip {
   height: 1.85rem;
   padding: 0 0.7rem;
-  border: 1px solid oklch(0.9 0.03 145);
+  border: 1px solid var(--border);
   border-radius: 999px;
-  background: oklch(0.992 0.002 145);
+  background: var(--muted);
   color: var(--foreground);
   font-size: 0.72rem;
   font-weight: 700;
@@ -179,7 +179,7 @@
 
 .chip:active {
   transform: scale(0.97);
-  background: oklch(0.94 0.03 145);
+  background: var(--accent);
 }
 
 .composer {
@@ -187,7 +187,7 @@
   align-items: center;
   gap: 0.45rem;
   padding: 0.55rem 0.65rem 0.6rem;
-  border-top: 1px solid oklch(0.94 0.015 145);
+  border-top: 1px solid var(--border);
 }
 
 .input {
@@ -195,9 +195,9 @@
   min-width: 0;
   height: 2.45rem;
   padding: 0 0.85rem;
-  border: 1px solid oklch(0.9 0.02 145);
+  border: 1px solid var(--border);
   border-radius: 999px;
-  background: oklch(0.985 0.006 145);
+  background: var(--muted);
   color: var(--foreground);
   font-size: 0.84rem;
   letter-spacing: -0.03em;
@@ -205,7 +205,11 @@
 }
 
 .input:focus {
-  border-color: oklch(0.78 0.18 125);
+  border-color: var(--ring);
+}
+
+.input::placeholder {
+  color: var(--muted-foreground);
 }
 
 .input:disabled {
@@ -221,7 +225,7 @@
   height: 2.45rem;
   border: 0;
   border-radius: 999px;
-  background: oklch(0.86 0.2 125);
+  background: var(--primary);
   color: var(--primary-foreground);
   cursor: pointer;
 }

@@ -215,8 +215,8 @@
   margin-top: 0.72rem;
   padding: 0 0.55rem 0 0.75rem;
   border-radius: 999px;
-  background: oklch(0.22 0.03 150);
-  color: oklch(0.96 0.02 125);
+  background: var(--foreground);
+  color: var(--background);
   font-size: 0.7rem;
   font-weight: 750;
   letter-spacing: -0.03em;
