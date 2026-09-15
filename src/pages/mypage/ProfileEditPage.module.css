@@ -1323,3 +1323,11 @@
 :global(html.dark) .agreeAll :global([data-slot="checkbox"]) {
   border-color: color-mix(in oklch, var(--foreground) 58%, transparent);
 }
+
+:global(html.dark) .modalIconWrap {
+  background: var(--foreground);
+}
+
+:global(html.dark) .modalIcon {
+  color: var(--background);
+}
