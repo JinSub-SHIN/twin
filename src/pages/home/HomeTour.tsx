@@ -92,6 +92,46 @@ export function HomeTour() {
 
   useEffect(() => {
     if (!open) return;
+
+    const main = document.querySelector("main");
+    const html = document.documentElement;
+    const body = document.body;
+    const prev = {
+      main: main?.style.overflow ?? "",
+      html: html.style.overflow,
+      body: body.style.overflow,
+      overscroll: body.style.overscrollBehavior,
+    };
+
+    const lock = () => {
+      if (main) main.style.overflow = "hidden";
+      html.style.overflow = "hidden";
+      body.style.overflow = "hidden";
+      body.style.overscrollBehavior = "none";
+    };
+
+    const prevent = (event: Event) => {
+      const target = event.target as Node | null;
+      if (target && cardRef.current?.contains(target)) return;
+      event.preventDefault();
+    };
+
+    lock();
+    document.addEventListener("touchmove", prevent, { passive: false });
+    document.addEventListener("wheel", prevent, { passive: false });
+
+    return () => {
+      if (main) main.style.overflow = prev.main;
+      html.style.overflow = prev.html;
+      body.style.overflow = prev.body;
+      body.style.overscrollBehavior = prev.overscroll;
+      document.removeEventListener("touchmove", prevent);
+      document.removeEventListener("wheel", prevent);
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
     if (pathname !== step.route) {
       navigate(step.route);
     }
@@ -100,9 +140,12 @@ export function HomeTour() {
   useLayoutEffect(() => {
     if (!open || pathname !== step.route) return;
 
+    const main = document.querySelector("main");
     const target = document.querySelector<HTMLElement>(
       `[data-tour="${step.id}"]`,
     );
+
+    if (main) main.style.overflow = "auto";
     target?.scrollIntoView({ block: "center", inline: "nearest" });
 
     const update = () => {
@@ -111,14 +154,15 @@ export function HomeTour() {
     };
 
     update();
-    const delayed = window.setTimeout(update, 280);
+    const delayed = window.setTimeout(() => {
+      update();
+      if (main) main.style.overflow = "hidden";
+    }, 280);
     window.addEventListener("resize", update);
-    window.addEventListener("scroll", update, true);
 
     return () => {
       window.clearTimeout(delayed);
       window.removeEventListener("resize", update);
-      window.removeEventListener("scroll", update, true);
     };
   }, [open, pathname, step.id, step.route]);
 
@@ -147,8 +191,8 @@ export function HomeTour() {
 
   const shell = document.querySelector<HTMLElement>("[data-app-shell]");
   const shellRect = shell?.getBoundingClientRect();
-  const cardLeft = (shellRect?.left ?? 16) + 18;
-  const cardWidth = Math.min(328, (shellRect?.width ?? 360) - 36);
+  const cardLeft = (shellRect?.left ?? 16) + 24;
+  const cardWidth = Math.min(292, (shellRect?.width ?? 360) - 48);
   const caretLeft = Math.min(
     Math.max(28, hole.left + hole.width / 2 - cardLeft - 7),
     cardWidth - 36,
