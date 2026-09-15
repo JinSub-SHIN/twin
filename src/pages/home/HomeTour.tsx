@@ -100,7 +100,9 @@ export function HomeTour() {
   useLayoutEffect(() => {
     if (!open || pathname !== step.route) return;
 
-    const target = document.querySelector<HTMLElement>(`[data-tour="${step.id}"]`);
+    const target = document.querySelector<HTMLElement>(
+      `[data-tour="${step.id}"]`,
+    );
     target?.scrollIntoView({ block: "center", inline: "nearest" });
 
     const update = () => {
@@ -153,7 +155,11 @@ export function HomeTour() {
   );
 
   return createPortal(
-    <div className={styles.root} role="dialog" aria-labelledby="home-tour-title">
+    <div
+      className={styles.root}
+      role="dialog"
+      aria-labelledby="home-tour-title"
+    >
       <div
         className={styles.hole}
         style={{
