@@ -1,7 +1,6 @@
 import { ArrowUpRight, Bell } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { COUNSELOR_IMG } from "./CounselorAvatar";
-import { HomeTour } from "./HomeTour";
 import { HowToGuide } from "./HowToGuide";
 import styles from "./HomePage.module.css";
 
@@ -18,8 +17,6 @@ export function HomePage() {
           <Bell size={20} strokeWidth={2.1} />
         </button>
       </header>
-
-      <HomeTour />
 
       <div className={styles.hero} data-tour="hero">
         <img src={HERO_IMAGE} alt="" className={styles.heroImage} />

@@ -26,7 +26,7 @@ export function ProfilePage() {
   if (!isLoggedIn || !user) {
     return (
       <section className={styles.pageGuest}>
-        <div className={styles.intro}>
+        <div className={styles.intro} data-tour="profile">
           <p className={styles.eyebrow}>내정보</p>
           <h2 className={styles.title}>
             먼저 <span className={styles.accent}>살짝</span> 가입하고
@@ -66,7 +66,7 @@ export function ProfilePage() {
 
   return (
     <section className={styles.pageLoggedIn}>
-      <div className={styles.intro}>
+      <div className={styles.intro} data-tour="profile">
         <p className={styles.eyebrow}>내정보</p>
         <h2 className={styles.title}>
           나의 정보를

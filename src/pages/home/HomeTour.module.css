@@ -100,13 +100,13 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.7rem;
-  height: 1.7rem;
-  margin-right: -0.25rem;
-  border: 0;
+  width: 1.75rem;
+  height: 1.75rem;
+  margin-right: -0.2rem;
+  border: 1px solid oklch(0.9 0.02 140);
   border-radius: 999px;
-  background: oklch(0.96 0.012 145);
-  color: oklch(0.38 0.03 150);
+  background: oklch(1 0 0);
+  color: oklch(0.4 0.03 150);
   cursor: pointer;
 }
 
@@ -139,7 +139,7 @@
 
 .progress {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 0.28rem;
   margin-top: 0.95rem;
 }
@@ -156,44 +156,49 @@
 }
 
 .actions {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.7rem;
-  margin-top: 0.85rem;
+  display: grid;
+  grid-template-columns: 1fr 1.15fr;
+  gap: 0.4rem;
+  margin-top: 1rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid oklch(0.93 0.02 140);
 }
 
-.skip {
-  height: 2.2rem;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: oklch(0.5 0.03 150);
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  cursor: pointer;
-}
-
+.back,
 .next {
   display: inline-flex;
   align-items: center;
-  gap: 0.2rem;
-  height: 2.2rem;
-  padding: 0 0.85rem 0 0.95rem;
-  border: 0;
+  justify-content: center;
+  gap: 0.22rem;
+  height: 2.5rem;
   border-radius: 999px;
-  background: oklch(0.22 0.03 150);
-  color: oklch(0.96 0.02 125);
   font-size: 0.78rem;
   font-weight: 800;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.04em;
   cursor: pointer;
 }
 
+.back {
+  border: 1px solid oklch(0.88 0.025 140);
+  background: oklch(0.995 0.004 140);
+  color: oklch(0.32 0.03 150);
+}
+
+.back:disabled {
+  opacity: 0.34;
+  cursor: default;
+}
+
+.next {
+  border: 0;
+  background: oklch(0.86 0.2 125);
+  color: oklch(0.2 0.05 145);
+  box-shadow: 0 8px 16px oklch(0.72 0.16 125 / 0.28);
+}
+
 .next:active,
-.skip:active {
-  transform: scale(0.97);
+.back:not(:disabled):active {
+  transform: scale(0.975);
 }
 
 @keyframes hole-in {

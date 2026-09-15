@@ -5,6 +5,18 @@
   padding-bottom: 0.5rem;
 }
 
+.lead {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.tourSpot {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
 .intro {
   display: flex;
   flex-direction: column;
@@ -232,6 +244,13 @@
   display: flex;
   flex-direction: column;
   gap: 0.8rem;
+}
+
+.feedContinue {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  margin-top: -0.3rem;
 }
 
 .feedHead {

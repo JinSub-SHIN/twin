@@ -90,8 +90,21 @@ export function ExplorePage() {
     setParams({});
   }
 
+  const previewListings = listings.slice(0, 2);
+  const restListings = listings.slice(2);
+
+  const openListing = (id: string) => {
+    navigate(`/explore/listing/${id}`, {
+      state: {
+        returnTo: `/explore?${params.toString()}`,
+      },
+    });
+  };
+
   return (
     <section className={styles.page}>
+      <div className={styles.tourSpot} data-tour="explore">
+      <div className={styles.lead}>
       <div className={styles.intro}>
         <h2 className={styles.title}>
           내 방의 <span className={styles.accent}>살짝</span>을 찾아보세요
@@ -122,6 +135,7 @@ export function ExplorePage() {
           </button>
         ) : null}
       </div>
+      </div>
 
       <div className={styles.feed}>
         <div className={styles.feedHead}>
@@ -133,18 +147,12 @@ export function ExplorePage() {
           </p>
         </div>
 
-        {listings.length > 0 ? (
-          listings.map((item) => (
+        {previewListings.length > 0 ? (
+          previewListings.map((item) => (
             <ListingTeaserCard
               key={item.id}
               summary={item.summary}
-              onClick={() =>
-                navigate(`/explore/listing/${item.id}`, {
-                  state: {
-                    returnTo: `/explore?${params.toString()}`,
-                  },
-                })
-              }
+              onClick={() => openListing(item.id)}
             />
           ))
         ) : (
@@ -154,6 +162,19 @@ export function ExplorePage() {
           </div>
         )}
       </div>
+      </div>
+
+      {restListings.length > 0 ? (
+        <div className={styles.feedContinue}>
+          {restListings.map((item) => (
+            <ListingTeaserCard
+              key={item.id}
+              summary={item.summary}
+              onClick={() => openListing(item.id)}
+            />
+          ))}
+        </div>
+      ) : null}
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className={styles.dialogContent} showCloseButton>

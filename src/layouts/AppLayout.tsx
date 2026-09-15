@@ -1,6 +1,7 @@
 import { Outlet, useLocation } from 'react-router-dom'
 import { BottomNav, Header } from '@/components/layout'
 import { cn } from '@/lib/utils'
+import { HomeTour } from '@/pages/home/HomeTour'
 import styles from './AppLayout.module.css'
 
 export function AppLayout() {
@@ -35,6 +36,7 @@ export function AppLayout() {
         <Outlet />
       </main>
       {!hideNav && <BottomNav immersive={false} />}
+      <HomeTour />
     </div>
   )
 }

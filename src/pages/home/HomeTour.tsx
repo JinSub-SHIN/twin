@@ -1,27 +1,46 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { ArrowRight, X } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { ArrowLeft, ArrowRight, X } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 import { COUNSELOR_IMG } from "./CounselorAvatar";
 import styles from "./HomeTour.module.css";
 
 const STEPS = [
   {
     id: "hero",
+    route: "/",
     kicker: "살짝 소개",
     title: "월세를 살짝 나눠요",
     desc: "혼자 살기 부담될 때, 같이 살 사람을 찾는 공간이에요.",
   },
   {
     id: "howto",
+    route: "/",
     kicker: "이용방법",
     title: "여기서 시작해요",
     desc: "방이 있으면 ‘나눠요’, 없으면 ‘구해요’. 세 단계만 따라가면 돼요.",
   },
   {
     id: "counselor",
+    route: "/",
     kicker: "AI 상담사",
     title: "궁금하면 살짝에게",
     desc: "월세 분담부터 공고까지, 살짝이 바로 알려줘요.",
+  },
+  {
+    id: "explore",
+    route: "/explore",
+    kicker: "찾기",
+    title: "여기서 살짝을 찾아요",
+    desc: "지역을 고르고, 부담 가능한 월세의 공고를 둘러볼 수 있어요.",
+  },
+  {
+    id: "profile",
+    route: "/profile",
+    kicker: "프로필",
+    title: "나를 살짝 소개해요",
+    desc: "원하는 조건과 생활 리듬을 적어 두면, 맞는 살짝을 더 쉽게 만날 수 있어요.",
   },
 ] as const;
 
@@ -45,11 +64,14 @@ function readHole(id: string): Hole | null {
     left: rect.left - pad,
     width: rect.width + pad * 2,
     height: rect.height + pad * 2,
-    radius: 24,
+    radius: 22,
   };
 }
 
 export function HomeTour() {
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const { isLoggedIn } = useAuth();
   const [open, setOpen] = useState(false);
   const [index, setIndex] = useState(0);
   const [hole, setHole] = useState<Hole | null>(null);
@@ -61,12 +83,22 @@ export function HomeTour() {
   const last = index === STEPS.length - 1;
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setOpen(true), 360);
+    if (pathname !== "/") {
+      navigate("/", { replace: true });
+    }
+    const timer = window.setTimeout(() => setOpen(true), 400);
     return () => window.clearTimeout(timer);
   }, []);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (!open) return;
+    if (pathname !== step.route) {
+      navigate(step.route);
+    }
+  }, [open, pathname, step.route, navigate]);
+
+  useLayoutEffect(() => {
+    if (!open || pathname !== step.route) return;
 
     const target = document.querySelector<HTMLElement>(`[data-tour="${step.id}"]`);
     target?.scrollIntoView({ block: "center", inline: "nearest" });
@@ -86,7 +118,7 @@ export function HomeTour() {
       window.removeEventListener("resize", update);
       window.removeEventListener("scroll", update, true);
     };
-  }, [open, step.id]);
+  }, [open, pathname, step.id, step.route]);
 
   useLayoutEffect(() => {
     if (!open || !hole) return;
@@ -100,7 +132,16 @@ export function HomeTour() {
     setCardTop(canBelow ? below : Math.max(16, hole.top - gap - cardH));
   }, [open, hole, index]);
 
-  if (!open || !hole) return null;
+  const close = () => setOpen(false);
+
+  const finish = () => {
+    setOpen(false);
+    if (!isLoggedIn) {
+      navigate("/login");
+    }
+  };
+
+  if (!open || !hole || pathname !== step.route) return null;
 
   const shell = document.querySelector<HTMLElement>("[data-app-shell]");
   const shellRect = shell?.getBoundingClientRect();
@@ -143,7 +184,7 @@ export function HomeTour() {
             type="button"
             className={styles.close}
             aria-label="닫기"
-            onClick={() => setOpen(false)}
+            onClick={close}
           >
             <X size={16} strokeWidth={2.2} />
           </button>
@@ -164,17 +205,19 @@ export function HomeTour() {
         <div className={styles.actions}>
           <button
             type="button"
-            className={styles.skip}
-            onClick={() => setOpen(false)}
+            className={styles.back}
+            disabled={index === 0}
+            onClick={() => setIndex((prev) => Math.max(0, prev - 1))}
           >
-            건너뛰기
+            <ArrowLeft size={15} strokeWidth={2.4} />
+            뒤로
           </button>
           <button
             type="button"
             className={styles.next}
             onClick={() => {
               if (last) {
-                setOpen(false);
+                finish();
                 return;
               }
               setIndex((prev) => prev + 1);
