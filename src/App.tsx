@@ -5,6 +5,7 @@ import { LoginPage } from '@/pages/auth/LoginPage'
 import { SignupPage } from '@/pages/auth/SignupPage'
 import { ExplorePage } from '@/pages/find/ExplorePage'
 import { ListingDetailPage } from '@/pages/find/ListingDetailPage'
+import { CounselorPage } from '@/pages/home/CounselorPage'
 import { HomePage } from '@/pages/home/HomePage'
 import { ProfileEditPage } from '@/pages/mypage/ProfileEditPage'
 import { ProfilePage } from '@/pages/mypage/ProfilePage'
@@ -16,6 +17,7 @@ function App() {
       <Routes>
         <Route element={<AppLayout />}>
           <Route path="/" element={<HomePage />} />
+          <Route path="/counselor" element={<CounselorPage />} />
           <Route path="/explore" element={<ExplorePage />} />
           <Route path="/explore/listing" element={<ListingPreviewPage />} />
           <Route path="/explore/listing/:listingId" element={<ListingDetailPage />} />

@@ -6,12 +6,14 @@ import styles from './AppLayout.module.css'
 export function AppLayout() {
   const { pathname } = useLocation()
   const isHome = pathname === '/'
+  const isCounselor = pathname === '/counselor'
   const isSignup = pathname.startsWith('/signup')
   const isLogin = pathname.startsWith('/login')
   const isProfileEdit = pathname.startsWith('/profile/edit')
   const isListingPreview = pathname.startsWith('/explore/listing')
   const isAuthPage = isSignup || isLogin
-  const hideHeader = isAuthPage || isProfileEdit || isListingPreview || isHome
+  const hideHeader = isAuthPage || isProfileEdit || isListingPreview || isHome || isCounselor
+  const hideNav = isCounselor
 
   return (
     <div className={cn(styles.shell, styles.shellDefault)}>
@@ -21,7 +23,9 @@ export function AppLayout() {
           styles.main,
           isHome
             ? styles.mainHome
-            : !isSignup && !isProfileEdit && !isListingPreview && styles.mainDefault,
+            : isCounselor
+              ? styles.mainCounselor
+              : !isSignup && !isProfileEdit && !isListingPreview && styles.mainDefault,
           isLogin && styles.mainAuth,
           isSignup && styles.mainSignup,
           isProfileEdit && styles.mainProfileEdit,
@@ -30,7 +34,7 @@ export function AppLayout() {
       >
         <Outlet />
       </main>
-      <BottomNav immersive={false} />
+      {!hideNav && <BottomNav immersive={false} />}
     </div>
   )
 }

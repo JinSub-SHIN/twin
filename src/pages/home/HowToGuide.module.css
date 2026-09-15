@@ -1,0 +1,190 @@
+.wrap {
+  margin: 1.15rem 1.15rem 0;
+  padding: 1.15rem 1.05rem 1.1rem;
+  border: 1px solid oklch(0.9 0.03 145);
+  border-radius: 1.15rem;
+  background: oklch(1 0 0);
+  box-shadow: 0 8px 20px oklch(0.32 0.02 150 / 0.05);
+}
+
+.head {
+  padding: 0 0.1rem;
+}
+
+.kicker {
+  margin: 0;
+  font-size: 0.68rem;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  color: oklch(0.46 0.08 145);
+}
+
+.title {
+  margin: 0.18rem 0 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.4rem;
+  margin-top: 0.85rem;
+  padding: 0.28rem;
+  border-radius: 1.05rem;
+  background: oklch(0.96 0.02 145);
+}
+
+.tab,
+.tabOn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.12rem;
+  min-height: 3.35rem;
+  padding: 0.55rem 0.75rem 0.6rem;
+  border: 0;
+  border-radius: 0.85rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.tab {
+  background: transparent;
+  color: oklch(0.42 0.03 150);
+}
+
+.tabOn {
+  background: oklch(1 0 0);
+  color: oklch(0.2 0.04 148);
+  box-shadow: 0 6px 16px oklch(0.32 0.03 150 / 0.08);
+}
+
+.tabLabel {
+  font-size: 0.86rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.tabHint {
+  font-size: 0.68rem;
+  font-weight: 550;
+  letter-spacing: -0.02em;
+  color: oklch(0.52 0.03 150);
+}
+
+.tabOn .tabHint {
+  color: oklch(0.46 0.07 145);
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0.95rem 0 0;
+  padding: 0;
+  list-style: none;
+  animation: how-in 0.28s ease both;
+}
+
+.step {
+  display: grid;
+  grid-template-columns: 2.1rem 1fr;
+  gap: 0.55rem;
+  align-items: stretch;
+}
+
+.rail {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.num {
+  display: grid;
+  place-items: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 999px;
+  background: oklch(0.86 0.2 125);
+  color: oklch(0.2 0.05 145);
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.line {
+  flex: 1;
+  width: 1px;
+  min-height: 0.7rem;
+  margin: 0.28rem 0 0.08rem;
+  background: linear-gradient(
+    180deg,
+    oklch(0.86 0.2 125 / 0.7),
+    oklch(0.86 0.2 125 / 0.08)
+  );
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  padding: 0.82rem 0.75rem 0.82rem 0.9rem;
+  border: 0;
+  border-radius: 1rem;
+  background: oklch(0.975 0.012 145);
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+}
+
+.card:active {
+  transform: scale(0.99);
+  background: oklch(0.985 0.008 145);
+}
+
+.cardText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.22rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.cardText strong {
+  font-size: 0.88rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.cardText span {
+  font-size: 0.74rem;
+  line-height: 1.45;
+  letter-spacing: -0.02em;
+  color: oklch(0.48 0.02 150);
+}
+
+.go {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.02rem;
+  font-size: 0.68rem;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  color: oklch(0.5 0.04 145);
+}
+
+@keyframes how-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

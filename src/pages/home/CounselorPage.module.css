@@ -1,0 +1,78 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  animation: page-in 0.28s ease both;
+}
+
+.topBar {
+  display: grid;
+  flex-shrink: 0;
+  grid-template-columns: 2.25rem 1fr 2.25rem;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0 0.1rem 0.75rem;
+}
+
+.topIdentity {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.topAvatar {
+  width: 2rem;
+  height: 2rem;
+  object-fit: contain;
+  border-radius: 999px;
+  background: oklch(0.95 0.03 145);
+}
+
+.topStatus {
+  margin: 0.08rem 0 0;
+  text-align: center;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: oklch(0.46 0.09 145);
+}
+
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  margin-left: -0.3rem;
+  border: 0;
+  border-radius: 0.7rem;
+  background: transparent;
+  color: oklch(0.22 0.03 150);
+  cursor: pointer;
+}
+
+.backBtn:active {
+  transform: scale(0.92);
+  background: oklch(0.94 0.02 145);
+}
+
+.topTitle {
+  margin: 0;
+  text-align: left;
+  font-size: 0.92rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

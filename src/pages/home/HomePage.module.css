@@ -45,7 +45,8 @@
   position: relative;
   display: flex;
   align-items: flex-end;
-  min-height: 17.5rem;
+  flex-shrink: 0;
+  min-height: 16rem;
   margin: 0 1.05rem;
   overflow: hidden;
   border-radius: 1.2rem;
@@ -85,13 +86,13 @@
   flex-direction: column;
   align-items: flex-start;
   width: 100%;
-  padding: 1.15rem 1.1rem 1.15rem;
+  padding: 1.05rem 1.1rem 1.05rem;
 }
 
 .headline {
   margin: 0;
   font-family: "Noto Sans KR", var(--font-sans), sans-serif;
-  font-size: 1.55rem;
+  font-size: 1.45rem;
   font-weight: 800;
   line-height: 1.25;
   letter-spacing: -0.05em;
@@ -103,272 +104,145 @@
 }
 
 .desc {
-  margin: 0.45rem 0 0;
-  font-size: 0.82rem;
+  margin: 0.4rem 0 0;
+  font-size: 0.8rem;
   font-weight: 500;
   line-height: 1.5;
   letter-spacing: -0.02em;
   color: rgb(255 255 255 / 74%);
 }
 
-.feed {
-  display: flex;
-  flex-direction: column;
-  gap: 1.7rem;
-  padding: 1.35rem 0 1.6rem;
-}
-
-.section {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.sectionHead {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 1.15rem;
-}
-
-.sectionTitle {
-  margin: 0;
-  font-size: 1.02rem;
-  font-weight: 800;
-  letter-spacing: -0.04em;
-}
-
-.sectionMore {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.05rem;
-  font-size: 0.75rem;
-  font-weight: 650;
-  letter-spacing: -0.02em;
-  color: oklch(0.5 0.03 145);
-  text-decoration: none;
-}
-
-.sectionLead {
-  margin: -0.2rem 1.15rem 0;
-  font-size: 0.8rem;
-  line-height: 1.5;
-  letter-spacing: -0.02em;
-  color: oklch(0.48 0.02 150);
-}
-
-.railWrap {
-  padding: 0 1.15rem;
-}
-
-.rail {
-  display: flex;
-  gap: 0.65rem;
-  overflow-x: auto;
-  overscroll-behavior-x: contain;
-  scroll-snap-type: x mandatory;
-  scrollbar-width: none;
-}
-
-.rail::-webkit-scrollbar {
-  display: none;
-}
-
-.railCard,
-.rowCard {
-  border: 1px solid oklch(0.92 0.012 145);
-  background: oklch(1 0 0);
-  box-shadow: 0 8px 20px oklch(0.32 0.02 150 / 0.05);
-  text-align: left;
-  color: inherit;
-  cursor: pointer;
-}
-
-.railCard {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  flex: 0 0 11.4rem;
-  min-height: 8.6rem;
-  padding: 0.9rem 0.9rem 0.95rem;
-  border-radius: 1.1rem;
-  scroll-snap-align: start;
-}
-
-.railCard:active,
-.rowCard:active {
-  transform: scale(0.98);
-  background: oklch(0.985 0.006 145);
-}
-
-.cardKicker {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.22rem;
-  max-width: 100%;
-  font-size: 0.68rem;
-  font-weight: 750;
-  letter-spacing: -0.02em;
-  color: oklch(0.46 0.08 145);
-}
-
-.cardKicker :global(svg) {
-  flex-shrink: 0;
-}
-
-.cardPlace {
-  display: -webkit-box;
-  margin-top: 0.45rem;
-  overflow: hidden;
-  font-size: 0.94rem;
-  font-weight: 800;
-  line-height: 1.3;
-  letter-spacing: -0.04em;
-  word-break: keep-all;
-  color: oklch(0.22 0.03 150);
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-}
-
-.cardPrice {
-  margin-top: auto;
-  padding-top: 0.7rem;
-  font-size: 1.08rem;
-  font-weight: 800;
-  letter-spacing: -0.04em;
-  color: oklch(0.28 0.06 148);
-}
-
-.cardStation {
-  margin-top: 0.2rem;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: oklch(0.5 0.03 145);
-}
-
-.cardChips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.3rem;
-  margin-top: 0.55rem;
-}
-
-.cardChip {
-  display: inline-flex;
-  align-items: center;
-  height: 1.35rem;
-  padding: 0 0.42rem;
-  border-radius: 999px;
-  background: oklch(0.96 0.02 145);
-  box-shadow: 0 1px 2px oklch(0.3 0.02 150 / 0.05);
-  font-size: 0.64rem;
-  font-weight: 750;
-  letter-spacing: -0.02em;
-  color: oklch(0.36 0.06 148);
-}
-
-.rows {
-  display: flex;
-  flex-direction: column;
-  gap: 0.55rem;
-  padding: 0 1.15rem;
-}
-
-.rowCard {
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-  width: 100%;
-  padding: 0.95rem 0.85rem 0.95rem 1rem;
-  border-radius: 1.1rem;
-}
-
-.rowMain {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  min-width: 0;
-  flex: 1;
-}
-
-.rowMain .cardPrice {
-  margin-top: 0.28rem;
-  padding-top: 0;
-  font-size: 1.08rem;
-}
-
-.rowMain .cardChips {
-  margin-top: 0.5rem;
-}
-
-.rowArrow {
-  flex-shrink: 0;
-  color: oklch(0.72 0.02 145);
-}
-
 .adBanner {
   display: grid;
   place-items: center;
-  min-height: 5.4rem;
-  margin: 0 1.15rem;
-  border: 1px dashed oklch(0.86 0.03 145);
-  border-radius: 1.1rem;
-  background: var(--card);
+  min-height: 5.6rem;
+  margin: 0.85rem 1.15rem 0;
+  padding: 1.15rem 1.05rem;
+  border: 1px dashed oklch(0.86 0.04 145);
+  border-radius: 1.15rem;
+  background: oklch(0.975 0.012 145);
+  box-shadow: 0 8px 20px oklch(0.32 0.02 150 / 0.04);
   font-size: 0.82rem;
   font-weight: 700;
   letter-spacing: -0.03em;
   color: oklch(0.5 0.04 145);
 }
 
-.profileCard {
+.counselor {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  overflow: hidden;
+  font-family: inherit;
+  width: calc(100% - 2.3rem);
+  min-height: 7.6rem;
+  margin: 0.85rem 1.15rem 1.4rem;
+  padding: 0;
+  border: 1px solid oklch(0.88 0.05 140);
+  border-radius: 1.25rem;
+  background:
+    radial-gradient(circle at 88% 18%, oklch(0.9 0.12 125 / 0.35), transparent 42%),
+    linear-gradient(135deg, oklch(0.98 0.02 140), oklch(0.93 0.045 145));
+  box-shadow: 0 10px 24px oklch(0.4 0.06 145 / 0.08);
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+}
+
+.counselor::after {
+  content: "";
+  position: absolute;
+  inset: 0 30% 0 0;
+  background: linear-gradient(90deg, oklch(0.965 0.03 140) 46%, transparent);
+  pointer-events: none;
+}
+
+.counselor:active {
+  transform: scale(0.985);
+}
+
+.counselorCopy {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  margin: 0 1.15rem;
-  padding: 1.1rem 1.05rem 1.15rem;
-  border: 1px solid oklch(0.9 0.03 145);
-  border-radius: 1.1rem;
-  background: oklch(0.96 0.03 145);
-  box-shadow: none;
+  justify-content: center;
+  max-width: 58%;
+  padding: 1.05rem 0.4rem 1.05rem 1.1rem;
 }
 
-.profileTitle {
-  margin: 0;
-  font-size: 0.92rem;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  color: oklch(0.22 0.03 150);
-}
-
-.profileDesc {
-  margin: 0.4rem 0 0;
-  font-size: 0.78rem;
-  line-height: 1.5;
-  letter-spacing: -0.02em;
-  color: oklch(0.46 0.03 148);
-}
-
-.profileCta {
+.counselorKicker {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  height: 2.3rem;
-  margin-top: 0.85rem;
-  padding: 0 0.95rem;
-  border: 0;
-  border-radius: 999px;
-  background: oklch(0.86 0.2 125);
-  color: oklch(0.2 0.05 145);
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  text-decoration: none;
+  gap: 0.32rem;
+  margin: 0;
+  font-size: 0.64rem;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+  color: oklch(0.42 0.1 145);
 }
 
-.profileCta:active {
-  transform: scale(0.97);
-  background: oklch(0.8 0.18 125);
+.counselorLive {
+  width: 0.42rem;
+  height: 0.42rem;
+  border-radius: 999px;
+  background: oklch(0.68 0.18 145);
+  box-shadow: 0 0 0 0 oklch(0.68 0.18 145 / 0.45);
+  animation: live-pulse 1.8s ease-out infinite;
+}
+
+.counselorTitle {
+  margin: 0.28rem 0 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.05em;
+}
+
+.counselorDesc {
+  margin: 0.28rem 0 0;
+  font-size: 0.74rem;
+  line-height: 1.45;
+  letter-spacing: -0.02em;
+  color: oklch(0.42 0.04 150);
+}
+
+.counselorGo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.08rem;
+  height: 1.9rem;
+  margin-top: 0.72rem;
+  padding: 0 0.55rem 0 0.75rem;
+  border-radius: 999px;
+  background: oklch(0.22 0.03 150);
+  color: oklch(0.96 0.02 125);
+  font-size: 0.7rem;
+  font-weight: 750;
+  letter-spacing: -0.03em;
+}
+
+.counselorArt {
+  position: absolute;
+  right: 0.15rem;
+  bottom: 0.15rem;
+  width: 7.6rem;
+  height: 7.6rem;
+  object-fit: contain;
+  pointer-events: none;
+  filter: drop-shadow(0 8px 14px oklch(0.45 0.06 145 / 0.12));
+}
+
+@keyframes live-pulse {
+  0% {
+    box-shadow: 0 0 0 0 oklch(0.68 0.18 145 / 0.45);
+  }
+  70% {
+    box-shadow: 0 0 0 0.45rem oklch(0.68 0.18 145 / 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 oklch(0.68 0.18 145 / 0);
+  }
 }
 
 @keyframes home-in {
