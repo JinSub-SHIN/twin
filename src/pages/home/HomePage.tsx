@@ -4,8 +4,6 @@ import { COUNSELOR_IMG } from "./CounselorAvatar";
 import { HowToGuide } from "./HowToGuide";
 import styles from "./HomePage.module.css";
 
-const HERO_IMAGE = "/images/hero-share.jpg";
-
 export function HomePage() {
   const navigate = useNavigate();
 
@@ -19,8 +17,6 @@ export function HomePage() {
       </header>
 
       <div className={styles.hero} data-tour="hero">
-        <img src={HERO_IMAGE} alt="" className={styles.heroImage} />
-        <div className={styles.heroOverlay} />
         <div className={styles.heroCopy}>
           <h2 className={styles.headline}>
             월세, <span className={styles.accent}>살짝</span> 나눠요.
@@ -31,6 +27,11 @@ export function HomePage() {
             함께 살 사람을 찾아보세요.
           </p>
         </div>
+        <img
+          src={COUNSELOR_IMG.idle}
+          alt=""
+          className={styles.heroArt}
+        />
       </div>
 
       <HowToGuide />
