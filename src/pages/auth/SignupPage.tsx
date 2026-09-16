@@ -1024,9 +1024,7 @@ export function SignupPage() {
         <DialogContent className={styles.dialogContent} showCloseButton={false}>
           <div className={styles.modalInner}>
             <div className={styles.modalIconWrap} aria-hidden>
-              <span className={styles.modalIcon}>
-                <Check className="size-5" strokeWidth={3} />
-              </span>
+              <span className={styles.modalIcon}>✓</span>
             </div>
             <DialogHeader className={styles.modalHeader}>
               <DialogTitle className={styles.modalTitle}>
