@@ -172,9 +172,11 @@ export function ExplorePage() {
     });
   };
 
+  const previewListings = visibleListings.slice(0, 2);
+  const restListings = visibleListings.slice(2);
+
   return (
     <section className={styles.page}>
-      <div className={styles.tourSpot} data-tour="explore">
       <div className={styles.lead}>
       <div className={styles.intro}>
         <h2 className={styles.title}>
@@ -209,29 +211,39 @@ export function ExplorePage() {
       </div>
 
       <div className={styles.feed}>
-        <div className={styles.feedHead}>
-          <p className={styles.feedPlace}>
-            {selectedRegions.length > 0 ? filterLabel : "전체 지역"}
-          </p>
-          <p className={styles.feedLabel}>
-            공고 <em>{listings.length}</em>개
-          </p>
+        <div className={styles.tourSpot} data-tour="explore">
+          <div className={styles.feedHead}>
+            <p className={styles.feedPlace}>
+              {selectedRegions.length > 0 ? filterLabel : "전체 지역"}
+            </p>
+            <p className={styles.feedLabel}>
+              공고 <em>{listings.length}</em>개
+            </p>
+          </div>
+
+          {previewListings.length > 0 ? (
+            previewListings.map((item) => (
+              <ListingTeaserCard
+                key={item.id}
+                summary={item.summary}
+                onClick={() => openListing(item.id)}
+              />
+            ))
+          ) : (
+            <div className={styles.empty}>
+              <p className={styles.emptyTitle}>아직 이 지역 공고가 없어요</p>
+              <p className={styles.emptyDesc}>다른 구/시를 골라보면 찾을 수 있어요.</p>
+            </div>
+          )}
         </div>
 
-        {visibleListings.length > 0 ? (
-          visibleListings.map((item) => (
-            <ListingTeaserCard
-              key={item.id}
-              summary={item.summary}
-              onClick={() => openListing(item.id)}
-            />
-          ))
-        ) : (
-          <div className={styles.empty}>
-            <p className={styles.emptyTitle}>아직 이 지역 공고가 없어요</p>
-            <p className={styles.emptyDesc}>다른 구/시를 골라보면 찾을 수 있어요.</p>
-          </div>
-        )}
+        {restListings.map((item) => (
+          <ListingTeaserCard
+            key={item.id}
+            summary={item.summary}
+            onClick={() => openListing(item.id)}
+          />
+        ))}
         {hasMore || loadingMore ? (
           <div
             className={styles.sentinel}
@@ -260,7 +272,6 @@ export function ExplorePage() {
             )}
           </div>
         ) : null}
-      </div>
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
