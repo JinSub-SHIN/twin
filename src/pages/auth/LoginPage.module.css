@@ -73,20 +73,34 @@
 }
 
 .input {
-  height: 3rem;
-  border-radius: 0.9rem;
-  padding-inline: 0.9rem;
-  font-size: 1rem;
+  height: 3.15rem;
+  border: 0 !important;
+  border-radius: 0.9rem !important;
+  background: var(--muted) !important;
+  color: var(--foreground) !important;
+  box-shadow: none !important;
+  --tw-ring-shadow: none !important;
+  outline: none !important;
+  padding-inline: 0.95rem !important;
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
 }
 
 .input::placeholder {
-  color: color-mix(in oklch, var(--muted-foreground) 34%, transparent);
-  font-weight: 400;
-  opacity: 1;
+  color: color-mix(in oklch, var(--muted-foreground) 34%, transparent) !important;
+  font-weight: 400 !important;
+  opacity: 1 !important;
+}
+
+.input:focus-visible {
+  background: var(--muted) !important;
+  outline: none !important;
+  box-shadow: inset 0 0 0 2px var(--foreground) !important;
 }
 
 .inputError {
-  border-color: var(--destructive);
+  box-shadow: inset 0 0 0 2px var(--destructive) !important;
 }
 
 .fieldError {
@@ -183,17 +197,9 @@
   padding: 0;
   overflow: hidden;
   border-radius: 1.35rem;
-  border: 1px solid color-mix(in oklch, var(--primary) 35%, var(--border));
-  background:
-    radial-gradient(
-      ellipse 120% 80% at 50% -10%,
-      color-mix(in oklch, var(--primary) 45%, white),
-      transparent 55%
-    ),
-    var(--card);
-  box-shadow:
-    0 18px 40px rgb(30 50 30 / 14%),
-    0 0 0 1px color-mix(in oklch, var(--primary) 12%, transparent);
+  border: 1px solid var(--border);
+  background: var(--card);
+  box-shadow: 0 18px 40px oklch(0 0 0 / 0.22);
 }
 
 .modalInner {
@@ -211,19 +217,21 @@
   width: 3.4rem;
   height: 3.4rem;
   border-radius: 9999px;
-  background: color-mix(in oklch, var(--primary) 55%, white);
-  box-shadow: 0 8px 20px color-mix(in oklch, var(--primary) 35%, transparent);
+  background: var(--muted);
+  box-shadow: none;
 }
 
 .modalIcon {
   font-family: "Noto Sans KR", var(--font-sans), sans-serif;
-  font-size: 1.45rem;
+  font-size: 1.35rem;
   font-weight: 800;
   line-height: 1;
-  color: var(--highlight);
+  color: var(--foreground);
 }
 
 .modalHeader {
+  display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 0.45rem;
   text-align: center;
@@ -231,15 +239,18 @@
 
 .modalTitle {
   font-family: "Noto Sans KR", var(--font-sans), sans-serif;
-  font-size: 1.15rem;
+  font-size: 1.2rem;
   font-weight: 800;
   letter-spacing: -0.03em;
+  line-height: 1.35;
   color: var(--foreground);
 }
 
 .modalDesc {
+  margin: 0;
   font-size: 0.875rem;
-  line-height: 1.55;
+  font-weight: 500;
+  line-height: 1.65;
   color: var(--muted-foreground);
 }
 
@@ -257,14 +268,19 @@
 .modalAction {
   width: 100%;
   height: 3rem;
-  border-radius: 1rem;
-  font-size: 0.95rem;
+  border-radius: 0.95rem;
+  font-size: 1rem;
   font-weight: 800;
-  background: var(--primary);
-  color: var(--primary-foreground);
-  box-shadow: 0 8px 18px color-mix(in oklch, var(--primary) 40%, transparent);
+  letter-spacing: -0.02em;
+  background: var(--foreground);
+  color: var(--background);
+  box-shadow: none;
 }
 
-.modalAction:hover {
-  background: color-mix(in oklch, var(--primary) 88%, black);
+:global(html.dark) .modalIconWrap {
+  background: var(--foreground);
+}
+
+:global(html.dark) .modalIcon {
+  color: var(--background);
 }
