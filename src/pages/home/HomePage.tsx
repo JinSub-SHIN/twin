@@ -24,14 +24,10 @@ export function HomePage() {
           <p className={styles.desc}>
             혼자 살기 부담될 때,
             <br />
-            함께 살 사람을 찾아보세요.
+            함께 살짝을 찾아보세요.
           </p>
         </div>
-        <img
-          src={COUNSELOR_IMG.idle}
-          alt=""
-          className={styles.heroArt}
-        />
+        <img src={COUNSELOR_IMG.idle} alt="" className={styles.heroArt} />
       </div>
 
       <HowToGuide />
