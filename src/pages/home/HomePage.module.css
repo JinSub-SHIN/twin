@@ -189,6 +189,7 @@
 
 .counselorTitle {
   margin: 0.28rem 0 0;
+  font-family: "Noto Sans KR", var(--font-sans), sans-serif;
   font-size: 1.05rem;
   font-weight: 800;
   letter-spacing: -0.05em;

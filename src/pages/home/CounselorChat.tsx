@@ -82,19 +82,47 @@ function replyTo(text: string): { text: string; mood: CounselorMood } {
 }
 
 export function CounselorChat({ fullPage = false }: { fullPage?: boolean }) {
-  const [messages, setMessages] = useState<ChatMessage[]>([GREETING]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState("");
-  const [typing, setTyping] = useState(false);
+  const [thinking, setThinking] = useState(true);
+  const [streaming, setStreaming] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<number | null>(null);
+  const busy = thinking || streaming;
+
+  const typeInto = (id: string, full: string) => {
+    setStreaming(true);
+    let index = 0;
+    const typeNext = () => {
+      index += 1;
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === id ? { ...msg, text: full.slice(0, index) } : msg,
+        ),
+      );
+      if (index >= full.length) {
+        setStreaming(false);
+        return;
+      }
+      const pause = full[index - 1] === "\n";
+      timerRef.current = window.setTimeout(typeNext, pause ? 90 : 16);
+    };
+    typeNext();
+  };
 
   useEffect(() => {
     const el = listRef.current;
     if (!el) return;
     el.scrollTop = el.scrollHeight;
-  }, [messages, typing]);
+  }, [messages, thinking]);
 
   useEffect(() => {
+    timerRef.current = window.setTimeout(() => {
+      setThinking(false);
+      setMessages([{ ...GREETING, text: "" }]);
+      typeInto(GREETING.id, GREETING.text);
+    }, 320);
+
     return () => {
       if (timerRef.current) window.clearTimeout(timerRef.current);
     };
@@ -102,20 +130,22 @@ export function CounselorChat({ fullPage = false }: { fullPage?: boolean }) {
 
   const send = (raw: string) => {
     const text = raw.trim();
-    if (!text || typing) return;
+    if (!text || busy) return;
 
     setMessages((prev) => [...prev, { id: nextId(), role: "me", text }]);
     setDraft("");
-    setTyping(true);
+    setThinking(true);
 
     timerRef.current = window.setTimeout(() => {
       const reply = replyTo(text);
+      const id = nextId();
+      setThinking(false);
       setMessages((prev) => [
         ...prev,
-        { id: nextId(), role: "salseuk", text: reply.text, mood: reply.mood },
+        { id, role: "salseuk", text: "", mood: reply.mood },
       ]);
-      setTyping(false);
-    }, 520);
+      typeInto(id, reply.text);
+    }, 380);
   };
 
   return (
@@ -134,10 +164,10 @@ export function CounselorChat({ fullPage = false }: { fullPage?: boolean }) {
 
       <div className={styles.panel}>
         <div ref={listRef} className={styles.list} role="log" aria-live="polite">
-          {messages.length === 1 ? (
+          {messages.length <= 1 ? (
             <div className={styles.mascot} aria-hidden>
               <img
-                src={COUNSELOR_IMG[typing ? "thinking" : "greeting"]}
+                src={COUNSELOR_IMG[thinking ? "thinking" : "greeting"]}
                 alt=""
               />
             </div>
@@ -153,12 +183,18 @@ export function CounselorChat({ fullPage = false }: { fullPage?: boolean }) {
                   mood={msg.mood ?? "idle"}
                 />
               ) : null}
-              <p className={msg.role === "me" ? styles.bubbleMe : styles.bubbleBot}>
-                {msg.text}
-              </p>
+              {msg.text ? (
+                <p
+                  className={
+                    msg.role === "me" ? styles.bubbleMe : styles.bubbleBot
+                  }
+                >
+                  {msg.text}
+                </p>
+              ) : null}
             </div>
           ))}
-          {typing ? (
+          {thinking ? (
             <div className={styles.rowBot}>
               <CounselorAvatar className={styles.avatar} mood="thinking" />
               <p className={styles.typing} aria-label="살짝이 입력 중">
@@ -198,12 +234,12 @@ export function CounselorChat({ fullPage = false }: { fullPage?: boolean }) {
             onChange={(e) => setDraft(e.target.value)}
             placeholder="살짝에게 물어보세요"
             aria-label="메시지 입력"
-            disabled={typing}
+            disabled={busy}
           />
           <button
             type="submit"
             className={styles.send}
-            disabled={!draft.trim() || typing}
+            disabled={!draft.trim() || busy}
             aria-label="보내기"
           >
             <Send size={16} strokeWidth={2.3} />
