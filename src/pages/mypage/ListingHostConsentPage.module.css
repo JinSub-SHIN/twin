@@ -1,0 +1,275 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  gap: 0.45rem;
+  box-sizing: border-box;
+}
+
+.topBar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  flex-shrink: 0;
+}
+
+.navRow {
+  display: grid;
+  grid-template-columns: 2.25rem 1fr 2.25rem;
+  align-items: center;
+}
+
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  margin-left: -0.3rem;
+  border: 0;
+  border-radius: 0.7rem;
+  background: transparent;
+  color: var(--foreground);
+  cursor: pointer;
+}
+
+.backBtn:active {
+  transform: scale(0.92);
+  background: var(--muted);
+}
+
+.stepLabel {
+  margin: 0;
+  text-align: center;
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  color: var(--foreground);
+}
+
+.progress {
+  position: relative;
+  height: 0.35rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--muted);
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+
+.progressFill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: color-mix(in oklch, var(--highlight) 72%, var(--foreground));
+  transition:
+    width 0.35s cubic-bezier(0.32, 0.72, 0, 1),
+    background 0.25s ease;
+}
+
+.progressFillDone {
+  background: var(--primary);
+}
+
+.body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.85rem;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0.15rem 0.1rem 0.5rem;
+}
+
+.infoBanner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 0.9rem 0.95rem;
+  border: 1.5px solid var(--border);
+  border-radius: 0.95rem;
+  background: var(--muted);
+}
+
+.infoIcon {
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: 0.1rem;
+  color: var(--highlight);
+}
+
+.infoBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.infoTitle {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.35;
+  color: var(--foreground);
+}
+
+.infoDesc {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 500;
+  line-height: 1.6;
+  letter-spacing: -0.02em;
+  color: var(--muted-foreground);
+  word-break: keep-all;
+  text-wrap: pretty;
+}
+
+.noticeList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.noticeCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 1.05rem 1rem 1rem;
+  border: 1.5px solid var(--border);
+  border-left-width: 0.28rem;
+  border-left-color: color-mix(in oklch, var(--highlight) 55%, var(--border));
+  border-radius: 0.95rem;
+  background: var(--card);
+  box-shadow: 0 4px 16px oklch(0 0 0 / 0.04);
+  scroll-margin-top: 0.5rem;
+}
+
+.noticeCardDone {
+  border-left-color: var(--primary);
+  border-color: color-mix(in oklch, var(--primary) 42%, var(--border));
+  background: color-mix(in oklch, var(--primary) 12%, var(--card));
+  box-shadow: none;
+}
+
+.noticeHead {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.noticeHeadRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.noticeStep {
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--muted-foreground);
+}
+
+.noticeStepDone {
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: color-mix(in oklch, var(--primary) 80%, var(--foreground));
+}
+
+.confirmedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+  padding: 0.22rem 0.5rem;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.confirmedFoot {
+  margin: 0;
+  padding-top: 0.15rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: color-mix(in oklch, var(--primary) 75%, var(--foreground));
+}
+
+.noticeTitle {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1.35;
+  color: var(--foreground);
+}
+
+.noticeText {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 500;
+  line-height: 1.72;
+  letter-spacing: -0.02em;
+  color: var(--foreground);
+  word-break: keep-all;
+  text-wrap: pretty;
+}
+
+.noticeEmphasis {
+  font-weight: 800;
+  color: var(--highlight);
+}
+
+.stepConfirm {
+  width: 100%;
+  height: 3rem;
+  margin-top: 0.15rem;
+  border-radius: 0.85rem;
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  box-shadow: 0 8px 20px oklch(0.2 0.02 150 / 0.18);
+}
+
+.submitDock {
+  flex-shrink: 0;
+  margin-top: auto;
+  padding-top: 0.45rem;
+  padding-bottom: 0.1rem;
+  background: var(--background);
+}
+
+.submit {
+  width: 100%;
+  height: 2.95rem;
+  border-radius: 0.9rem;
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  box-shadow: 0 8px 20px oklch(0.2 0.02 150 / 0.18);
+}
+
+:global(html.dark) .noticeCard {
+  box-shadow: none;
+  border-color: color-mix(in oklch, var(--foreground) 22%, var(--border));
+  border-left-color: color-mix(in oklch, var(--highlight) 45%, var(--border));
+}
+
+:global(html.dark) .noticeCardDone {
+  border-color: color-mix(in oklch, var(--primary) 48%, var(--border));
+  background: color-mix(in oklch, var(--primary) 16%, var(--card));
+}
+
+:global(html.dark) .noticeEmphasis {
+  color: var(--highlight);
+}

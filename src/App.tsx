@@ -7,6 +7,7 @@ import { ExplorePage } from '@/pages/find/ExplorePage'
 import { ListingDetailPage } from '@/pages/find/ListingDetailPage'
 import { CounselorPage } from '@/pages/home/CounselorPage'
 import { HomePage } from '@/pages/home/HomePage'
+import { ListingHostConsentPage } from '@/pages/mypage/ListingHostConsentPage'
 import { ProfileEditPage } from '@/pages/mypage/ProfileEditPage'
 import { ProfilePage } from '@/pages/mypage/ProfilePage'
 import { ListingPreviewPage } from '@/pages/regist/ListingPreviewPage'
@@ -25,6 +26,10 @@ function App() {
           <Route
             path="/profile/edit"
             element={<Navigate to="/profile/edit/role" replace />}
+          />
+          <Route
+            path="/profile/edit/host-consent"
+            element={<ListingHostConsentPage />}
           />
           <Route path="/profile/edit/:step" element={<ProfileEditPage />} />
           <Route path="/signup" element={<SignupPage />} />

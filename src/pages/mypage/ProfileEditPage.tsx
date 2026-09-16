@@ -14,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { DayClock } from "@/components/ui/clock";
 import { useAuth } from "@/context/AuthContext";
+import { LISTING_HOST_CONSENT_ITEMS } from "@/lib/listingHostConsent";
 import { REGION_CITIES, REGION_TREE, formatRegion } from "@/lib/regions";
 import {
   NO_NEARBY_STATION,
@@ -153,7 +154,6 @@ export function ProfileEditPage() {
   const [agreedPush, setAgreedPush] = useState(false);
   const [agreedMarketing, setAgreedMarketing] = useState(false);
   const [agreedMatch, setAgreedMatch] = useState(false);
-  const [autosaveTipOpen, setAutosaveTipOpen] = useState(false);
   const [postConfirmOpen, setPostConfirmOpen] = useState(false);
   const userRef = useRef(user);
   userRef.current = user;
@@ -367,16 +367,36 @@ export function ProfileEditPage() {
     showWfhOption,
   ]);
 
+  const proceedAfterRoleSelect = () => {
+    setRegionPhase("city");
+    goForward(STEP_PATH.region);
+  };
+
   const handleSelectRole = (role: SeekRole) => {
     if (!user) return;
     const roleChanged = seekRole !== role;
-    setSeekRole(role);
+    const prevRole = seekRole;
+
     if (roleChanged) {
       setRegions([]);
       setRegionCity(null);
     }
-    setRegionPhase("city");
-    setAutosaveTipOpen(true);
+
+    if (role === "has_room") {
+      setSeekRole(role);
+      updateUser({
+        pref: {
+          ...user.pref,
+          seekRole: "has_room",
+          ...(roleChanged ? { regions: undefined } : {}),
+        },
+      });
+      navigate("/profile/edit/host-consent", { state: { prevRole } });
+      return;
+    }
+
+    setSeekRole(role);
+    proceedAfterRoleSelect();
   };
 
   const goForward = (path: string) => {
@@ -489,12 +509,6 @@ export function ProfileEditPage() {
     return () => window.cancelAnimationFrame(id);
   }, [step]);
 
-  const confirmAutosaveTip = () => {
-    setAutosaveTipOpen(false);
-    setRegionPhase("city");
-    goForward(STEP_PATH.region);
-  };
-
   const handleBack = () => {
     persistDraft();
     if (step === "role") {
@@ -504,6 +518,12 @@ export function ProfileEditPage() {
     if (step === "region") {
       if (regionPhase === "district") {
         setRegionPhase("city");
+        return;
+      }
+      if (hasRoom) {
+        navigate("/profile/edit/host-consent", {
+          state: { resumeStep: LISTING_HOST_CONSENT_ITEMS.length },
+        });
         return;
       }
       goBackTo(STEP_PATH.role);
@@ -1668,38 +1688,6 @@ export function ProfileEditPage() {
       </div>
       </div>
       </div>
-
-      <Dialog open={autosaveTipOpen} onOpenChange={setAutosaveTipOpen}>
-        <DialogContent className={styles.dialogContent} showCloseButton={false}>
-          <div className={styles.modalInner}>
-            <div className={styles.modalIconWrap} aria-hidden>
-              <span className={styles.modalIcon}>✓</span>
-            </div>
-            <DialogHeader className={styles.modalHeader}>
-              <DialogTitle className={styles.modalTitle}>
-                입력한 정보는 자동 저장돼요
-              </DialogTitle>
-              <DialogDescription className={styles.modalDesc}>
-                앱을 종료하거나 페이지를 나가도
-                <br />
-                작성 중이던 내용이 그대로 남아 있어요.
-                <br />
-                안심하고 천천히 적어 주세요.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter className={styles.dialogFooter}>
-              <Button
-                type="button"
-                className={styles.modalAction}
-                size="lg"
-                onClick={confirmAutosaveTip}
-              >
-                확인했어요
-              </Button>
-            </DialogFooter>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       <Dialog open={postConfirmOpen} onOpenChange={setPostConfirmOpen}>
         <DialogContent className={styles.dialogContent} showCloseButton={false}>
