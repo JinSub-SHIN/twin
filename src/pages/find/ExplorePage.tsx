@@ -1,4 +1,4 @@
-import { useMemo, useState, type MouseEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import { ChevronDown, MapPin, X } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ListingTeaserCard } from "@/components/ui/card";
@@ -20,7 +20,10 @@ import {
   formatRegion,
 } from "@/lib/regions";
 import { cn } from "@/lib/utils";
+import { COUNSELOR_IMG } from "@/pages/home/CounselorAvatar";
 import styles from "./ExplorePage.module.css";
+
+const PAGE_SIZE = 7;
 
 function toggleRegion(current: string[], city: string, district: string) {
   const value =
@@ -63,6 +66,77 @@ export function ExplorePage() {
       })),
     [selectedRegions],
   );
+  const filterKey = params.toString();
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const loadingRef = useRef(false);
+  const armedRef = useRef(true);
+  const hasMoreRef = useRef(false);
+  const totalRef = useRef(0);
+
+  const visibleListings = listings.slice(0, visibleCount);
+  const hasMore = visibleCount < listings.length;
+  hasMoreRef.current = hasMore;
+  totalRef.current = listings.length;
+
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+    setLoadingMore(false);
+    loadingRef.current = false;
+    armedRef.current = true;
+  }, [filterKey]);
+
+  useEffect(() => {
+    const root = document.querySelector("main");
+    if (!root) return;
+
+    const atBottom = () =>
+      root.scrollTop + root.clientHeight >= root.scrollHeight - 28;
+
+    let timer = 0;
+    const loadMore = () => {
+      if (loadingRef.current || !hasMoreRef.current || !armedRef.current) return;
+      loadingRef.current = true;
+      armedRef.current = false;
+      setLoadingMore(true);
+      timer = window.setTimeout(() => {
+        setVisibleCount((count) =>
+          Math.min(count + PAGE_SIZE, totalRef.current),
+        );
+        setLoadingMore(false);
+        loadingRef.current = false;
+      }, 650);
+    };
+
+    const onScroll = () => {
+      if (!atBottom()) {
+        armedRef.current = true;
+        return;
+      }
+      loadMore();
+    };
+
+    let startY = 0;
+    const onTouchStart = (event: TouchEvent) => {
+      startY = event.touches[0]?.clientY ?? 0;
+      if (!loadingRef.current) armedRef.current = true;
+    };
+    const onTouchMove = (event: TouchEvent) => {
+      const y = event.touches[0]?.clientY ?? startY;
+      const pulledUp = startY - y > 18;
+      if (atBottom() && pulledUp) loadMore();
+    };
+
+    root.addEventListener("scroll", onScroll, { passive: true });
+    root.addEventListener("touchstart", onTouchStart, { passive: true });
+    root.addEventListener("touchmove", onTouchMove, { passive: true });
+    return () => {
+      window.clearTimeout(timer);
+      root.removeEventListener("scroll", onScroll);
+      root.removeEventListener("touchstart", onTouchStart);
+      root.removeEventListener("touchmove", onTouchMove);
+    };
+  }, []);
 
   const filterLabel =
     selectedRegions.length === 0
@@ -89,9 +163,6 @@ export function ExplorePage() {
     event.stopPropagation();
     setParams({});
   }
-
-  const previewListings = listings.slice(0, 2);
-  const restListings = listings.slice(2);
 
   const openListing = (id: string) => {
     navigate(`/explore/listing/${id}`, {
@@ -147,8 +218,8 @@ export function ExplorePage() {
           </p>
         </div>
 
-        {previewListings.length > 0 ? (
-          previewListings.map((item) => (
+        {visibleListings.length > 0 ? (
+          visibleListings.map((item) => (
             <ListingTeaserCard
               key={item.id}
               summary={item.summary}
@@ -161,20 +232,36 @@ export function ExplorePage() {
             <p className={styles.emptyDesc}>다른 구/시를 골라보면 찾을 수 있어요.</p>
           </div>
         )}
+        {hasMore || loadingMore ? (
+          <div
+            className={styles.sentinel}
+            aria-live="polite"
+            aria-label={loadingMore ? "공고를 불러오는 중" : undefined}
+          >
+            {loadingMore ? (
+              <span className={styles.loader} aria-hidden>
+                <img
+                  src={COUNSELOR_IMG.thinking}
+                  alt=""
+                  className={styles.loaderFace}
+                />
+                <span className={styles.dots}>
+                  <i />
+                  <i />
+                  <i />
+                </span>
+              </span>
+            ) : (
+              <span className={styles.dotsIdle} aria-hidden>
+                <i />
+                <i />
+                <i />
+              </span>
+            )}
+          </div>
+        ) : null}
       </div>
       </div>
-
-      {restListings.length > 0 ? (
-        <div className={styles.feedContinue}>
-          {restListings.map((item) => (
-            <ListingTeaserCard
-              key={item.id}
-              summary={item.summary}
-              onClick={() => openListing(item.id)}
-            />
-          ))}
-        </div>
-      ) : null}
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className={styles.dialogContent} showCloseButton>
