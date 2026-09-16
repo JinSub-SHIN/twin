@@ -44,6 +44,25 @@ const STEPS = [
   },
 ] as const;
 
+const TOUR_DONE_KEY = "saljjak.tour.done";
+
+function readTourDone() {
+  try {
+    return localStorage.getItem(TOUR_DONE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function writeTourDone(done: boolean) {
+  try {
+    if (done) localStorage.setItem(TOUR_DONE_KEY, "1");
+    else localStorage.removeItem(TOUR_DONE_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
 type Hole = {
   top: number;
   left: number;
@@ -83,12 +102,20 @@ export function HomeTour() {
   const last = index === STEPS.length - 1;
 
   useEffect(() => {
-    if (pathname !== "/") {
-      navigate("/", { replace: true });
+    if (!isLoggedIn) {
+      setOpen(false);
+      setIndex(0);
+      setHole(null);
+      writeTourDone(false);
+      return;
     }
+
+    if (readTourDone()) return;
+
+    if (pathname !== "/") navigate("/", { replace: true });
     const timer = window.setTimeout(() => setOpen(true), 400);
     return () => window.clearTimeout(timer);
-  }, []);
+  }, [isLoggedIn]);
 
   useEffect(() => {
     if (!open) return;
@@ -178,13 +205,14 @@ export function HomeTour() {
     setCardTop(canBelow ? below : Math.max(16, hole.top - gap - cardH));
   }, [open, hole, index]);
 
-  const close = () => setOpen(false);
+  const close = () => {
+    writeTourDone(true);
+    setOpen(false);
+  };
 
   const finish = () => {
+    writeTourDone(true);
     setOpen(false);
-    if (!isLoggedIn) {
-      navigate("/login");
-    }
   };
 
   if (!open || !hole || pathname !== step.route) return null;
