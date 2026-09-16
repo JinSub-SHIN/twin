@@ -1,13 +1,13 @@
 .page {
   --page-bg: var(--background);
-  --ink: oklch(0.28 0.02 150);
-  --ink-soft: oklch(0.48 0.02 150);
-  --line: oklch(0.9 0.01 95);
-  --surface: oklch(1 0 0 / 0.72);
-  --lime: color-mix(in oklch, var(--primary) 72%, oklch(0.78 0.08 145));
-  --lime-soft: color-mix(in oklch, var(--primary) 14%, white);
-  --peach-soft: oklch(0.96 0.025 55);
-  --peach-ink: oklch(0.48 0.08 45);
+  --ink: var(--foreground);
+  --ink-soft: var(--muted-foreground);
+  --line: var(--border);
+  --surface: var(--card);
+  --lime: var(--primary);
+  --lime-soft: var(--accent);
+  --peach-soft: color-mix(in oklch, var(--destructive) 16%, var(--card));
+  --peach-ink: var(--destructive);
 
   display: flex;
   flex-direction: column;
@@ -34,14 +34,14 @@
 
 .sheet {
   --page-bg: var(--background);
-  --ink: oklch(0.28 0.02 150);
-  --ink-soft: oklch(0.48 0.02 150);
-  --line: oklch(0.9 0.01 95);
-  --surface: oklch(1 0 0 / 0.72);
-  --lime: color-mix(in oklch, var(--primary) 72%, oklch(0.78 0.08 145));
-  --lime-soft: color-mix(in oklch, var(--primary) 14%, white);
-  --peach-soft: oklch(0.96 0.025 55);
-  --peach-ink: oklch(0.48 0.08 45);
+  --ink: var(--foreground);
+  --ink-soft: var(--muted-foreground);
+  --line: var(--border);
+  --surface: var(--card);
+  --lime: var(--primary);
+  --lime-soft: var(--accent);
+  --peach-soft: color-mix(in oklch, var(--destructive) 16%, var(--card));
+  --peach-ink: var(--destructive);
 
   display: flex;
   flex-direction: column;
@@ -50,7 +50,7 @@
   border-radius: 1.35rem;
   background: var(--card);
   border: 1px solid var(--line);
-  box-shadow: 0 10px 28px oklch(0.32 0.02 150 / 0.06);
+  box-shadow: 0 10px 28px oklch(0 0 0 / 0.18);
   color: var(--ink);
 }
 
@@ -91,7 +91,7 @@
 
 .backBtn:active {
   transform: scale(0.92);
-  background: oklch(0.94 0.01 145);
+  background: var(--muted);
 }
 
 .topTitle {
@@ -302,8 +302,13 @@
   gap: 0.2rem;
   padding: 1.05rem 1.05rem 1rem;
   border-radius: 1.15rem;
-  background: oklch(0.96 0.03 145);
-  border: 1px solid oklch(0.88 0.04 145);
+  background: color-mix(in oklch, var(--primary) 14%, var(--card));
+  border: 1px solid color-mix(in oklch, var(--primary) 20%, var(--border));
+}
+
+:global(html.dark) .burdenCard {
+  background: oklch(0.37 0.014 145);
+  border-color: color-mix(in oklch, var(--foreground) 26%, transparent);
 }
 
 .burdenLabel {
@@ -321,7 +326,7 @@
   font-weight: 800;
   letter-spacing: -0.045em;
   line-height: 1.1;
-  color: var(--primary-foreground);
+  color: var(--foreground);
 }
 
 .burdenBreak {
@@ -348,7 +353,7 @@
   overflow: hidden;
   height: 1.85rem;
   border-radius: 999px;
-  background: oklch(0.94 0.012 145);
+  background: var(--muted);
 }
 
 .splitMe,
@@ -364,13 +369,13 @@
 }
 
 .splitMe {
-  background: oklch(0.9 0.03 145);
+  background: color-mix(in oklch, var(--foreground) 14%, var(--muted));
   color: var(--foreground);
 }
 
 .splitMate {
-  background: var(--lime);
-  color: var(--primary-foreground);
+  background: var(--foreground);
+  color: var(--background);
 }
 
 .negotiateBar {
@@ -378,8 +383,8 @@
   place-items: center;
   height: 1.85rem;
   border-radius: 999px;
-  border: 1.5px dashed oklch(0.84 0.02 145);
-  background: oklch(0.97 0.008 145);
+  border: 1.5px dashed var(--border);
+  background: var(--muted);
   font-size: 0.76rem;
   font-weight: 600;
   letter-spacing: -0.02em;
@@ -421,11 +426,11 @@
 }
 
 .legendDotMe {
-  background: oklch(0.78 0.05 145);
+  background: color-mix(in oklch, var(--foreground) 42%, var(--muted));
 }
 
 .legendDotMate {
-  background: var(--lime);
+  background: var(--foreground);
 }
 
 .prefOptions {
@@ -443,7 +448,7 @@
   padding: 0 0.95rem;
   width: fit-content;
   border-radius: 0.85rem;
-  background: oklch(0.96 0.008 120);
+  background: var(--muted);
   font-family: "Noto Sans KR", var(--font-sans), sans-serif;
   font-size: 0.86rem;
   font-weight: 700;
@@ -452,8 +457,8 @@
 }
 
 .prefOptionActive {
-  background: var(--lime);
-  color: var(--primary-foreground);
+  background: var(--foreground);
+  color: var(--background);
 }
 
 .prefOptionHard {
@@ -520,7 +525,7 @@
   background: linear-gradient(
     180deg,
     transparent,
-    color-mix(in oklch, var(--page-bg) 88%, white) 28%,
+    color-mix(in oklch, var(--page-bg) 88%, transparent) 28%,
     var(--page-bg) 55%
   );
 }
@@ -533,15 +538,15 @@
   font-size: 0.98rem;
   font-weight: 700;
   letter-spacing: -0.03em;
-  background: var(--lime);
-  color: var(--primary-foreground);
+  background: var(--foreground);
+  color: var(--background);
   border-color: transparent;
   box-shadow: none;
 }
 
 .submitSecondary {
   font-weight: 600;
-  background: oklch(1 0 0);
+  background: var(--card);
   border: 1px solid var(--line);
   color: var(--ink);
   box-shadow: none;
