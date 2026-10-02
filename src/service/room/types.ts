@@ -8,7 +8,8 @@ export type RoomListItem = {
   district: string
   subway_stn: string | null
   pref_gender: string | null
-  share_total: number | null
+  /** 직접조율이면 "직접조율" 같은 문자열로 내려옴 */
+  share_total: number | string | null
 }
 
 export type RoomListResponse = {

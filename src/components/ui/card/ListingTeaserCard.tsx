@@ -1,7 +1,25 @@
-import { MapPin } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { ListingSummary } from "@/lib/listingView";
+import { cn } from "@/lib/utils";
 import styles from "./ListingTeaserCard.module.css";
+
+type CardType = "female" | "male" | "any";
+
+const PREF: Record<CardType, string> = {
+  female: "여성 선호",
+  male: "남성 선호",
+  any: "성별 무관",
+};
+
+function cardTypeOf(label: string | null): CardType {
+  if (label === "여성") return "female";
+  if (label === "남성") return "male";
+  return "any";
+}
+
+function rewardLabel(value: string) {
+  if (value === "직접조율") return "분담 직접조율";
+  return `살짝 ${value}`;
+}
 
 export function ListingTeaserCard({
   summary,
@@ -11,47 +29,23 @@ export function ListingTeaserCard({
   onClick: () => void;
 }) {
   const place = summary.region || summary.headline;
-  const meta = summary.meta.replaceAll(" · ", " ");
-  const pref =
-    summary.prefGenderLabel === "상관없음"
-      ? "성별 상관없음"
-      : summary.prefGenderLabel
-        ? `${summary.prefGenderLabel} 선호`
-        : null;
+  const type = cardTypeOf(summary.prefGenderLabel);
+  const location = [summary.station ? `${summary.station} 인근` : null, summary.meta]
+    .filter(Boolean)
+    .join(" · ");
 
   return (
-    <button type="button" className={styles.teaser} onClick={onClick}>
-      <Avatar className={styles.photo} aria-hidden>
-        {summary.photoUrl ? (
-          <AvatarImage src={summary.photoUrl} alt="" />
+    <button type="button" className={styles.card} onClick={onClick}>
+      <span className={styles.body}>
+        <span className={styles.titleRow}>
+          <span className={styles.title}>{place}</span>
+          <span className={cn(styles.badge, styles[type])}>{PREF[type]}</span>
+        </span>
+        {location ? <span className={styles.location}>{location}</span> : null}
+        {summary.mateLabel ? (
+          <span className={styles.reward}>{rewardLabel(summary.mateLabel)}</span>
         ) : null}
-        <AvatarFallback className={styles.photoFallback}>
-          {summary.nickname.trim().slice(0, 2) || summary.initial}
-        </AvatarFallback>
-      </Avatar>
-
-      <div className={styles.body}>
-        <div className={styles.head}>
-          <p className={styles.place}>{place}</p>
-          {summary.mateLabel ? (
-            <strong className={styles.price}>{summary.mateLabel}</strong>
-          ) : null}
-        </div>
-
-        {meta ? <p className={styles.meta}>{meta}</p> : null}
-
-        {summary.station || pref ? (
-          <div className={styles.tags}>
-            {summary.station ? (
-              <span className={styles.tag}>
-                <MapPin size={11} strokeWidth={2.4} />
-                {summary.station}
-              </span>
-            ) : null}
-            {pref ? <span className={styles.tag}>{pref}</span> : null}
-          </div>
-        ) : null}
-      </div>
+      </span>
     </button>
   );
 }

@@ -70,8 +70,14 @@ function prefGenderOf(value: string | null | undefined): PrefGender | undefined 
   return undefined;
 }
 
-function manLabel(amount: number | null | undefined) {
-  if (amount == null || Number.isNaN(amount)) return null;
+function manLabel(amount: number | string | null | undefined) {
+  if (amount == null) return null;
+  if (typeof amount === "string") {
+    const text = amount.trim();
+    if (!text) return null;
+    return /^\d+(\.\d+)?$/.test(text) ? `${text}만원` : text;
+  }
+  if (Number.isNaN(amount)) return null;
   return `${amount}만원`;
 }
 

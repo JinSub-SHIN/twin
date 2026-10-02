@@ -1,109 +1,144 @@
-.teaser {
+.card {
   display: flex;
   align-items: flex-start;
-  gap: 0.8rem;
   width: 100%;
-  padding: 0.95rem;
-  border: 1px solid var(--border);
-  border-radius: 1.2rem;
-  background: var(--card);
-  box-shadow: 0 8px 20px oklch(0.2 0.02 150 / 0.12);
+  padding: 1.05rem 1.05rem 1rem;
+  border: 1px solid rgb(15 23 42 / 0.08);
+  border-radius: 1rem;
+  background: #fff;
+  box-shadow:
+    0 1px 2px rgb(15 23 42 / 0.04),
+    0 6px 18px -8px rgb(15 23 42 / 0.12);
+  color: #333;
   text-align: left;
   cursor: pointer;
-  color: var(--card-foreground);
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
 }
 
-.teaser:active {
-  transform: scale(0.992);
-  background: var(--muted);
-}
-
-.photo {
-  width: 4rem;
-  height: 4rem;
-}
-
-.photoFallback {
-  font-family: "Noto Sans KR", var(--font-sans), sans-serif;
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: -0.06em;
-  background: var(--secondary);
-  color: var(--primary);
+.card:active {
+  transform: scale(0.985);
+  border-color: rgb(15 23 42 / 0.14);
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.06);
 }
 
 .body {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   min-width: 0;
   flex: 1;
-  padding-top: 0.06rem;
+  gap: 0.18rem;
+  padding-top: 0.05rem;
 }
 
-.head {
+.titleRow {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 0.65rem;
+  gap: 0.5rem;
+  width: 100%;
 }
 
-.place {
-  margin: 0;
+.title {
   min-width: 0;
-  font-size: 0.98rem;
-  font-weight: 800;
-  line-height: 1.3;
-  letter-spacing: -0.04em;
-  color: var(--foreground);
-  word-break: keep-all;
-}
-
-.price {
-  flex-shrink: 0;
-  font-family: "Noto Sans KR", var(--font-sans), sans-serif;
-  font-size: 1.05rem;
-  font-weight: 800;
-  letter-spacing: -0.04em;
-  line-height: 1.3;
-  color: var(--highlight);
-  white-space: nowrap;
-}
-
-.meta {
-  margin: 0.22rem 0 0;
   overflow: hidden;
-  font-size: 0.78rem;
-  font-weight: 650;
-  letter-spacing: -0.02em;
-  color: var(--muted-foreground);
+  font-family: "Noto Sans KR", sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: -0.04em;
+  color: #171717;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.3rem;
-  margin-top: 0.5rem;
+.badge {
+  flex: none;
+  margin-top: 0.12rem;
+  padding: 0.12rem 0.4rem;
+  border-radius: 0.25rem;
+  background: #f2f4f7;
+  color: #666;
+  font-family: "Noto Sans KR", sans-serif;
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.03em;
 }
 
-.tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.18rem;
-  min-height: 1.5rem;
-  padding: 0 0.5rem;
-  border-radius: 999px;
-  background: var(--muted);
-  box-shadow: none;
-  font-size: 0.72rem;
-  font-weight: 750;
+.female {
+  background: #fde8ee;
+  color: #9a3d58;
+}
+
+.male {
+  background: #e7f0fb;
+  color: #24548f;
+}
+
+.location {
+  overflow: hidden;
+  max-width: 100%;
+  margin-top: 0.15rem;
+  font-family: "Noto Sans KR", sans-serif;
+  font-size: 0.8rem;
+  font-weight: 400;
   letter-spacing: -0.02em;
-  color: var(--accent-foreground);
-  word-break: keep-all;
+  color: #999;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.tag svg {
-  flex-shrink: 0;
-  color: var(--highlight);
+.reward {
+  margin-top: 0.38rem;
+  font-family: "Noto Sans KR", sans-serif;
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: #3366ff;
+}
+
+:global(.dark) .card {
+  border-color: rgb(255 255 255 / 0.08);
+  background: var(--card);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.04),
+    0 8px 20px -10px rgb(0 0 0 / 0.5);
+  color: var(--foreground);
+}
+
+:global(.dark) .card:active {
+  border-color: rgb(255 255 255 / 0.14);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04);
+}
+
+:global(.dark) .title {
+  color: var(--foreground);
+}
+
+:global(.dark) .location {
+  color: var(--muted-foreground);
+}
+
+:global(.dark) .reward {
+  color: #8eb0ff;
+}
+
+:global(.dark) .badge {
+  background: var(--muted);
+  color: var(--muted-foreground);
+}
+
+:global(.dark) .female {
+  background: rgb(196 92 120 / 0.18);
+  color: #f3b4c4;
+}
+
+:global(.dark) .male {
+  background: rgb(61 116 184 / 0.22);
+  color: #b9d4f5;
 }

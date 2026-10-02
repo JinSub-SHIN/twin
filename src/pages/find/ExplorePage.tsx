@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState, type MouseEvent } from "react";
-import { ChevronDown, MapPin, X } from "lucide-react";
+import { ArrowLeft, Check, ChevronDown, MapPin, X } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ListingTeaserCard } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -21,7 +20,6 @@ import {
   REGION_CITIES,
   REGION_TREE,
   cityOfRegion,
-  districtOfRegion,
   formatRegion,
 } from "@/lib/regions";
 import { cn } from "@/lib/utils";
@@ -67,33 +65,18 @@ async function fetchListingPage(
   return { rows, total, hasMore, nextPage: cursor };
 }
 
-function toggleRegion(current: string[], city: string, district: string) {
-  const value =
-    district === "전체" ? `${city} 전체` : formatRegion(city, district);
-  const inCity = current.filter((item) => cityOfRegion(item) === city);
-  const others = current.filter((item) => cityOfRegion(item) !== city);
-
-  if (district === "전체") {
-    if (inCity.some((item) => districtOfRegion(item) === "전체")) return others;
-    return [...others, value];
-  }
-
-  const withoutAll = inCity.filter((item) => districtOfRegion(item) !== "전체");
-  if (withoutAll.includes(value)) {
-    return [...others, ...withoutAll.filter((item) => item !== value)];
-  }
-  return [...others, ...withoutAll, value];
-}
-
 export function ExplorePage() {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const selectedRegions = params.getAll("regions");
   const [open, setOpen] = useState(false);
+  const [sheetStep, setSheetStep] = useState<"city" | "district">("city");
   const [draftCity, setDraftCity] = useState<string | null>(null);
-  const [draftRegions, setDraftRegions] = useState<string[]>([]);
+  const currentCity = cityOfRegion(selectedRegions[0]);
 
-  const districts = draftCity ? ["전체", ...(REGION_TREE[draftCity] ?? [])] : [];
+  const districts = draftCity
+    ? ["전체", ...(REGION_TREE[draftCity] ?? [])]
+    : [];
   const regionKey = selectedRegions.join("|");
 
   const [rows, setRows] = useState<ListingRow[]>([]);
@@ -170,7 +153,8 @@ export function ExplorePage() {
       root.scrollTop + root.clientHeight >= root.scrollHeight - 28;
 
     const loadMore = () => {
-      if (loadingRef.current || !hasMoreRef.current || !armedRef.current) return;
+      if (loadingRef.current || !hasMoreRef.current || !armedRef.current)
+        return;
       const generation = generationRef.current;
       loadingRef.current = true;
       armedRef.current = false;
@@ -243,16 +227,23 @@ export function ExplorePage() {
         : `${selectedRegions[0]} 외 ${selectedRegions.length - 1}곳`;
 
   function openFilter() {
-    const first = selectedRegions[0];
-    setDraftCity(first ? cityOfRegion(first) : null);
-    setDraftRegions(selectedRegions);
+    setDraftCity(null);
+    setSheetStep("city");
     setOpen(true);
   }
 
-  function applyFilter() {
-    const next = new URLSearchParams();
-    for (const region of draftRegions) next.append("regions", region);
-    setParams(next);
+  function pickCity(city: string) {
+    setDraftCity(city);
+    setSheetStep("district");
+  }
+
+  function pickDistrict(district: string) {
+    if (!draftCity) return;
+    const value =
+      district === "전체"
+        ? `${draftCity} 전체`
+        : formatRegion(draftCity, district);
+    setParams(new URLSearchParams([["regions", value]]));
     setOpen(false);
   }
 
@@ -275,36 +266,36 @@ export function ExplorePage() {
   return (
     <section className={styles.page}>
       <div className={styles.lead}>
-      <div className={styles.intro}>
-        <h2 className={styles.title}>
-          내 방의 <span className={styles.accent}>살짝</span>을 찾아보세요
-        </h2>
-      </div>
+        <div className={styles.intro}>
+          <h2 className={styles.title}>
+            내 방의 <span className={styles.accent}>살짝</span>을 찾아보세요
+          </h2>
+        </div>
 
-      <div className={styles.filterRow}>
-        <button
-          type="button"
-          className={cn(
-            styles.filterChip,
-            selectedRegions.length > 0 && styles.filterChipActive,
-          )}
-          onClick={openFilter}
-        >
-          <MapPin size={15} strokeWidth={2.3} />
-          <span>{filterLabel}</span>
-          <ChevronDown size={15} strokeWidth={2.3} />
-        </button>
-        {selectedRegions.length > 0 ? (
+        <div className={styles.filterRow}>
           <button
             type="button"
-            className={styles.filterClear}
-            aria-label="지역 필터 지우기"
-            onClick={clearFilter}
+            className={cn(
+              styles.filterChip,
+              selectedRegions.length > 0 && styles.filterChipActive,
+            )}
+            onClick={openFilter}
           >
-            <X size={14} strokeWidth={2.4} />
+            <MapPin size={15} strokeWidth={2.3} />
+            <span>{filterLabel}</span>
+            <ChevronDown size={15} strokeWidth={2.3} />
           </button>
-        ) : null}
-      </div>
+          {selectedRegions.length > 0 ? (
+            <button
+              type="button"
+              className={styles.filterClear}
+              aria-label="지역 필터 지우기"
+              onClick={clearFilter}
+            >
+              <X size={14} strokeWidth={2.4} />
+            </button>
+          ) : null}
+        </div>
       </div>
 
       <div className={styles.feed}>
@@ -319,7 +310,11 @@ export function ExplorePage() {
           </div>
 
           {loading ? (
-            <div className={styles.sentinel} aria-live="polite" aria-label="공고를 불러오는 중">
+            <div
+              className={styles.sentinel}
+              aria-live="polite"
+              aria-label="공고를 불러오는 중"
+            >
               <span className={styles.loader} aria-hidden>
                 <img
                   src={COUNSELOR_IMG.thinking}
@@ -347,9 +342,41 @@ export function ExplorePage() {
               />
             ))
           ) : (
-            <div className={styles.empty}>
-              <p className={styles.emptyTitle}>아직 이 지역 공고가 없어요</p>
-              <p className={styles.emptyDesc}>다른 구/시를 골라보면 찾을 수 있어요.</p>
+            <div className={styles.emptyListing}>
+              <img
+                src={COUNSELOR_IMG.thinking}
+                alt=""
+                className={styles.emptyFace}
+              />
+              <p className={styles.emptyListingTitle}>
+                {selectedRegions.length > 0 ? (
+                  <>
+                    이 지역에는
+                    <br />
+                    아직 공고가 없어요
+                  </>
+                ) : (
+                  <>
+                    아직 올라온
+                    <br />
+                    공고가 없어요
+                  </>
+                )}
+              </p>
+              <p className={styles.emptyListingDesc}>
+                {selectedRegions.length > 0
+                  ? "다른 지역을 골라보면 찾을 수 있어요."
+                  : "조금만 기다리면 새 공고가 올라올 거예요."}
+              </p>
+              {selectedRegions.length > 0 ? (
+                <button
+                  type="button"
+                  className={styles.emptyAction}
+                  onClick={openFilter}
+                >
+                  다른 지역 보기
+                </button>
+              ) : null}
             </div>
           )}
         </div>
@@ -392,114 +419,92 @@ export function ExplorePage() {
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className={styles.dialogContent} showCloseButton>
-          <DialogHeader className={styles.dialogHeader}>
-            <DialogTitle className={styles.dialogTitle}>지역 선택</DialogTitle>
-            <DialogDescription className={styles.dialogDesc}>
-              여러 지역을 함께 고를 수 있어요.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className={styles.dialogBody}>
-            <section className={styles.dialogCard}>
-              <p className={styles.dialogLabel}>광역</p>
-              <div className={styles.chipRow}>
-                {REGION_CITIES.map((item) => {
-                  const picked = draftRegions.some(
-                    (region) => cityOfRegion(region) === item,
-                  );
+        <DialogContent
+          className={styles.sheet}
+          overlayClassName={styles.sheetOverlay}
+          showCloseButton={false}
+        >
+          <span className={styles.sheetHandle} aria-hidden />
+          {sheetStep === "district" && draftCity ? (
+            <section
+              key={`district-${draftCity}`}
+              className={cn(styles.sheetPane, styles.sheetPaneNext)}
+            >
+              <DialogHeader className={styles.sheetHeader}>
+                <button
+                  type="button"
+                  className={styles.sheetBack}
+                  onClick={() => setSheetStep("city")}
+                >
+                  <ArrowLeft size={16} strokeWidth={2.5} />
+                  광역 다시 고르기
+                </button>
+                <DialogTitle className={styles.sheetTitle}>
+                  <span className={styles.accent}>{draftCity}</span>에서
+                  <br />
+                  어디를 찾으세요?
+                </DialogTitle>
+              </DialogHeader>
+              <div className={styles.sheetGrid}>
+                {districts.map((item) => {
+                  const value =
+                    item === "전체"
+                      ? `${draftCity} 전체`
+                      : formatRegion(draftCity, item);
+                  const active = selectedRegions[0] === value;
                   return (
                     <button
-                      key={item}
+                      key={value}
                       type="button"
                       className={cn(
-                        styles.modalChip,
-                        draftCity === item && styles.modalChipFocus,
-                        picked && styles.modalChipActive,
+                        styles.sheetCell,
+                        item === "전체" && styles.sheetCellWide,
+                        active && styles.sheetCellOn,
                       )}
-                      onClick={() => setDraftCity(item)}
+                      onClick={() => pickDistrict(item)}
                     >
-                      {item}
+                      {item === "전체" ? `${draftCity} 전체` : item}
+                      {active ? <Check size={15} strokeWidth={2.8} /> : null}
                     </button>
                   );
                 })}
               </div>
             </section>
-
-            <section className={styles.dialogCard}>
-              <p className={styles.dialogLabel}>
-                {draftCity ? `${draftCity} 구/시` : "구/시"}
-              </p>
-              {draftCity ? (
-                <div className={styles.chipRow}>
-                  {districts.map((item) => {
-                    const value =
-                      item === "전체"
-                        ? `${draftCity} 전체`
-                        : formatRegion(draftCity, item);
-                    const active = draftRegions.includes(value);
-                    return (
-                      <button
-                        key={value}
-                        type="button"
-                        className={cn(
-                          styles.modalChip,
-                          active && styles.modalChipActive,
-                        )}
-                        onClick={() =>
-                          setDraftRegions((prev) =>
-                            toggleRegion(prev, draftCity, item),
-                          )
-                        }
-                      >
-                        {item === "전체" ? `${draftCity} 전체` : item}
-                      </button>
-                    );
-                  })}
-                </div>
-              ) : (
-                <p className={styles.dialogGuide}>
-                  먼저 위에서 광역을 선택해 주세요.
-                </p>
+          ) : (
+            <section
+              key="city"
+              className={cn(
+                styles.sheetPane,
+                draftCity && styles.sheetPaneBack,
               )}
-            </section>
-
-            {draftRegions.length > 0 ? (
-              <section className={styles.dialogCard}>
-                <p className={styles.dialogLabel}>선택한 지역</p>
-                <div className={styles.selectedWrap}>
-                  {draftRegions.map((region) => (
-                    <button
-                      key={region}
-                      type="button"
-                      className={styles.selectedChip}
-                      onClick={() =>
-                        setDraftRegions((prev) =>
-                          prev.filter((item) => item !== region),
-                        )
-                      }
-                    >
-                      {region}
-                      <X size={12} strokeWidth={2.4} />
-                    </button>
-                  ))}
-                </div>
-              </section>
-            ) : null}
-          </div>
-
-          <div className={styles.dialogFooter}>
-            <Button
-              type="button"
-              className={styles.applyBtn}
-              size="lg"
-              onClick={applyFilter}
             >
-              {draftRegions.length > 0
-                ? `${draftRegions.length}개 지역 적용`
-                : "전체 지역 보기"}
-            </Button>
-          </div>
+              <DialogHeader className={styles.sheetHeader}>
+                <DialogTitle className={styles.sheetTitle}>
+                  어느 지역의
+                  <br />
+                  공고를 찾으세요?
+                </DialogTitle>
+                <DialogDescription className={styles.sheetDesc}>
+                  시·도를 고르면 구·시를 이어서 골라요.
+                </DialogDescription>
+              </DialogHeader>
+              <div className={styles.sheetGrid}>
+                {REGION_CITIES.map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    className={cn(
+                      styles.sheetCell,
+                      currentCity === item && styles.sheetCellOn,
+                    )}
+                    onClick={() => pickCity(item)}
+                  >
+                    {item}
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
         </DialogContent>
       </Dialog>
     </section>
