@@ -1,34 +1,56 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ListingCard } from "@/components/ui/card";
 import { GenderLockDialog } from "@/components/ui/dialog";
-import { getListingById } from "@/lib/demoListings";
-import { buildListingView, isListingLocked } from "@/lib/listingView";
+import { roomDetailToView } from "@/lib/roomListing";
+import type { ListingView } from "@/lib/listingView";
 import { cn } from "@/lib/utils";
+import { getRoom } from "@/service/room";
 import styles from "@/pages/regist/ListingPreviewPage.module.css";
 
 export function ListingDetailPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { listingId } = useParams<{ listingId: string }>();
-  const listing = listingId ? getListingById(listingId) : null;
   const returnTo =
     (location.state as { returnTo?: string } | null)?.returnTo ?? "/explore";
+  const [view, setView] = useState<ListingView | null>(null);
+  const [loadedId, setLoadedId] = useState<string | null>(null);
+  const [locked, setLocked] = useState(false);
+  const [failedId, setFailedId] = useState<string | null>(null);
+  const currentView = loadedId === listingId ? view : null;
+  const failed = Boolean(listingId) && failedId === listingId;
 
   useEffect(() => {
-    if (!listing) navigate(returnTo, { replace: true });
-  }, [listing, navigate, returnTo]);
+    if (!listingId) {
+      navigate(returnTo, { replace: true });
+      return;
+    }
 
-  const view = useMemo(
-    () => (listing ? buildListingView(listing.user) : null),
-    [listing],
-  );
+    let cancelled = false;
+    void getRoom(listingId)
+      .then((room) => {
+        if (cancelled) return;
+        setView(roomDetailToView(room));
+        setLocked(Boolean(room.locked));
+        setLoadedId(listingId);
+      })
+      .catch(() => {
+        if (!cancelled) setFailedId(listingId);
+      });
 
-  if (!listing || !view) return null;
+    return () => {
+      cancelled = true;
+    };
+  }, [listingId, navigate, returnTo]);
 
-  const locked = isListingLocked(view.restrictListingByPrefGender);
+  useEffect(() => {
+    if (failed) navigate(returnTo, { replace: true });
+  }, [failed, navigate, returnTo]);
+
+  if (!currentView) return null;
 
   return (
     <section className={styles.page}>
@@ -46,7 +68,7 @@ export function ListingDetailPage() {
         </header>
 
         <div className={locked ? styles.lockedSheet : undefined}>
-          <ListingCard view={view} idPrefix={listing.id} />
+          <ListingCard view={currentView} idPrefix={listingId ?? "listing"} />
         </div>
 
         {locked ? null : (

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { ChevronDown, MapPin, X } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ListingTeaserCard } from "@/components/ui/card";
@@ -10,8 +10,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { countByCity, countByDistrict, filterListings } from "@/lib/demoListings";
-import { buildListingSummary } from "@/lib/listingView";
+import type { ListingSummary } from "@/lib/listingView";
+import {
+  matchesRoomRegion,
+  regionQueryOf,
+  roomListItemToSummary,
+  usesServerTotal,
+} from "@/lib/roomListing";
 import {
   REGION_CITIES,
   REGION_TREE,
@@ -21,9 +26,46 @@ import {
 } from "@/lib/regions";
 import { cn } from "@/lib/utils";
 import { COUNSELOR_IMG } from "@/pages/home/CounselorAvatar";
+import { getRoomList } from "@/service/room";
+import { ApiError } from "@/service/http";
 import styles from "./ExplorePage.module.css";
 
 const PAGE_SIZE = 7;
+
+type ListingRow = {
+  id: string;
+  summary: ListingSummary;
+};
+
+async function fetchListingPage(
+  regions: string[],
+  page: number,
+  isCancelled: () => boolean,
+) {
+  let cursor = page;
+  let hasMore = true;
+  let total = 0;
+  const rows: ListingRow[] = [];
+
+  while (rows.length === 0 && hasMore && cursor - page < 40) {
+    const result = await getRoomList({
+      region: regionQueryOf(regions),
+      page: cursor,
+      limit: PAGE_SIZE,
+    });
+    if (isCancelled()) return null;
+    total = result.total;
+    hasMore = result.has_more;
+    cursor += 1;
+    for (const item of result.list) {
+      if (!matchesRoomRegion(item, regions)) continue;
+      rows.push({ id: item.id, summary: roomListItemToSummary(item) });
+    }
+    if (rows.length > 0 || !hasMore) break;
+  }
+
+  return { rows, total, hasMore, nextPage: cursor };
+}
 
 function toggleRegion(current: string[], city: string, district: string) {
   const value =
@@ -51,40 +93,74 @@ export function ExplorePage() {
   const [draftCity, setDraftCity] = useState<string | null>(null);
   const [draftRegions, setDraftRegions] = useState<string[]>([]);
 
-  const cityCounts = useMemo(() => countByCity(), []);
-  const districtCounts = useMemo(
-    () => (draftCity ? countByDistrict(draftCity) : {}),
-    [draftCity],
-  );
   const districts = draftCity ? ["전체", ...(REGION_TREE[draftCity] ?? [])] : [];
+  const regionKey = selectedRegions.join("|");
 
-  const listings = useMemo(
-    () =>
-      filterListings(selectedRegions).map((item) => ({
-        id: item.id,
-        summary: buildListingSummary(item.user),
-      })),
-    [selectedRegions],
-  );
-  const filterKey = params.toString();
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [rows, setRows] = useState<ListingRow[]>([]);
+  const [total, setTotal] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadedKey, setLoadedKey] = useState<string | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [error, setError] = useState("");
+
+  const ready = loadedKey === regionKey;
+  const visibleRows = ready ? rows : [];
+  const visibleError = ready ? error : "";
+  const visibleHasMore = ready && hasMore;
+  const loading = !ready;
+  const listingCount = usesServerTotal(selectedRegions)
+    ? ready
+      ? total
+      : 0
+    : visibleRows.length;
+
   const loadingRef = useRef(false);
   const armedRef = useRef(true);
   const hasMoreRef = useRef(false);
-  const totalRef = useRef(0);
-
-  const visibleListings = listings.slice(0, visibleCount);
-  const hasMore = visibleCount < listings.length;
-  hasMoreRef.current = hasMore;
-  totalRef.current = listings.length;
+  const nextPageRef = useRef(1);
+  const generationRef = useRef(0);
+  const regionsRef = useRef(selectedRegions);
 
   useEffect(() => {
-    setVisibleCount(PAGE_SIZE);
-    setLoadingMore(false);
-    loadingRef.current = false;
+    const generation = ++generationRef.current;
+    const regions = regionKey ? regionKey.split("|") : [];
+    regionsRef.current = regions;
+    nextPageRef.current = 1;
+    hasMoreRef.current = false;
+    loadingRef.current = true;
     armedRef.current = true;
-  }, [filterKey]);
+
+    void (async () => {
+      try {
+        const result = await fetchListingPage(regions, 1, () => {
+          return generationRef.current !== generation;
+        });
+        if (!result || generationRef.current !== generation) return;
+        setRows(result.rows);
+        setTotal(result.total);
+        setHasMore(result.hasMore);
+        setError("");
+        hasMoreRef.current = result.hasMore;
+        nextPageRef.current = result.nextPage;
+        setLoadedKey(regionKey);
+      } catch (err) {
+        if (generationRef.current !== generation) return;
+        setRows([]);
+        setTotal(0);
+        setHasMore(false);
+        setError(
+          err instanceof ApiError
+            ? err.message
+            : "공고를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
+        );
+        setLoadedKey(regionKey);
+      } finally {
+        if (generationRef.current === generation) {
+          loadingRef.current = false;
+        }
+      }
+    })();
+  }, [regionKey]);
 
   useEffect(() => {
     const root = document.querySelector("main");
@@ -93,19 +169,41 @@ export function ExplorePage() {
     const atBottom = () =>
       root.scrollTop + root.clientHeight >= root.scrollHeight - 28;
 
-    let timer = 0;
     const loadMore = () => {
       if (loadingRef.current || !hasMoreRef.current || !armedRef.current) return;
+      const generation = generationRef.current;
       loadingRef.current = true;
       armedRef.current = false;
       setLoadingMore(true);
-      timer = window.setTimeout(() => {
-        setVisibleCount((count) =>
-          Math.min(count + PAGE_SIZE, totalRef.current),
-        );
-        setLoadingMore(false);
-        loadingRef.current = false;
-      }, 650);
+      void (async () => {
+        try {
+          const result = await fetchListingPage(
+            regionsRef.current,
+            nextPageRef.current,
+            () => generationRef.current !== generation,
+          );
+          if (!result || generationRef.current !== generation) return;
+          setRows((prev) => [...prev, ...result.rows]);
+          setTotal(result.total);
+          setHasMore(result.hasMore);
+          hasMoreRef.current = result.hasMore;
+          nextPageRef.current = result.nextPage;
+        } catch (err) {
+          if (generationRef.current !== generation) return;
+          setError(
+            err instanceof ApiError
+              ? err.message
+              : "공고를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
+          );
+          hasMoreRef.current = false;
+          setHasMore(false);
+        } finally {
+          if (generationRef.current === generation) {
+            loadingRef.current = false;
+            setLoadingMore(false);
+          }
+        }
+      })();
     };
 
     const onScroll = () => {
@@ -131,7 +229,6 @@ export function ExplorePage() {
     root.addEventListener("touchstart", onTouchStart, { passive: true });
     root.addEventListener("touchmove", onTouchMove, { passive: true });
     return () => {
-      window.clearTimeout(timer);
       root.removeEventListener("scroll", onScroll);
       root.removeEventListener("touchstart", onTouchStart);
       root.removeEventListener("touchmove", onTouchMove);
@@ -172,8 +269,8 @@ export function ExplorePage() {
     });
   };
 
-  const previewListings = visibleListings.slice(0, 2);
-  const restListings = visibleListings.slice(2);
+  const previewListings = visibleRows.slice(0, 2);
+  const restListings = visibleRows.slice(2);
 
   return (
     <section className={styles.page}>
@@ -217,11 +314,31 @@ export function ExplorePage() {
               {selectedRegions.length > 0 ? filterLabel : "전체 지역"}
             </p>
             <p className={styles.feedLabel}>
-              공고 <em>{listings.length}</em>개
+              공고 <em>{listingCount}</em>개
             </p>
           </div>
 
-          {previewListings.length > 0 ? (
+          {loading ? (
+            <div className={styles.sentinel} aria-live="polite" aria-label="공고를 불러오는 중">
+              <span className={styles.loader} aria-hidden>
+                <img
+                  src={COUNSELOR_IMG.thinking}
+                  alt=""
+                  className={styles.loaderFace}
+                />
+                <span className={styles.dots}>
+                  <i />
+                  <i />
+                  <i />
+                </span>
+              </span>
+            </div>
+          ) : visibleError ? (
+            <div className={styles.empty}>
+              <p className={styles.emptyTitle}>공고를 불러오지 못했어요</p>
+              <p className={styles.emptyDesc}>{visibleError}</p>
+            </div>
+          ) : previewListings.length > 0 ? (
             previewListings.map((item) => (
               <ListingTeaserCard
                 key={item.id}
@@ -244,7 +361,7 @@ export function ExplorePage() {
             onClick={() => openListing(item.id)}
           />
         ))}
-        {hasMore || loadingMore ? (
+        {visibleHasMore || loadingMore ? (
           <div
             className={styles.sentinel}
             aria-live="polite"
@@ -288,7 +405,6 @@ export function ExplorePage() {
               <p className={styles.dialogLabel}>광역</p>
               <div className={styles.chipRow}>
                 {REGION_CITIES.map((item) => {
-                  const count = cityCounts[item] ?? 0;
                   const picked = draftRegions.some(
                     (region) => cityOfRegion(region) === item,
                   );
@@ -296,7 +412,6 @@ export function ExplorePage() {
                     <button
                       key={item}
                       type="button"
-                      disabled={count === 0}
                       className={cn(
                         styles.modalChip,
                         draftCity === item && styles.modalChipFocus,
@@ -305,7 +420,6 @@ export function ExplorePage() {
                       onClick={() => setDraftCity(item)}
                     >
                       {item}
-                      <span className={styles.modalChipCount}>{count}</span>
                     </button>
                   );
                 })}
@@ -319,10 +433,6 @@ export function ExplorePage() {
               {draftCity ? (
                 <div className={styles.chipRow}>
                   {districts.map((item) => {
-                    const count =
-                      item === "전체"
-                        ? (cityCounts[draftCity] ?? 0)
-                        : (districtCounts[item] ?? 0);
                     const value =
                       item === "전체"
                         ? `${draftCity} 전체`
@@ -332,7 +442,6 @@ export function ExplorePage() {
                       <button
                         key={value}
                         type="button"
-                        disabled={count === 0}
                         className={cn(
                           styles.modalChip,
                           active && styles.modalChipActive,
@@ -344,7 +453,6 @@ export function ExplorePage() {
                         }
                       >
                         {item === "전체" ? `${draftCity} 전체` : item}
-                        <span className={styles.modalChipCount}>{count}</span>
                       </button>
                     );
                   })}

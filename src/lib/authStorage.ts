@@ -1,6 +1,29 @@
 import type { UserProfile } from '@/types/user'
 
 const STORAGE_KEY = 'saljjak.user'
+const TOKEN_KEY = 'saljjak.accessToken'
+
+export function loadAccessToken() {
+  return localStorage.getItem(TOKEN_KEY)?.trim() || ''
+}
+
+export function saveAccessToken(token: string) {
+  const value = token.trim()
+  if (!value) {
+    localStorage.removeItem(TOKEN_KEY)
+    return
+  }
+  localStorage.setItem(TOKEN_KEY, value)
+}
+
+export function clearAccessToken() {
+  localStorage.removeItem(TOKEN_KEY)
+}
+
+export function authHeaders(): HeadersInit | undefined {
+  const token = loadAccessToken()
+  return token ? { Authorization: `Bearer ${token}` } : undefined
+}
 
 export function loadUser(): UserProfile | null {
   try {
@@ -18,4 +41,5 @@ export function saveUser(user: UserProfile): void {
 
 export function clearUser(): void {
   localStorage.removeItem(STORAGE_KEY)
+  localStorage.removeItem(TOKEN_KEY)
 }

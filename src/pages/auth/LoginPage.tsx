@@ -18,7 +18,7 @@ import {
   NaverSignInButton,
 } from '@/components/ui/button'
 import { useAuth } from '@/context/AuthContext'
-import { loadUser } from '@/lib/authStorage'
+import { clearAccessToken, loadUser, saveAccessToken } from '@/lib/authStorage'
 import { cn } from '@/lib/utils'
 import { loginUser } from '@/service/auth'
 import { ApiError } from '@/service/http'
@@ -61,6 +61,20 @@ function readString(record: Record<string, unknown> | null, key: string) {
 function readGender(value: unknown): Gender | null {
   if (value === 'male' || value === 'female' || value === 'other') return value
   return null
+}
+
+function readAccessToken(body: unknown) {
+  const root = asRecord(body)
+  const data = asRecord(root?.data)
+  const keys = ['access_token', 'accessToken', 'token']
+  for (const source of [root, data]) {
+    if (!source) continue
+    for (const key of keys) {
+      const value = readString(source, key)
+      if (value) return value
+    }
+  }
+  return ''
 }
 
 function userFromLogin(loginId: string, body: unknown): UserProfile {
@@ -130,6 +144,7 @@ export function LoginPage() {
     const id = loginId.trim()
     try {
       const result = await loginUser({ id, password })
+      saveAccessToken(readAccessToken(result))
       signup(userFromLogin(id, result))
       navigate('/profile', { replace: true })
     } catch (err) {
@@ -153,6 +168,7 @@ export function LoginPage() {
 
     if (provider === 'google') {
       // 서버 연동 전: 구글 로그인 데모
+      clearAccessToken()
       signup(createDemoUser('google'))
       navigate('/profile', { replace: true })
       return
