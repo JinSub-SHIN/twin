@@ -1,0 +1,31 @@
+.badges {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-shrink: 0;
+  gap: 0.28rem;
+}
+
+.round,
+.pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 1.55rem;
+  border-radius: 999px;
+  color: #fff;
+  font-family: "Noto Sans KR", var(--font-sans), sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.round {
+  width: 1.55rem;
+  font-size: 0.82rem;
+}
+
+.pill {
+  padding: 0 0.5rem;
+  font-size: 0.7rem;
+  white-space: nowrap;
+}

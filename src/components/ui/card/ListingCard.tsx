@@ -95,8 +95,28 @@ export function ListingCard({
   return (
     <div className={styles.sheet}>
       <section className={styles.hero}>
-        <p className={styles.eyebrow}>살짝 공고</p>
+        <div className={styles.heroTags}>
+          <span className={styles.eyebrow}>살짝 공고</span>
+          {view.prefGender ? (
+            <span
+              className={
+                view.prefGender === "female"
+                  ? styles.prefTagFemale
+                  : view.prefGender === "male"
+                    ? styles.prefTagMale
+                    : styles.prefTag
+              }
+            >
+              {prefGenderWord ? `${prefGenderWord} 선호` : "성별 무관"}
+            </span>
+          ) : null}
+        </div>
         <h2 className={styles.headline}>{view.headline}</h2>
+        {view.restrictListingByPrefGender && prefGenderWord ? (
+          <p className={styles.hostPrefNote}>
+            {prefGenderWord}만 볼 수 있는 공고예요
+          </p>
+        ) : null}
 
         <div className={styles.host}>
           <div className={styles.avatar} aria-hidden>
@@ -109,20 +129,6 @@ export function ListingCard({
           <div className={styles.hostText}>
             <p className={styles.hostName}>{view.nickname}</p>
             {view.meta ? <p className={styles.hostMeta}>{view.meta}</p> : null}
-            {view.prefGender ? (
-              <div className={styles.hostPref}>
-                <p className={styles.hostPrefSeek}>
-                  {prefGenderWord
-                    ? `${prefGenderWord} 살짝을 찾아요`
-                    : "성별은 상관없어요"}
-                </p>
-                {view.restrictListingByPrefGender && prefGenderWord ? (
-                  <p className={styles.hostPrefNote}>
-                    {prefGenderWord}만 볼 수 있는 공고예요
-                  </p>
-                ) : null}
-              </div>
-            ) : null}
           </div>
         </div>
       </section>

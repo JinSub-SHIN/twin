@@ -45,13 +45,16 @@
 
   display: flex;
   flex-direction: column;
-  gap: 1.45rem;
-  padding: 1.2rem 1.05rem 1.35rem;
+  gap: 1.6rem;
+  padding: 1.35rem 1.15rem 1.5rem;
   border-radius: 1.35rem;
   background: var(--card);
-  border: 1px solid var(--line);
-  box-shadow: 0 10px 28px oklch(0 0 0 / 0.18);
+  border: 1px solid color-mix(in oklch, var(--foreground) 8%, transparent);
+  box-shadow:
+    0 1px 2px oklch(0 0 0 / 0.04),
+    0 10px 28px -12px oklch(0 0 0 / 0.16);
   color: var(--ink);
+  font-family: "Noto Sans KR", var(--font-sans), sans-serif;
 }
 
 .lockedSheet {
@@ -120,25 +123,67 @@
 .hero {
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
-  padding-top: 0.15rem;
+  gap: 0.7rem;
+}
+
+.heroTags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.eyebrow,
+.prefTag,
+.prefTagFemale,
+.prefTagMale {
+  display: inline-flex;
+  align-items: center;
+  height: 1.55rem;
+  padding: 0 0.55rem;
+  border-radius: 0.4rem;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 .eyebrow {
-  margin: 0;
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  background: var(--lime-soft);
   color: var(--highlight);
+}
+
+.prefTag {
+  background: var(--muted);
+  color: var(--foreground);
+}
+
+.prefTagFemale {
+  background: #fde8ee;
+  color: #9a3d58;
+}
+
+.prefTagMale {
+  background: #e7f0fb;
+  color: #24548f;
+}
+
+:global(html.dark) .prefTagFemale {
+  background: rgb(196 92 120 / 0.2);
+  color: #f3b4c4;
+}
+
+:global(html.dark) .prefTagMale {
+  background: rgb(61 116 184 / 0.24);
+  color: #b9d4f5;
 }
 
 .headline {
   margin: 0;
-  font-family: var(--font-heading);
-  font-size: clamp(1.45rem, 6vw, 1.75rem);
-  font-weight: 800;
-  line-height: 1.3;
-  letter-spacing: -0.04em;
+  font-family: "Noto Sans KR", var(--font-sans), sans-serif;
+  font-size: clamp(1.4rem, 5.8vw, 1.65rem);
+  font-weight: 900;
+  line-height: 1.35;
+  letter-spacing: -0.045em;
   color: var(--ink);
   word-break: keep-all;
 }
@@ -146,10 +191,10 @@
 .host {
   display: flex;
   align-items: center;
-  gap: 0.8rem;
-  margin-top: 0.35rem;
-  padding: 0.85rem 0.95rem;
-  border-radius: 1.1rem;
+  gap: 0.75rem;
+  margin-top: 0.3rem;
+  padding: 0.8rem 0.9rem;
+  border-radius: 1rem;
   background: var(--page-bg);
   border: 1px solid var(--line);
 }
@@ -188,33 +233,18 @@
 }
 
 .hostMeta {
-  margin: 0.18rem 0 0;
-  font-size: 0.78rem;
-  font-weight: 500;
+  margin: 0.2rem 0 0;
+  font-size: 0.82rem;
+  font-weight: 400;
   letter-spacing: -0.02em;
   color: var(--ink-soft);
 }
 
-.hostPref {
-  display: flex;
-  flex-direction: column;
-  gap: 0.12rem;
-  margin: 0.28rem 0 0;
-}
-
-.hostPrefSeek {
-  margin: 0;
-  font-size: 0.76rem;
-  font-weight: 650;
-  letter-spacing: -0.02em;
-  color: var(--highlight);
-}
-
 .hostPrefNote {
-  margin: 0;
-  font-size: 0.7rem;
-  font-weight: 500;
-  letter-spacing: -0.03em;
+  margin: -0.2rem 0 0;
+  font-size: 0.8rem;
+  font-weight: 400;
+  letter-spacing: -0.02em;
   color: var(--muted-foreground);
 }
 
@@ -222,29 +252,30 @@
 .section {
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
-  padding-top: 1.35rem;
+  gap: 0.9rem;
+  padding-top: 1.5rem;
   border-top: 1px solid var(--line);
 }
 
 .sectionHead {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
+  gap: 0.25rem;
 }
 
 .sectionTitle {
   margin: 0;
-  font-size: 0.98rem;
-  font-weight: 600;
-  letter-spacing: -0.03em;
+  font-family: "Noto Sans KR", var(--font-sans), sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.04em;
   color: var(--ink);
 }
 
 .sectionDesc {
   margin: 0;
-  font-size: 0.78rem;
-  font-weight: 500;
+  font-size: 0.82rem;
+  font-weight: 400;
   letter-spacing: -0.02em;
   color: var(--ink-soft);
 }
@@ -443,17 +474,18 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.32rem;
-  min-height: 2.35rem;
+  gap: 0.35rem;
+  min-height: 2.3rem;
   padding: 0 0.95rem;
   width: fit-content;
-  border-radius: 0.85rem;
-  background: var(--muted);
+  border-radius: 999px;
+  background: var(--card);
+  border: 1px solid var(--line);
   font-family: "Noto Sans KR", var(--font-sans), sans-serif;
-  font-size: 0.86rem;
+  font-size: 0.88rem;
   font-weight: 700;
   letter-spacing: -0.03em;
-  color: var(--muted-foreground);
+  color: var(--foreground);
 }
 
 .prefOptionActive {
@@ -466,12 +498,13 @@
   align-items: center;
   justify-content: center;
   gap: 0.32rem;
-  min-height: 2.35rem;
-  padding: 0 0.8rem;
-  border-radius: 0.85rem;
+  min-height: 2.3rem;
+  padding: 0 0.9rem;
+  border-radius: 999px;
   background: var(--peach-soft);
+  border: 1px solid color-mix(in oklch, var(--destructive) 22%, transparent);
   font-family: "Noto Sans KR", var(--font-sans), sans-serif;
-  font-size: 0.86rem;
+  font-size: 0.88rem;
   font-weight: 700;
   letter-spacing: -0.03em;
   color: var(--peach-ink);
@@ -496,10 +529,10 @@
 .bio {
   margin: 0;
   font-family: "Noto Sans KR", var(--font-sans), sans-serif;
-  font-size: 0.95rem;
-  font-weight: 500;
-  line-height: 1.7;
-  letter-spacing: -0.025em;
+  font-size: 0.98rem;
+  font-weight: 400;
+  line-height: 1.75;
+  letter-spacing: -0.02em;
   color: var(--ink);
   white-space: pre-wrap;
   word-break: keep-all;
@@ -507,9 +540,9 @@
 
 .bioEmpty {
   margin: 0;
-  font-size: 0.86rem;
-  font-weight: 500;
-  line-height: 1.6;
+  font-size: 0.88rem;
+  font-weight: 400;
+  line-height: 1.65;
   color: var(--ink-soft);
   word-break: keep-all;
 }

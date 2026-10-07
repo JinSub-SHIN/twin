@@ -25,6 +25,23 @@ export type RoomListQuery = {
   limit?: number
 }
 
+export type StationSearchItem = {
+  name: string
+  region: string
+  lines: string[]
+}
+
+export type StationSearchResponse = {
+  stations: StationSearchItem[]
+}
+
+export type StationSearchQuery = {
+  q: string
+  region?: string
+  limit?: number
+  signal?: AbortSignal
+}
+
 export type RoomDetail = RoomListItem & {
   locked: boolean
   rent: number | null

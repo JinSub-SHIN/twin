@@ -1,5 +1,14 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, ArrowRight, Home, MapPin, Search, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  ChevronRight,
+  Home,
+  MapPin,
+  Search,
+  X,
+} from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -13,14 +22,12 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { DayClock } from "@/components/ui/clock";
+import { SubwayLineBadges } from "@/components/ui/subway";
 import { useAuth } from "@/context/AuthContext";
 import { LISTING_HOST_CONSENT_ITEMS } from "@/lib/listingHostConsent";
 import { REGION_CITIES, REGION_TREE, formatRegion } from "@/lib/regions";
-import {
-  NO_NEARBY_STATION,
-  formatStationLabel,
-  searchStations,
-} from "@/lib/stations";
+import { NO_NEARBY_STATION } from "@/lib/stations";
+import { searchStations, type StationSearchItem } from "@/service/room";
 import { cn } from "@/lib/utils";
 import {
   CLEAN_FREQ_OPTIONS,
@@ -46,6 +53,31 @@ import {
 import styles from "./ProfileEditPage.module.css";
 
 type Step = "role" | "cost" | "region" | "station" | "detail" | "prefs";
+
+function StationQueryName({
+  label,
+  query,
+}: {
+  label: string;
+  query: string;
+}) {
+  const raw = query.trim();
+  const needle = raw.endsWith("역") ? raw.slice(0, -1) : raw;
+  const index = needle
+    ? label.toLowerCase().indexOf(needle.toLowerCase())
+    : -1;
+  if (!needle || index < 0) return label;
+
+  return (
+    <>
+      {label.slice(0, index)}
+      <mark className={styles.stationMatch}>
+        {label.slice(index, index + needle.length)}
+      </mark>
+      {label.slice(index + needle.length)}
+    </>
+  );
+}
 
 const STEP_PATH: Record<Step, string> = {
   role: "/profile/edit/role",
@@ -544,18 +576,57 @@ export function ProfileEditPage() {
     goBackTo(STEP_PATH.detail);
   };
 
+  const selectedRegion = regions[0] ?? null;
+  const selectedCity = selectedRegion?.split(" ")[0] ?? null;
+  const [stationSuggestions, setStationSuggestions] = useState<
+    StationSearchItem[]
+  >([]);
+  const [stationSearchState, setStationSearchState] = useState<
+    "idle" | "loading" | "error"
+  >("idle");
+
+  useEffect(() => {
+    const q = stationQuery.trim();
+    if (!q) {
+      setStationSuggestions([]);
+      setStationSearchState("idle");
+      return;
+    }
+
+    const controller = new AbortController();
+    let active = true;
+    const timer = window.setTimeout(() => {
+      setStationSearchState("loading");
+      searchStations({
+        q,
+        region: selectedCity ?? undefined,
+        limit: 20,
+        signal: controller.signal,
+      })
+        .then((res) => {
+          if (!active) return;
+          setStationSuggestions(res.stations ?? []);
+          setStationSearchState("idle");
+        })
+        .catch(() => {
+          if (!active) return;
+          setStationSuggestions([]);
+          setStationSearchState("error");
+        });
+    }, 200);
+
+    return () => {
+      active = false;
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [stationQuery, selectedCity]);
+
   if (!isLoggedIn || !user) return null;
 
   const districts = regionCity
     ? ["전체", ...(REGION_TREE[regionCity] ?? [])]
     : [];
-
-  const selectedRegion = regions[0] ?? null;
-  const selectedCity = selectedRegion?.split(" ")[0] ?? null;
-  const stationSuggestions = useMemo(
-    () => searchStations(stationQuery, selectedCity),
-    [stationQuery, selectedCity],
-  );
   const customStationLabel = stationQuery.trim()
     ? stationQuery.trim().endsWith("역")
       ? stationQuery.trim()
@@ -564,9 +635,7 @@ export function ProfileEditPage() {
   const showCustomStation =
     Boolean(customStationLabel) &&
     customStationLabel !== nearestStation &&
-    !stationSuggestions.some(
-      (station) => formatStationLabel(station) === customStationLabel,
-    );
+    !stationSuggestions.some((station) => station.name === customStationLabel);
 
   const stepTotal = hasRoom ? 6 : 5;
   const stepIndex = hasRoom
@@ -622,8 +691,8 @@ export function ProfileEditPage() {
             <span className={styles.progressPct}>{stepPercent}%</span>
             <span className={styles.progressChevrons} aria-hidden>
               <span className={styles.progressChevronsTrack}>
-                <span>{'>>>'}</span>
-                <span>{'>>>'}</span>
+                <span>{">>>"}</span>
+                <span>{">>>"}</span>
               </span>
             </span>
           </span>
@@ -631,1062 +700,1166 @@ export function ProfileEditPage() {
       </header>
 
       <div className={cn(styles.stepBody, styles.stepBodyLocked)}>
-      <div
-        key={step}
-        className={cn(
-          styles.stepPage,
-          step === "region" && styles.stepPageLocked,
-          stepAnim === "forward" && styles.stepPageForward,
-          stepAnim === "back" && styles.stepPageBack,
-        )}
-      >
-      <div className={styles.stepStack}>
-      {step === "role" ? (
-        <>
-          <div className={styles.intro}>
-            <h2 className={styles.title}>
-              지금 상황을
-              <br />
-              <span className={styles.accent}>살짝</span> 알려주세요
-            </h2>
-          </div>
-
-          <div className={styles.roleList}>
-            {SEEK_ROLE_OPTIONS.map((opt) => {
-              const Icon = opt.value === "has_room" ? Home : Search;
-              const active = seekRole === opt.value;
-              return (
-                <button
-                  key={opt.value}
-                  type="button"
-                  className={cn(
-                    styles.roleCard,
-                    active && styles.roleCardActive,
-                  )}
-                  onClick={() => handleSelectRole(opt.value)}
-                >
-                  <span className={styles.roleIconWrap} aria-hidden>
-                    <Icon className="size-4" />
-                  </span>
-                  <span className={styles.roleText}>
-                    <span className={styles.roleTitle}>{opt.title}</span>
-                    <span className={styles.roleDesc}>{opt.desc}</span>
-                  </span>
-                  <ArrowRight className={styles.roleArrow} />
-                </button>
-              );
-            })}
-          </div>
-        </>
-      ) : step === "cost" ? (
-        <>
-          <div className={styles.intro}>
-            <h2 className={styles.title}>
-              지금 내고 있는
-              <br />
-              <span className={styles.accent}>월세·관리비</span>를 알려주세요
-            </h2>
-            <p className={styles.desc}>
-              룸메와 나눌 비용을 계산하는 데 쓰여요.
-            </p>
-          </div>
-
-          <section className={styles.block}>
-            <div className={styles.field}>
-              <p className={styles.label}>
-                현재 월세 <span className={styles.required}>*</span>
-              </p>
-              <p className={styles.fieldHint}>
-                지금 내고 있는 월세 금액을 적어 주세요.
-              </p>
-              <div className={styles.amountField}>
-                <Input
-                  id="rentAmount"
-                  className={styles.input}
-                  inputMode="numeric"
-                  placeholder="예: 30"
-                  value={rentAmount}
-                  onChange={(e) => setRentAmount(digitsOnly(e.target.value))}
-                />
-                <span className={styles.amountSuffix} aria-hidden>
-                  만원
-                </span>
-              </div>
-            </div>
-
-            <div className={styles.field}>
-              <p className={styles.label}>
-                현재 관리비 <span className={styles.required}>*</span>
-              </p>
-              <p className={styles.fieldHint}>
-                평균적으로 내고 있는 관리비 금액을 적어 주세요.
-              </p>
-              <div className={styles.fieldNotice} role="note">
-                공동사용료, 수도, 전기 등을 모두 포함한 금액으로 적어 주세요.
-              </div>
-              <div className={styles.amountField}>
-                <Input
-                  id="mgmtAmount"
-                  className={styles.input}
-                  inputMode="numeric"
-                  placeholder="예: 3"
-                  value={mgmtAmount}
-                  onChange={(e) => setMgmtAmount(digitsOnly(e.target.value))}
-                />
-                <span className={styles.amountSuffix} aria-hidden>
-                  만원
-                </span>
-              </div>
-            </div>
-          </section>
-        </>
-      ) : step === "region" ? (
-        <div className={styles.regionViewport}>
-          <div
-            className={cn(
-              styles.regionTrack,
-              regionPhase === "district" && styles.regionTrackNext,
-            )}
-          >
-            <div className={styles.regionPane}>
-              <div className={styles.intro}>
-                <h2 className={styles.title}>
-                  {hasRoom ? (
-                    <>
-                      어느 지역에
-                      <br />
-                      <span className={styles.accent}>거주</span>하고 계신가요?
-                    </>
-                  ) : (
-                    <>
-                      어느 지역에
-                      <br />
-                      <span className={styles.accent}>거주</span>하실 예정인가요?
-                    </>
-                  )}
-                </h2>
-                <p className={styles.desc}>광역을 하나 골라 주세요.</p>
-              </div>
-
-              <section className={styles.block}>
-                <h3 className={styles.blockTitle}>
-                  {hasRoom ? "거주 지역" : "희망 지역"}
-                </h3>
-                <div className={styles.chipRow}>
-                  {REGION_CITIES.map((city) => (
-                    <button
-                      key={city}
-                      type="button"
-                      className={cn(
-                        styles.chip,
-                        regionCity === city && styles.chipActive,
-                      )}
-                      onClick={() => {
-                        if (regionCity !== city) setRegions([]);
-                        setRegionCity(city);
-                        setRegionPhase("district");
-                      }}
-                    >
-                      {city}
-                    </button>
-                  ))}
+        <div
+          key={step}
+          className={cn(
+            styles.stepPage,
+            (step === "region" || step === "station") && styles.stepPageLocked,
+            stepAnim === "forward" && styles.stepPageForward,
+            stepAnim === "back" && styles.stepPageBack,
+          )}
+        >
+          <div className={styles.stepStack}>
+            {step === "role" ? (
+              <>
+                <div className={styles.intro}>
+                  <h2 className={styles.title}>
+                    지금 상황을
+                    <br />
+                    <span className={styles.accent}>살짝</span> 알려주세요
+                  </h2>
                 </div>
-              </section>
-            </div>
 
-            <div className={styles.regionPane}>
-              <div className={styles.intro}>
-                <h2 className={styles.title}>
-                  {regionCity ? (
-                    <>
-                      <span className={styles.accent}>{regionCity}</span>에서
-                      <br />
-                      어느 구/시인가요?
-                    </>
-                  ) : (
-                    <>
-                      어느 구/시에
-                      <br />
-                      사시나요?
-                    </>
-                  )}
-                </h2>
-                <p className={styles.desc}>하나만 선택해 주세요.</p>
-              </div>
-
-              <section className={styles.block}>
-                <h3 className={styles.blockTitle}>
-                  {regionCity ? `${regionCity} 구/시` : "구/시"}
-                </h3>
-                <div className={styles.chipRow}>
-                  {districts.map((district) => {
-                    const value = regionCity
-                      ? formatRegion(regionCity, district)
-                      : district;
+                <div className={styles.roleList}>
+                  {SEEK_ROLE_OPTIONS.map((opt) => {
+                    const Icon = opt.value === "has_room" ? Home : Search;
+                    const active = seekRole === opt.value;
                     return (
                       <button
-                        key={value}
+                        key={opt.value}
                         type="button"
                         className={cn(
-                          styles.chip,
-                          selectedRegion === value && styles.chipActive,
+                          styles.roleCard,
+                          active && styles.roleCardActive,
                         )}
-                        onClick={() => {
-                          if (!regionCity || !seekRole) return;
-                          const next = [formatRegion(regionCity, district)];
-                          setRegions(next);
-                          persistDraft({ regions: next });
-                          goForward(STEP_PATH.station);
-                        }}
+                        onClick={() => handleSelectRole(opt.value)}
                       >
-                        {district}
+                        <span className={styles.roleIconWrap} aria-hidden>
+                          <Icon className="size-4" />
+                        </span>
+                        <span className={styles.roleText}>
+                          <span className={styles.roleTitle}>{opt.title}</span>
+                          <span className={styles.roleDesc}>{opt.desc}</span>
+                        </span>
+                        <ArrowRight className={styles.roleArrow} />
                       </button>
                     );
                   })}
                 </div>
-              </section>
-            </div>
-          </div>
-        </div>
-      ) : step === "station" ? (
-        <>
-          <div className={styles.intro}>
-            <h2 className={styles.title}>
-              가장 가까운
-              <br />
-              <span className={styles.accent}>지하철역</span>을 알려주세요
-            </h2>
-            <p className={styles.desc}>
-              {selectedRegion
-                ? `${selectedRegion}에서 가장 가까운 역을 찾아볼게요.`
-                : "집 근처 역을 검색해 주세요."}
-            </p>
-          </div>
-
-          <div className={styles.stationChoice}>
-            <button
-              type="button"
-              className={cn(
-                styles.stationChoiceBtn,
-                nearestStation !== NO_NEARBY_STATION &&
-                  styles.stationChoiceBtnOn,
-              )}
-              onClick={() => {
-                if (nearestStation === NO_NEARBY_STATION) {
-                  setNearestStation("");
-                }
-              }}
-            >
-              역 검색하기
-            </button>
-            <button
-              type="button"
-              className={cn(
-                styles.stationChoiceBtn,
-                nearestStation === NO_NEARBY_STATION &&
-                  styles.stationChoiceBtnOn,
-              )}
-              onClick={() => pickStation(NO_NEARBY_STATION)}
-            >
-              가까운 역 없음
-            </button>
-          </div>
-
-          <div
-            className={cn(
-              styles.stationFold,
-              nearestStation === NO_NEARBY_STATION && styles.stationFoldClosed,
-            )}
-          >
-            <div
-              className={styles.stationFoldInner}
-              aria-hidden={nearestStation === NO_NEARBY_STATION}
-            >
-              {nearestStation && nearestStation !== NO_NEARBY_STATION ? (
-                <div className={styles.stationPicked}>
-                  <button
-                    type="button"
-                    className={styles.stationPickedMain}
-                    onClick={() => pickStation(nearestStation)}
-                  >
-                    <span className={styles.stationPickedIcon} aria-hidden>
-                      <MapPin className="size-4" strokeWidth={2.3} />
-                    </span>
-                    <span className={styles.stationPickedText}>
-                      <span className={styles.stationPickedLabel}>
-                        선택한 역
-                      </span>
-                      <span className={styles.stationPickedName}>
-                        {nearestStation}
-                      </span>
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    className={styles.stationPickedClear}
-                    onClick={() => setNearestStation("")}
-                  >
-                    다시 고르기
-                  </button>
+              </>
+            ) : step === "cost" ? (
+              <>
+                <div className={styles.intro}>
+                  <h2 className={styles.title}>
+                    지금 내고 있는
+                    <br />
+                    <span className={styles.accent}>월세·관리비</span>를
+                    알려주세요
+                  </h2>
+                  <p className={styles.desc}>
+                    룸메와 나눌 비용을 계산하는 데 쓰여요.
+                  </p>
                 </div>
-              ) : null}
 
-              <div className={styles.stationSearch}>
-                <Search
-                  className={styles.stationSearchIcon}
-                  size={18}
-                  strokeWidth={2.2}
-                  aria-hidden
-                />
-                <Input
-                  className={cn(styles.input, styles.stationSearchInput)}
-                  placeholder={
-                    selectedCity
-                      ? `${selectedCity} 역 이름 검색`
-                      : "역 이름 검색"
-                  }
-                  value={stationQuery}
-                  onChange={(e) => setStationQuery(e.target.value)}
-                  tabIndex={
-                    nearestStation === NO_NEARBY_STATION ? -1 : undefined
-                  }
-                />
-                {stationQuery ? (
-                  <button
-                    type="button"
-                    className={styles.stationSearchClear}
-                    aria-label="검색어 지우기"
-                    tabIndex={
-                      nearestStation === NO_NEARBY_STATION ? -1 : undefined
-                    }
-                    onClick={() => setStationQuery("")}
-                  >
-                    <X className="size-3.5" />
-                  </button>
-                ) : null}
+                <section className={styles.block}>
+                  <div className={styles.field}>
+                    <p className={styles.label}>
+                      현재 월세 <span className={styles.required}>*</span>
+                    </p>
+                    <p className={styles.fieldHint}>
+                      지금 내고 있는 월세 금액을 적어 주세요.
+                    </p>
+                    <div className={styles.amountField}>
+                      <Input
+                        id="rentAmount"
+                        className={styles.input}
+                        inputMode="numeric"
+                        placeholder="예: 30"
+                        value={rentAmount}
+                        onChange={(e) =>
+                          setRentAmount(digitsOnly(e.target.value))
+                        }
+                      />
+                      <span className={styles.amountSuffix} aria-hidden>
+                        만원
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className={styles.field}>
+                    <p className={styles.label}>
+                      현재 관리비 <span className={styles.required}>*</span>
+                    </p>
+                    <p className={styles.fieldHint}>
+                      평균적으로 내고 있는 관리비 금액을 적어 주세요.
+                    </p>
+                    <div className={styles.fieldNotice} role="note">
+                      공동사용료, 수도, 전기 등을 모두 포함한 금액으로 적어
+                      주세요.
+                    </div>
+                    <div className={styles.amountField}>
+                      <Input
+                        id="mgmtAmount"
+                        className={styles.input}
+                        inputMode="numeric"
+                        placeholder="예: 3"
+                        value={mgmtAmount}
+                        onChange={(e) =>
+                          setMgmtAmount(digitsOnly(e.target.value))
+                        }
+                      />
+                      <span className={styles.amountSuffix} aria-hidden>
+                        만원
+                      </span>
+                    </div>
+                  </div>
+                </section>
+              </>
+            ) : step === "region" ? (
+              <div className={styles.regionViewport}>
+                <div
+                  className={cn(
+                    styles.regionTrack,
+                    regionPhase === "district" && styles.regionTrackNext,
+                  )}
+                >
+                  <div className={styles.regionPane}>
+                    <div className={styles.intro}>
+                      <h2 className={styles.title}>
+                        {hasRoom ? (
+                          <>
+                            어느 지역에
+                            <br />
+                            <span className={styles.accent}>거주</span>하고
+                            계신가요?
+                          </>
+                        ) : (
+                          <>
+                            어느 지역에
+                            <br />
+                            <span className={styles.accent}>거주</span>하실
+                            예정인가요?
+                          </>
+                        )}
+                      </h2>
+                      <p className={styles.desc}>광역을 하나 골라 주세요.</p>
+                    </div>
+
+                    <section className={styles.block}>
+                      <h3 className={styles.blockTitle}>
+                        {hasRoom ? "거주 지역" : "희망 지역"}
+                      </h3>
+                      <div className={styles.chipRow}>
+                        {REGION_CITIES.map((city) => (
+                          <button
+                            key={city}
+                            type="button"
+                            className={cn(
+                              styles.chip,
+                              regionCity === city && styles.chipActive,
+                            )}
+                            onClick={() => {
+                              if (regionCity !== city) setRegions([]);
+                              setRegionCity(city);
+                              setRegionPhase("district");
+                            }}
+                          >
+                            {city}
+                          </button>
+                        ))}
+                      </div>
+                    </section>
+                  </div>
+
+                  <div className={styles.regionPane}>
+                    <div className={styles.intro}>
+                      <h2 className={styles.title}>
+                        {regionCity ? (
+                          <>
+                            <span className={styles.accent}>{regionCity}</span>
+                            에서
+                            <br />
+                            어느 구/시인가요?
+                          </>
+                        ) : (
+                          <>
+                            어느 구/시에
+                            <br />
+                            사시나요?
+                          </>
+                        )}
+                      </h2>
+                      <p className={styles.desc}>하나만 선택해 주세요.</p>
+                    </div>
+
+                    <section className={styles.block}>
+                      <h3 className={styles.blockTitle}>
+                        {regionCity ? `${regionCity} 구/시` : "구/시"}
+                      </h3>
+                      <div className={styles.chipRow}>
+                        {districts.map((district) => {
+                          const value = regionCity
+                            ? formatRegion(regionCity, district)
+                            : district;
+                          return (
+                            <button
+                              key={value}
+                              type="button"
+                              className={cn(
+                                styles.chip,
+                                selectedRegion === value && styles.chipActive,
+                              )}
+                              onClick={() => {
+                                if (!regionCity || !seekRole) return;
+                                const next = [
+                                  formatRegion(regionCity, district),
+                                ];
+                                setRegions(next);
+                                persistDraft({ regions: next });
+                                goForward(STEP_PATH.station);
+                              }}
+                            >
+                              {district}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </section>
+                  </div>
+                </div>
               </div>
+            ) : step === "station" ? (
+              <>
+                <div className={styles.intro}>
+                  <h2 className={styles.title}>
+                    가장 가까운
+                    <br />
+                    <span className={styles.accent}>지하철역</span>을 알려주세요
+                  </h2>
+                  <p className={styles.desc}>
+                    {selectedRegion
+                      ? `${selectedRegion}에서 가장 가까운 역을 찾아볼게요.`
+                      : "집 근처 역을 검색해 주세요."}
+                  </p>
+                </div>
 
-              {!stationQuery.trim() &&
-              !(
-                nearestStation && nearestStation !== NO_NEARBY_STATION
-              ) ? (
-                <p className={styles.stationHint}>
-                  역 이름을 입력하면 아래에서 고를 수 있어요
-                </p>
-              ) : null}
-
-              <div className={styles.stationList}>
-                {showCustomStation ? (
+                <div className={styles.stationChoice}>
                   <button
-                    type="button"
-                    className={styles.stationItem}
-                    tabIndex={
-                      nearestStation === NO_NEARBY_STATION ? -1 : undefined
-                    }
-                    onClick={() => pickStation(customStationLabel)}
-                  >
-                    <span className={styles.stationItemIcon} aria-hidden>
-                      <MapPin className="size-4" strokeWidth={2.3} />
-                    </span>
-                    <span className={styles.stationItemText}>
-                      <span className={styles.stationName}>
-                        {customStationLabel}
-                      </span>
-                      <span className={styles.stationMeta}>
-                        이 이름으로 추가
-                      </span>
-                    </span>
-                  </button>
-                ) : null}
-
-                {stationSuggestions.map((station) => {
-                  const label = formatStationLabel(station);
-                  return (
-                    <button
-                      key={`${station.city}-${station.name}-${station.line}`}
-                      type="button"
-                      className={cn(
-                        styles.stationItem,
-                        nearestStation === label && styles.stationItemActive,
-                      )}
-                      tabIndex={
-                        nearestStation === NO_NEARBY_STATION ? -1 : undefined
-                      }
-                      onClick={() => pickStation(label)}
-                    >
-                      <span className={styles.stationItemIcon} aria-hidden>
-                        <MapPin className="size-4" strokeWidth={2.3} />
-                      </span>
-                      <span className={styles.stationItemText}>
-                        <span className={styles.stationName}>{label}</span>
-                        <span className={styles.stationMeta}>
-                          {station.city} · {station.line}
-                        </span>
-                      </span>
-                    </button>
-                  );
-                })}
-
-                {stationQuery.trim() &&
-                !showCustomStation &&
-                stationSuggestions.length === 0 ? (
-                  <p className={styles.stationHint}>맞는 역이 없어요.</p>
-                ) : null}
-              </div>
-            </div>
-          </div>
-        </>
-      ) : step === "detail" ? (
-        <>
-          <div className={styles.intro}>
-            <h2 className={styles.title}>
-              나를 알려주는
-              <br />
-              <span className={styles.accent}>기본 정보</span>예요
-            </h2>
-            <p className={styles.desc}>직업과 생활 습관을 먼저 적어주세요.</p>
-          </div>
-
-          <section className={styles.block}>
-            <h3 className={styles.blockTitle}>기본 정보</h3>
-            <p className={styles.blockHint}>직업과 근무 형태를 알려주세요</p>
-            <div className={styles.field}>
-              <p className={styles.label}>
-                직업 <span className={styles.required}>*</span>
-              </p>
-              <div className={styles.chipRow}>
-                {JOB_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.value}
                     type="button"
                     className={cn(
-                      styles.chip,
-                      job === opt.value && styles.chipActive,
+                      styles.stationChoiceBtn,
+                      nearestStation !== NO_NEARBY_STATION &&
+                        styles.stationChoiceBtnOn,
                     )}
                     onClick={() => {
-                      setJob(opt.value);
-                      if (opt.value !== "other") setJobOther("");
-                      if (
-                        opt.value !== "employee" &&
-                        opt.value !== "freelancer" &&
-                        opt.value !== "other"
-                      ) {
-                        setWfh(false);
+                      if (nearestStation === NO_NEARBY_STATION) {
+                        setNearestStation("");
                       }
                     }}
                   >
-                    {opt.label}
+                    역 검색하기
                   </button>
-                ))}
-              </div>
-            </div>
-            {job === "other" ? (
-              <div className={styles.field}>
-                <label className={styles.label} htmlFor="jobOther">
-                  직업 입력 <span className={styles.required}>*</span>
-                </label>
-                <Input
-                  id="jobOther"
-                  className={styles.input}
-                  placeholder="직업을 입력해 주세요"
-                  value={jobOther}
-                  maxLength={30}
-                  onChange={(e) => setJobOther(e.target.value)}
-                />
-              </div>
-            ) : null}
-            {showWfhOption ? (
-              <label className={styles.checkRow}>
-                <Checkbox
-                  checked={wfh}
-                  onCheckedChange={(v) => setWfh(v === true)}
-                />
-                <span>재택근무</span>
-              </label>
-            ) : null}
-          </section>
-
-          <section className={styles.block}>
-            <h3 className={styles.blockTitle}>생활 습관</h3>
-            <p className={styles.blockHint}>
-              취침·기상, 성격, 흡연·음주 등 평소 생활 패턴
-            </p>
-
-            <div className={styles.field}>
-              <p className={styles.label}>
-                취침 · 기상 <span className={styles.required}>*</span>
-              </p>
-              <DayClock
-                sleepHour={sleepHour === "" ? null : Number(sleepHour)}
-                wakeHour={wakeHour === "" ? null : Number(wakeHour)}
-                active={clockActive}
-                onActiveChange={setClockActive}
-                onChange={(kind, hour) => {
-                  if (kind === "sleep") {
-                    setSleepHour(String(hour));
-                    if (wakeHour === "") setClockActive("wake");
-                  } else {
-                    setWakeHour(String(hour));
-                  }
-                }}
-              />
-            </div>
-
-            <div className={styles.field}>
-              <p className={styles.label}>
-                성격 <span className={styles.required}>*</span>
-              </p>
-              <div className={styles.chipRow3}>
-                {PERSONALITY_OPTIONS.map((opt) => (
                   <button
-                    key={opt.value}
                     type="button"
                     className={cn(
-                      styles.chip,
-                      personality === opt.value && styles.chipActive,
+                      styles.stationChoiceBtn,
+                      nearestStation === NO_NEARBY_STATION &&
+                        styles.stationChoiceBtnOn,
                     )}
-                    onClick={() => setPersonality(opt.value)}
+                    onClick={() => pickStation(NO_NEARBY_STATION)}
                   >
-                    {opt.label}
+                    가까운 역 없음
                   </button>
-                ))}
-              </div>
-            </div>
+                </div>
 
-            <div className={styles.field}>
-              <p className={styles.label}>
-                집에 있는 시간 <span className={styles.required}>*</span>
-              </p>
-              <div className={styles.chipRow3}>
-                {HOME_TIME_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    className={cn(
-                      styles.chip,
-                      homeTime === opt.value && styles.chipActive,
-                    )}
-                    onClick={() => setHomeTime(opt.value)}
+                <div
+                  className={cn(
+                    styles.stationFold,
+                    nearestStation === NO_NEARBY_STATION &&
+                      styles.stationFoldClosed,
+                  )}
+                >
+                  <div
+                    className={styles.stationFoldInner}
+                    aria-hidden={nearestStation === NO_NEARBY_STATION}
                   >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+                    {nearestStation && nearestStation !== NO_NEARBY_STATION ? (
+                      <div className={styles.stationPicked}>
+                        <button
+                          type="button"
+                          className={styles.stationPickedMain}
+                          onClick={() => pickStation(nearestStation)}
+                        >
+                          <span
+                            className={styles.stationPickedIcon}
+                            aria-hidden
+                          >
+                            <MapPin className="size-4" strokeWidth={2.3} />
+                          </span>
+                          <span className={styles.stationPickedText}>
+                            <span className={styles.stationPickedLabel}>
+                              선택한 역
+                            </span>
+                            <span className={styles.stationPickedName}>
+                              {nearestStation}
+                            </span>
+                          </span>
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.stationPickedClear}
+                          onClick={() => setNearestStation("")}
+                        >
+                          다시 고르기
+                        </button>
+                      </div>
+                    ) : null}
 
-            <div className={styles.field}>
-              <p className={styles.label}>
-                청소 빈도 <span className={styles.required}>*</span>
-              </p>
-              <div className={styles.chipRow2}>
-                {CLEAN_FREQ_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    className={cn(
-                      styles.chip,
-                      cleanFreq === opt.value && styles.chipActive,
-                    )}
-                    onClick={() => setCleanFreq(opt.value)}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className={styles.field}>
-              <p className={styles.label}>
-                음주 <span className={styles.required}>*</span>
-              </p>
-              <div className={styles.chipRow3}>
-                {DRINK_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    className={cn(
-                      styles.chip,
-                      drinkFreq === opt.value && styles.chipActive,
-                    )}
-                    onClick={() => setDrinkFreq(opt.value)}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className={styles.field}>
-              <p className={styles.label}>
-                흡연여부 <span className={styles.required}>*</span>
-              </p>
-              <div className={styles.chipRow3}>
-                {SMOKING_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    className={cn(
-                      styles.chip,
-                      smokingType === opt.value && styles.chipActive,
-                    )}
-                    onClick={() => setSmokingType(opt.value)}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className={styles.checkGrid}>
-              <label className={styles.checkRow}>
-                <Checkbox
-                  checked={pet}
-                  onCheckedChange={(v) => {
-                    const on = v === true;
-                    setPet(on);
-                    if (!on) {
-                      setPetKind(null);
-                      setPetKindOther("");
-                      setPetName("");
-                      setPetNote("");
-                    }
-                  }}
-                />
-                <span>반려동물 있음</span>
-              </label>
-            </div>
-
-            {pet ? (
-              <div className={styles.subForm}>
-                <p className={styles.label}>
-                  반려동물 종류 <span className={styles.required}>*</span>
-                </p>
-                <div className={styles.chipRow3}>
-                  {PET_KIND_OPTIONS.map((opt) => (
-                    <button
-                      key={opt.value}
-                      type="button"
+                    <div
                       className={cn(
-                        styles.chip,
-                        petKind === opt.value && styles.chipActive,
+                        styles.stationFinder,
+                        stationQuery.trim() && styles.stationFinderOpen,
                       )}
-                      onClick={() => {
-                        setPetKind(opt.value);
-                        if (opt.value !== "other") setPetKindOther("");
-                      }}
                     >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-                {petKind === "other" ? (
-                  <div className={styles.field}>
-                    <label className={styles.label} htmlFor="petKindOther">
-                      종류 입력 <span className={styles.required}>*</span>
-                    </label>
-                    <Input
-                      id="petKindOther"
-                      className={styles.input}
-                      placeholder="예: 토끼, 햄스터"
-                      value={petKindOther}
-                      maxLength={20}
-                      onChange={(e) => setPetKindOther(e.target.value)}
-                    />
+                      <div className={styles.stationSearch}>
+                        <Search
+                          className={styles.stationSearchIcon}
+                          size={18}
+                          strokeWidth={2.2}
+                          aria-hidden
+                        />
+                        <Input
+                          className={cn(
+                            styles.input,
+                            styles.stationSearchInput,
+                          )}
+                          placeholder="역 이름 검색"
+                          value={stationQuery}
+                          aria-expanded={Boolean(stationQuery.trim())}
+                          aria-controls="station-results"
+                          onChange={(e) => setStationQuery(e.target.value)}
+                          tabIndex={
+                            nearestStation === NO_NEARBY_STATION
+                              ? -1
+                              : undefined
+                          }
+                        />
+                        {stationQuery ? (
+                          <button
+                            type="button"
+                            className={styles.stationSearchClear}
+                            aria-label="검색어 지우기"
+                            tabIndex={
+                              nearestStation === NO_NEARBY_STATION
+                                ? -1
+                                : undefined
+                            }
+                            onClick={() => setStationQuery("")}
+                          >
+                            <X className="size-3.5" />
+                          </button>
+                        ) : null}
+                      </div>
+
+                      {stationQuery.trim() ? (
+                        <div
+                          id="station-results"
+                          className={styles.stationResults}
+                        >
+                          <p className={styles.stationResultMeta}>
+                            {stationSearchState === "loading" &&
+                            stationSuggestions.length === 0
+                              ? "찾는 중"
+                              : stationSearchState === "error"
+                                ? "역을 불러오지 못했어요"
+                                : stationSuggestions.length > 0
+                                  ? `${stationSuggestions.length}개 역`
+                                  : "목록에 없는 이름"}
+                          </p>
+                          <div className={styles.stationList} role="listbox">
+                            {stationSuggestions.map((station) => {
+                              const label = station.name;
+                              const selected = nearestStation === label;
+                              return (
+                                <button
+                                  key={`${station.region}-${station.name}-${station.lines.join(",")}`}
+                                  type="button"
+                                  role="option"
+                                  aria-selected={selected}
+                                  className={cn(
+                                    styles.stationItem,
+                                    selected && styles.stationItemActive,
+                                  )}
+                                  tabIndex={
+                                    nearestStation === NO_NEARBY_STATION
+                                      ? -1
+                                      : undefined
+                                  }
+                                  onClick={() => pickStation(label)}
+                                >
+                                  <SubwayLineBadges
+                                    lines={station.lines}
+                                    className={styles.stationLines}
+                                  />
+                                  <span className={styles.stationName}>
+                                    <StationQueryName
+                                      label={label}
+                                      query={stationQuery}
+                                    />
+                                  </span>
+                                  {selected ? (
+                                    <Check
+                                      className={styles.stationCheck}
+                                      size={18}
+                                      strokeWidth={2.6}
+                                      aria-hidden
+                                    />
+                                  ) : (
+                                    <ChevronRight
+                                      className={styles.stationChevron}
+                                      size={18}
+                                      strokeWidth={2.2}
+                                      aria-hidden
+                                    />
+                                  )}
+                                </button>
+                              );
+                            })}
+
+                            {stationSearchState === "idle" &&
+                            stationSuggestions.length === 0 &&
+                            !showCustomStation ? (
+                              <p className={styles.stationEmpty}>
+                                맞는 역이 없어요.
+                              </p>
+                            ) : null}
+
+                            {showCustomStation ? (
+                              <button
+                                type="button"
+                                className={styles.stationItem}
+                                tabIndex={
+                                  nearestStation === NO_NEARBY_STATION
+                                    ? -1
+                                    : undefined
+                                }
+                                onClick={() => pickStation(customStationLabel)}
+                              >
+                                <span className={styles.stationItemText}>
+                                  <span className={styles.stationName}>
+                                    {customStationLabel}
+                                  </span>
+                                  <span className={styles.stationMeta}>
+                                    이 이름으로 추가
+                                  </span>
+                                </span>
+                                <ChevronRight
+                                  className={styles.stationChevron}
+                                  size={18}
+                                  strokeWidth={2.2}
+                                  aria-hidden
+                                />
+                              </button>
+                            ) : null}
+                          </div>
+                        </div>
+                      ) : !(
+                          nearestStation &&
+                          nearestStation !== NO_NEARBY_STATION
+                        ) ? (
+                        <p className={styles.stationHint}>
+                          역 이름을 입력하면 바로 아래에서 고를 수 있어요
+                        </p>
+                      ) : null}
+                    </div>
                   </div>
-                ) : null}
-                <div className={styles.field}>
-                  <label className={styles.label} htmlFor="petName">
-                    이름 (선택)
-                  </label>
-                  <Input
-                    id="petName"
-                    className={styles.input}
-                    placeholder="예: 초코"
-                    value={petName}
-                    maxLength={20}
-                    onChange={(e) => setPetName(e.target.value)}
-                  />
                 </div>
-                <div className={styles.field}>
-                  <label className={styles.label} htmlFor="petNote">
-                    안내 메모 (선택)
-                  </label>
-                  <Input
-                    id="petNote"
-                    className={styles.input}
-                    placeholder="크기, 성격, 주의사항 등"
-                    value={petNote}
-                    maxLength={80}
-                    onChange={(e) => setPetNote(e.target.value)}
-                  />
+              </>
+            ) : step === "detail" ? (
+              <>
+                <div className={styles.intro}>
+                  <h2 className={styles.title}>
+                    나를 알려주는
+                    <br />
+                    <span className={styles.accent}>기본 정보</span>예요
+                  </h2>
+                  <p className={styles.desc}>
+                    직업과 생활 습관을 먼저 적어주세요.
+                  </p>
                 </div>
-              </div>
-            ) : null}
-          </section>
-        </>
-      ) : (
-        <>
-          <div className={styles.intro}>
-            <h2 className={styles.title}>
-              원하는 <span className={styles.accent}>살짝 조건</span> 및
-              <br />
-              동의 부분을 확인해 주세요
-            </h2>
-            <p className={styles.desc}>
-              원하는 살짝 조건과 서비스 이용 동의를 확인해 주세요.
-            </p>
-          </div>
 
-          {hasRoom ? (
-            <section className={styles.block}>
-              <h3 className={styles.blockTitle}>원하는 살짝 조건</h3>
-              <p className={styles.blockHint}>
-                성별, 분담 방식, 함께하기 어려운 점
-              </p>
+                <section className={styles.block}>
+                  <h3 className={styles.blockTitle}>기본 정보</h3>
+                  <p className={styles.blockHint}>
+                    직업과 근무 형태를 알려주세요
+                  </p>
+                  <div className={styles.field}>
+                    <p className={styles.label}>
+                      직업 <span className={styles.required}>*</span>
+                    </p>
+                    <div className={styles.chipRow}>
+                      {JOB_OPTIONS.map((opt) => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          className={cn(
+                            styles.chip,
+                            job === opt.value && styles.chipActive,
+                          )}
+                          onClick={() => {
+                            setJob(opt.value);
+                            if (opt.value !== "other") setJobOther("");
+                            if (
+                              opt.value !== "employee" &&
+                              opt.value !== "freelancer" &&
+                              opt.value !== "other"
+                            ) {
+                              setWfh(false);
+                            }
+                          }}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  {job === "other" ? (
+                    <div className={styles.field}>
+                      <label className={styles.label} htmlFor="jobOther">
+                        직업 입력 <span className={styles.required}>*</span>
+                      </label>
+                      <Input
+                        id="jobOther"
+                        className={styles.input}
+                        placeholder="직업을 입력해 주세요"
+                        value={jobOther}
+                        maxLength={30}
+                        onChange={(e) => setJobOther(e.target.value)}
+                      />
+                    </div>
+                  ) : null}
+                  {showWfhOption ? (
+                    <label className={styles.checkRow}>
+                      <Checkbox
+                        checked={wfh}
+                        onCheckedChange={(v) => setWfh(v === true)}
+                      />
+                      <span>재택근무</span>
+                    </label>
+                  ) : null}
+                </section>
 
-              <div className={styles.field}>
-                <p className={styles.label}>
-                  선호 살짝 성별 <span className={styles.required}>*</span>
-                </p>
-                <div className={styles.chipRow3}>
-                  {PREF_GENDER_OPTIONS.map((opt) => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      className={cn(
-                        styles.chip,
-                        prefGender === opt.value && styles.chipActive,
-                      )}
-                      onClick={() => {
-                        setPrefGender(opt.value);
-                        if (opt.value !== "male" && opt.value !== "female") {
-                          setRestrictListingByPrefGender(null);
+                <section className={styles.block}>
+                  <h3 className={styles.blockTitle}>생활 습관</h3>
+                  <p className={styles.blockHint}>
+                    취침·기상, 성격, 흡연·음주 등 평소 생활 패턴
+                  </p>
+
+                  <div className={styles.field}>
+                    <p className={styles.label}>
+                      취침 · 기상 <span className={styles.required}>*</span>
+                    </p>
+                    <DayClock
+                      sleepHour={sleepHour === "" ? null : Number(sleepHour)}
+                      wakeHour={wakeHour === "" ? null : Number(wakeHour)}
+                      active={clockActive}
+                      onActiveChange={setClockActive}
+                      onChange={(kind, hour) => {
+                        if (kind === "sleep") {
+                          setSleepHour(String(hour));
+                          if (wakeHour === "") setClockActive("wake");
+                        } else {
+                          setWakeHour(String(hour));
                         }
                       }}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              {prefGender === "male" || prefGender === "female" ? (
-                <div className={styles.field}>
-                  <p className={styles.label}>
-                    게시글 노출 <span className={styles.required}>*</span>
-                  </p>
-                  <p className={styles.fieldHint}>
-                    {prefGender === "female" ? "여성" : "남성"}으로 가입한
-                    회원에게만 공고를 보여줄지 골라 주세요.
-                  </p>
-                  <div className={styles.genderScopeActions}>
-                    <button
-                      type="button"
-                      className={cn(
-                        styles.genderScopeBtn,
-                        restrictListingByPrefGender === false &&
-                          styles.genderScopeBtnActive,
-                      )}
-                      onClick={() => setRestrictListingByPrefGender(false)}
-                    >
-                      <span className={styles.genderScopeBtnLabel}>
-                        아니요, 괜찮아요
-                      </span>
-                      <span className={styles.genderScopeBtnSub}>
-                        남녀 상관없이 공고를 볼 수 있게 올릴게요
-                      </span>
-                    </button>
-                    <button
-                      type="button"
-                      className={cn(
-                        styles.genderScopeBtn,
-                        restrictListingByPrefGender === true &&
-                          styles.genderScopeBtnActive,
-                      )}
-                      onClick={() => setRestrictListingByPrefGender(true)}
-                    >
-                      <span className={styles.genderScopeBtnLabel}>
-                        네, 도와주세요!
-                      </span>
-                      <span className={styles.genderScopeBtnSub}>
-                        {prefGender === "female" ? "여성" : "남성"}만 볼 수 있게
-                        해주세요
-                      </span>
-                    </button>
+                    />
                   </div>
-                </div>
-              ) : null}
 
-              <div className={styles.field}>
-                <p className={styles.label}>
-                  분담 월세 <span className={styles.required}>*</span>
-                </p>
-                <div className={styles.chipRow3}>
-                  {SHARE_MODE_OPTIONS.map((opt) => (
-                    <button
-                      key={opt.value}
-                      type="button"
+                  <div className={styles.field}>
+                    <p className={styles.label}>
+                      성격 <span className={styles.required}>*</span>
+                    </p>
+                    <div className={styles.chipRow3}>
+                      {PERSONALITY_OPTIONS.map((opt) => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          className={cn(
+                            styles.chip,
+                            personality === opt.value && styles.chipActive,
+                          )}
+                          onClick={() => setPersonality(opt.value)}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className={styles.field}>
+                    <p className={styles.label}>
+                      집에 있는 시간 <span className={styles.required}>*</span>
+                    </p>
+                    <div className={styles.chipRow3}>
+                      {HOME_TIME_OPTIONS.map((opt) => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          className={cn(
+                            styles.chip,
+                            homeTime === opt.value && styles.chipActive,
+                          )}
+                          onClick={() => setHomeTime(opt.value)}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className={styles.field}>
+                    <p className={styles.label}>
+                      청소 빈도 <span className={styles.required}>*</span>
+                    </p>
+                    <div className={styles.chipRow2}>
+                      {CLEAN_FREQ_OPTIONS.map((opt) => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          className={cn(
+                            styles.chip,
+                            cleanFreq === opt.value && styles.chipActive,
+                          )}
+                          onClick={() => setCleanFreq(opt.value)}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className={styles.field}>
+                    <p className={styles.label}>
+                      음주 <span className={styles.required}>*</span>
+                    </p>
+                    <div className={styles.chipRow3}>
+                      {DRINK_OPTIONS.map((opt) => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          className={cn(
+                            styles.chip,
+                            drinkFreq === opt.value && styles.chipActive,
+                          )}
+                          onClick={() => setDrinkFreq(opt.value)}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className={styles.field}>
+                    <p className={styles.label}>
+                      흡연여부 <span className={styles.required}>*</span>
+                    </p>
+                    <div className={styles.chipRow3}>
+                      {SMOKING_OPTIONS.map((opt) => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          className={cn(
+                            styles.chip,
+                            smokingType === opt.value && styles.chipActive,
+                          )}
+                          onClick={() => setSmokingType(opt.value)}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className={styles.checkGrid}>
+                    <label className={styles.checkRow}>
+                      <Checkbox
+                        checked={pet}
+                        onCheckedChange={(v) => {
+                          const on = v === true;
+                          setPet(on);
+                          if (!on) {
+                            setPetKind(null);
+                            setPetKindOther("");
+                            setPetName("");
+                            setPetNote("");
+                          }
+                        }}
+                      />
+                      <span>반려동물 있음</span>
+                    </label>
+                  </div>
+
+                  {pet ? (
+                    <div className={styles.subForm}>
+                      <p className={styles.label}>
+                        반려동물 종류 <span className={styles.required}>*</span>
+                      </p>
+                      <div className={styles.chipRow3}>
+                        {PET_KIND_OPTIONS.map((opt) => (
+                          <button
+                            key={opt.value}
+                            type="button"
+                            className={cn(
+                              styles.chip,
+                              petKind === opt.value && styles.chipActive,
+                            )}
+                            onClick={() => {
+                              setPetKind(opt.value);
+                              if (opt.value !== "other") setPetKindOther("");
+                            }}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                      {petKind === "other" ? (
+                        <div className={styles.field}>
+                          <label
+                            className={styles.label}
+                            htmlFor="petKindOther"
+                          >
+                            종류 입력 <span className={styles.required}>*</span>
+                          </label>
+                          <Input
+                            id="petKindOther"
+                            className={styles.input}
+                            placeholder="예: 토끼, 햄스터"
+                            value={petKindOther}
+                            maxLength={20}
+                            onChange={(e) => setPetKindOther(e.target.value)}
+                          />
+                        </div>
+                      ) : null}
+                      <div className={styles.field}>
+                        <label className={styles.label} htmlFor="petName">
+                          이름 (선택)
+                        </label>
+                        <Input
+                          id="petName"
+                          className={styles.input}
+                          placeholder="예: 초코"
+                          value={petName}
+                          maxLength={20}
+                          onChange={(e) => setPetName(e.target.value)}
+                        />
+                      </div>
+                      <div className={styles.field}>
+                        <label className={styles.label} htmlFor="petNote">
+                          안내 메모 (선택)
+                        </label>
+                        <Input
+                          id="petNote"
+                          className={styles.input}
+                          placeholder="크기, 성격, 주의사항 등"
+                          value={petNote}
+                          maxLength={80}
+                          onChange={(e) => setPetNote(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  ) : null}
+                </section>
+              </>
+            ) : (
+              <>
+                <div className={styles.intro}>
+                  <h2 className={styles.title}>
+                    원하는 <span className={styles.accent}>살짝 조건</span> 및
+                    <br />
+                    동의 부분을 확인해 주세요
+                  </h2>
+                  <p className={styles.desc}>
+                    원하는 살짝 조건과 서비스 이용 동의를 확인해 주세요.
+                  </p>
+                </div>
+
+                {hasRoom ? (
+                  <section className={styles.block}>
+                    <h3 className={styles.blockTitle}>원하는 살짝 조건</h3>
+                    <p className={styles.blockHint}>
+                      성별, 분담 방식, 함께하기 어려운 점
+                    </p>
+
+                    <div className={styles.field}>
+                      <p className={styles.label}>
+                        선호 살짝 성별{" "}
+                        <span className={styles.required}>*</span>
+                      </p>
+                      <div className={styles.chipRow3}>
+                        {PREF_GENDER_OPTIONS.map((opt) => (
+                          <button
+                            key={opt.value}
+                            type="button"
+                            className={cn(
+                              styles.chip,
+                              prefGender === opt.value && styles.chipActive,
+                            )}
+                            onClick={() => {
+                              setPrefGender(opt.value);
+                              if (
+                                opt.value !== "male" &&
+                                opt.value !== "female"
+                              ) {
+                                setRestrictListingByPrefGender(null);
+                              }
+                            }}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    {prefGender === "male" || prefGender === "female" ? (
+                      <div className={styles.field}>
+                        <p className={styles.label}>
+                          게시글 노출 <span className={styles.required}>*</span>
+                        </p>
+                        <p className={styles.fieldHint}>
+                          {prefGender === "female" ? "여성" : "남성"}으로 가입한
+                          회원에게만 공고를 보여줄지 골라 주세요.
+                        </p>
+                        <div className={styles.genderScopeActions}>
+                          <button
+                            type="button"
+                            className={cn(
+                              styles.genderScopeBtn,
+                              restrictListingByPrefGender === false &&
+                                styles.genderScopeBtnActive,
+                            )}
+                            onClick={() =>
+                              setRestrictListingByPrefGender(false)
+                            }
+                          >
+                            <span className={styles.genderScopeBtnLabel}>
+                              아니요, 괜찮아요
+                            </span>
+                            <span className={styles.genderScopeBtnSub}>
+                              남녀 상관없이 공고를 볼 수 있게 올릴게요
+                            </span>
+                          </button>
+                          <button
+                            type="button"
+                            className={cn(
+                              styles.genderScopeBtn,
+                              restrictListingByPrefGender === true &&
+                                styles.genderScopeBtnActive,
+                            )}
+                            onClick={() => setRestrictListingByPrefGender(true)}
+                          >
+                            <span className={styles.genderScopeBtnLabel}>
+                              네, 도와주세요!
+                            </span>
+                            <span className={styles.genderScopeBtnSub}>
+                              {prefGender === "female" ? "여성" : "남성"}만 볼
+                              수 있게 해주세요
+                            </span>
+                          </button>
+                        </div>
+                      </div>
+                    ) : null}
+
+                    <div className={styles.field}>
+                      <p className={styles.label}>
+                        분담 월세 <span className={styles.required}>*</span>
+                      </p>
+                      <div className={styles.chipRow3}>
+                        {SHARE_MODE_OPTIONS.map((opt) => (
+                          <button
+                            key={opt.value}
+                            type="button"
+                            className={cn(
+                              styles.chip,
+                              rentShareMode === opt.value && styles.chipActive,
+                            )}
+                            onClick={() => {
+                              setRentShareMode(opt.value);
+                              if (opt.value !== "custom")
+                                setRentSharePercent("");
+                            }}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                      {rentShareMode === "custom" ? (
+                        <div className={styles.percentField}>
+                          <Input
+                            id="rentSharePercent"
+                            className={styles.input}
+                            inputMode="numeric"
+                            placeholder="예:50 (살짝이 낼 분담률이에요)"
+                            value={rentSharePercent}
+                            onChange={(e) =>
+                              setRentSharePercent(
+                                e.target.value.replace(/\D/g, "").slice(0, 2),
+                              )
+                            }
+                          />
+                          <span className={styles.percentSuffix}>%</span>
+                        </div>
+                      ) : null}
+                    </div>
+
+                    <div className={styles.field}>
+                      <p className={styles.label}>
+                        분담 관리비 <span className={styles.required}>*</span>
+                      </p>
+                      <div className={styles.chipRow3}>
+                        {SHARE_MODE_OPTIONS.map((opt) => (
+                          <button
+                            key={opt.value}
+                            type="button"
+                            className={cn(
+                              styles.chip,
+                              mgmtShareMode === opt.value && styles.chipActive,
+                            )}
+                            onClick={() => {
+                              setMgmtShareMode(opt.value);
+                              if (opt.value !== "custom")
+                                setMgmtSharePercent("");
+                            }}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                      {mgmtShareMode === "custom" ? (
+                        <div className={styles.percentField}>
+                          <Input
+                            id="mgmtSharePercent"
+                            className={styles.input}
+                            inputMode="numeric"
+                            placeholder="예:50 (살짝이 낼 분담률이에요)"
+                            value={mgmtSharePercent}
+                            onChange={(e) =>
+                              setMgmtSharePercent(
+                                e.target.value.replace(/\D/g, "").slice(0, 2),
+                              )
+                            }
+                          />
+                          <span className={styles.percentSuffix}>%</span>
+                        </div>
+                      ) : null}
+                    </div>
+
+                    <p className={styles.label}>함께하기 어려운 점</p>
+                    <div className={styles.hardNoGrid}>
+                      {(
+                        [
+                          ["흡연", noSmoker, setNoSmoker],
+                          ["음주", noDrink, setNoDrink],
+                          ["반려동물", noPet, setNoPet],
+                        ] as const
+                      ).map(([label, on, setOn]) => (
+                        <button
+                          key={label}
+                          type="button"
+                          className={cn(
+                            styles.hardNoBtn,
+                            on && styles.hardNoBtnOn,
+                          )}
+                          aria-pressed={on}
+                          onClick={() => setOn((value) => !value)}
+                        >
+                          <span>{label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </section>
+                ) : null}
+
+                <section className={styles.block}>
+                  <h3 className={styles.blockTitle}>살짝에게 전하는 한마디</h3>
+                  <p className={styles.blockHint}>
+                    매칭 상대에게 보여질 소개예요. 원하는 생활이나 성향을
+                    자유롭게 적어주세요.
+                  </p>
+                  <textarea
+                    id="bio"
+                    className={styles.textarea}
+                    placeholder={
+                      hasRoom
+                        ? "예: 투룸이고 거실 공유해요. 조용한 분과 월세 반반이면 좋겠어요"
+                        : "예: 강남·서초 쪽 원룸 구해요. 주말엔 같이 밥 해먹을 살짝이면 좋아요"
+                    }
+                    value={bio}
+                    maxLength={200}
+                    rows={4}
+                    onChange={(e) => setBio(e.target.value)}
+                  />
+                  <p className={styles.charCount}>{bio.length}/200</p>
+                </section>
+
+                <section className={styles.block}>
+                  <h3 className={styles.blockTitle}>서비스 동의</h3>
+                  <div className={styles.agreeCard}>
+                    <label className={styles.agreeAll}>
+                      <Checkbox
+                        checked={agreeAll}
+                        onCheckedChange={(v) => setAgreeAll(v === true)}
+                      />
+                      <span className={styles.agreeAllBody}>
+                        <span className={styles.agreeAllTitle}>전체 동의</span>
+                        <span className={styles.agreeAllDesc}>
+                          필수·선택 항목을 모두 포함해요
+                        </span>
+                      </span>
+                    </label>
+
+                    <div
                       className={cn(
-                        styles.chip,
-                        rentShareMode === opt.value && styles.chipActive,
+                        styles.agreeCollapse,
+                        agreeAll && styles.agreeCollapseClosed,
                       )}
+                    >
+                      <div className={styles.agreeCollapseInner}>
+                        <div className={styles.agreeDivider} />
+
+                        <div className={styles.agreeList}>
+                          <label className={styles.agreeItem}>
+                            <Checkbox
+                              checked={agreedMatch}
+                              onCheckedChange={(v) =>
+                                setAgreedMatch(v === true)
+                              }
+                            />
+                            <span className={styles.agreeItemBody}>
+                              <span className={styles.agreeItemTitle}>
+                                매칭을 위한 프로필 정보 제공
+                                <span className={styles.agreeTagRequired}>
+                                  필수
+                                </span>
+                              </span>
+                              <span className={styles.agreeItemDesc}>
+                                살짝 매칭을 위해 프로필이 다른 회원에게 보여져요
+                              </span>
+                            </span>
+                          </label>
+                          <label className={styles.agreeItem}>
+                            <Checkbox
+                              checked={agreedLocation}
+                              onCheckedChange={(v) =>
+                                setAgreedLocation(v === true)
+                              }
+                            />
+                            <span className={styles.agreeItemBody}>
+                              <span className={styles.agreeItemTitle}>
+                                위치기반 서비스 이용
+                                <span className={styles.agreeTagOptional}>
+                                  선택
+                                </span>
+                              </span>
+                              <span className={styles.agreeItemDesc}>
+                                근처 살짝 추천에 사용돼요
+                              </span>
+                            </span>
+                          </label>
+                          <label className={styles.agreeItem}>
+                            <Checkbox
+                              checked={agreedPush}
+                              onCheckedChange={(v) => setAgreedPush(v === true)}
+                            />
+                            <span className={styles.agreeItemBody}>
+                              <span className={styles.agreeItemTitle}>
+                                푸시 알림 수신
+                                <span className={styles.agreeTagOptional}>
+                                  선택
+                                </span>
+                              </span>
+                              <span className={styles.agreeItemDesc}>
+                                매칭·메시지 등 서비스 알림을 받아요
+                              </span>
+                            </span>
+                          </label>
+                          <label className={styles.agreeItem}>
+                            <Checkbox
+                              checked={agreedMarketing}
+                              onCheckedChange={(v) =>
+                                setAgreedMarketing(v === true)
+                              }
+                            />
+                            <span className={styles.agreeItemBody}>
+                              <span className={styles.agreeItemTitle}>
+                                마케팅 정보 수신
+                                <span className={styles.agreeTagOptional}>
+                                  선택
+                                </span>
+                              </span>
+                              <span className={styles.agreeItemDesc}>
+                                이벤트·혜택 소식을 받아요
+                              </span>
+                            </span>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              </>
+            )}
+
+            {step !== "role" && step !== "region" && step !== "station" ? (
+              <div className={styles.submitDock}>
+                {step === "prefs" ? (
+                  <div className={styles.submitGroup}>
+                    <Button
+                      type="button"
+                      className={styles.submit}
+                      size="lg"
+                      disabled={detailInvalid}
                       onClick={() => {
-                        setRentShareMode(opt.value);
-                        if (opt.value !== "custom") setRentSharePercent("");
+                        if (detailInvalid) return;
+                        if (hasRoom) {
+                          setPostConfirmOpen(true);
+                          return;
+                        }
+                        leaveTo("find");
                       }}
                     >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-                {rentShareMode === "custom" ? (
-                  <div className={styles.percentField}>
-                    <Input
-                      id="rentSharePercent"
-                      className={styles.input}
-                      inputMode="numeric"
-                      placeholder="예:50 (살짝이 낼 분담률이에요)"
-                      value={rentSharePercent}
-                      onChange={(e) =>
-                        setRentSharePercent(
-                          e.target.value.replace(/\D/g, "").slice(0, 2),
-                        )
-                      }
-                    />
-                    <span className={styles.percentSuffix}>%</span>
+                      {hasRoom ? "바로 살짝 구할게요" : "이 정보로 살짝 찾기"}
+                    </Button>
+                    {hasRoom ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className={cn(styles.submit, styles.submitSecondary)}
+                        size="lg"
+                        disabled={detailInvalid}
+                        onClick={() => leaveTo("profile")}
+                      >
+                        일단 등록만 할게요
+                      </Button>
+                    ) : null}
                   </div>
-                ) : null}
-              </div>
-
-              <div className={styles.field}>
-                <p className={styles.label}>
-                  분담 관리비 <span className={styles.required}>*</span>
-                </p>
-                <div className={styles.chipRow3}>
-                  {SHARE_MODE_OPTIONS.map((opt) => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      className={cn(
-                        styles.chip,
-                        mgmtShareMode === opt.value && styles.chipActive,
-                      )}
-                      onClick={() => {
-                        setMgmtShareMode(opt.value);
-                        if (opt.value !== "custom") setMgmtSharePercent("");
-                      }}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-                {mgmtShareMode === "custom" ? (
-                  <div className={styles.percentField}>
-                    <Input
-                      id="mgmtSharePercent"
-                      className={styles.input}
-                      inputMode="numeric"
-                      placeholder="예:50 (살짝이 낼 분담률이에요)"
-                      value={mgmtSharePercent}
-                      onChange={(e) =>
-                        setMgmtSharePercent(
-                          e.target.value.replace(/\D/g, "").slice(0, 2),
-                        )
-                      }
-                    />
-                    <span className={styles.percentSuffix}>%</span>
-                  </div>
-                ) : null}
-              </div>
-
-              <p className={styles.label}>함께하기 어려운 점</p>
-              <div className={styles.hardNoGrid}>
-                {(
-                  [
-                    ["흡연", noSmoker, setNoSmoker],
-                    ["음주", noDrink, setNoDrink],
-                    ["반려동물", noPet, setNoPet],
-                  ] as const
-                ).map(([label, on, setOn]) => (
-                  <button
-                    key={label}
+                ) : (
+                  <Button
                     type="button"
-                    className={cn(styles.hardNoBtn, on && styles.hardNoBtnOn)}
-                    aria-pressed={on}
-                    onClick={() => setOn((value) => !value)}
+                    className={styles.submit}
+                    size="lg"
+                    disabled={step === "cost" ? costInvalid : lifestyleInvalid}
+                    onClick={
+                      step === "cost"
+                        ? handleNextFromCost
+                        : handleNextFromDetail
+                    }
                   >
-                    <span>{label}</span>
-                  </button>
-                ))}
-              </div>
-            </section>
-          ) : null}
-
-          <section className={styles.block}>
-            <h3 className={styles.blockTitle}>살짝에게 전하는 한마디</h3>
-            <p className={styles.blockHint}>
-              매칭 상대에게 보여질 소개예요. 원하는 생활이나 성향을 자유롭게
-              적어주세요.
-            </p>
-            <textarea
-              id="bio"
-              className={styles.textarea}
-              placeholder={
-                hasRoom
-                  ? "예: 투룸이고 거실 공유해요. 조용한 분과 월세 반반이면 좋겠어요"
-                  : "예: 강남·서초 쪽 원룸 구해요. 주말엔 같이 밥 해먹을 살짝이면 좋아요"
-              }
-              value={bio}
-              maxLength={200}
-              rows={4}
-              onChange={(e) => setBio(e.target.value)}
-            />
-            <p className={styles.charCount}>{bio.length}/200</p>
-          </section>
-
-          <section className={styles.block}>
-            <h3 className={styles.blockTitle}>서비스 동의</h3>
-            <div className={styles.agreeCard}>
-              <label className={styles.agreeAll}>
-                <Checkbox
-                  checked={agreeAll}
-                  onCheckedChange={(v) => setAgreeAll(v === true)}
-                />
-                <span className={styles.agreeAllBody}>
-                  <span className={styles.agreeAllTitle}>전체 동의</span>
-                  <span className={styles.agreeAllDesc}>
-                    필수·선택 항목을 모두 포함해요
-                  </span>
-                </span>
-              </label>
-
-              <div
-                className={cn(
-                  styles.agreeCollapse,
-                  agreeAll && styles.agreeCollapseClosed,
+                    다음
+                  </Button>
                 )}
-              >
-                <div className={styles.agreeCollapseInner}>
-                  <div className={styles.agreeDivider} />
-
-                  <div className={styles.agreeList}>
-                    <label className={styles.agreeItem}>
-                      <Checkbox
-                        checked={agreedMatch}
-                        onCheckedChange={(v) => setAgreedMatch(v === true)}
-                      />
-                      <span className={styles.agreeItemBody}>
-                        <span className={styles.agreeItemTitle}>
-                          매칭을 위한 프로필 정보 제공
-                          <span className={styles.agreeTagRequired}>필수</span>
-                        </span>
-                        <span className={styles.agreeItemDesc}>
-                          살짝 매칭을 위해 프로필이 다른 회원에게 보여져요
-                        </span>
-                      </span>
-                    </label>
-                    <label className={styles.agreeItem}>
-                      <Checkbox
-                        checked={agreedLocation}
-                        onCheckedChange={(v) => setAgreedLocation(v === true)}
-                      />
-                      <span className={styles.agreeItemBody}>
-                        <span className={styles.agreeItemTitle}>
-                          위치기반 서비스 이용
-                          <span className={styles.agreeTagOptional}>선택</span>
-                        </span>
-                        <span className={styles.agreeItemDesc}>
-                          근처 살짝 추천에 사용돼요
-                        </span>
-                      </span>
-                    </label>
-                    <label className={styles.agreeItem}>
-                      <Checkbox
-                        checked={agreedPush}
-                        onCheckedChange={(v) => setAgreedPush(v === true)}
-                      />
-                      <span className={styles.agreeItemBody}>
-                        <span className={styles.agreeItemTitle}>
-                          푸시 알림 수신
-                          <span className={styles.agreeTagOptional}>선택</span>
-                        </span>
-                        <span className={styles.agreeItemDesc}>
-                          매칭·메시지 등 서비스 알림을 받아요
-                        </span>
-                      </span>
-                    </label>
-                    <label className={styles.agreeItem}>
-                      <Checkbox
-                        checked={agreedMarketing}
-                        onCheckedChange={(v) => setAgreedMarketing(v === true)}
-                      />
-                      <span className={styles.agreeItemBody}>
-                        <span className={styles.agreeItemTitle}>
-                          마케팅 정보 수신
-                          <span className={styles.agreeTagOptional}>선택</span>
-                        </span>
-                        <span className={styles.agreeItemDesc}>
-                          이벤트·혜택 소식을 받아요
-                        </span>
-                      </span>
-                    </label>
-                  </div>
-                </div>
               </div>
-            </div>
-          </section>
-        </>
-      )}
-
-      {step !== "role" && step !== "region" && step !== "station" ? (
-        <div className={styles.submitDock}>
-          {step === "prefs" ? (
-            <div className={styles.submitGroup}>
-              <Button
-                type="button"
-                className={styles.submit}
-                size="lg"
-                disabled={detailInvalid}
-                onClick={() => {
-                  if (detailInvalid) return;
-                  if (hasRoom) {
-                    setPostConfirmOpen(true);
-                    return;
-                  }
-                  leaveTo("find");
-                }}
-              >
-                {hasRoom ? "바로 살짝 구할게요" : "이 정보로 살짝 찾기"}
-              </Button>
-              {hasRoom ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  className={cn(styles.submit, styles.submitSecondary)}
-                  size="lg"
-                  disabled={detailInvalid}
-                  onClick={() => leaveTo("profile")}
-                >
-                  일단 등록만 할게요
-                </Button>
-              ) : null}
-            </div>
-          ) : (
-            <Button
-              type="button"
-              className={styles.submit}
-              size="lg"
-              disabled={step === "cost" ? costInvalid : lifestyleInvalid}
-              onClick={
-                step === "cost" ? handleNextFromCost : handleNextFromDetail
-              }
-            >
-              다음
-            </Button>
-          )}
+            ) : null}
+          </div>
         </div>
-      ) : null}
-      </div>
-      </div>
       </div>
 
       <Dialog open={postConfirmOpen} onOpenChange={setPostConfirmOpen}>
