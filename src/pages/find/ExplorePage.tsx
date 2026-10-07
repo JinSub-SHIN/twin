@@ -1,17 +1,8 @@
-import { Fragment, useEffect, useRef, useState, type MouseEvent } from "react";
-import { ArrowLeft, Check, ChevronDown, MapPin, Search, TrainFront, X } from "lucide-react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ListingTeaserCard } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { SubwayLineBadges } from "@/components/ui/subway";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import type { ListingSummary } from "@/lib/listingView";
+import { roomTraits, type ListingTraits } from "@/lib/listingTraits";
 import {
   matchesRoomRegion,
   matchesRoomStation,
@@ -19,20 +10,33 @@ import {
   roomListItemToSummary,
   usesServerTotal,
 } from "@/lib/roomListing";
-import {
-  REGION_CITIES,
-  REGION_TREE,
-  cityOfRegion,
-  formatRegion,
-} from "@/lib/regions";
-import { cn } from "@/lib/utils";
 import { COUNSELOR_IMG } from "@/pages/home/CounselorAvatar";
-import { getRoomList, searchStations, type StationSearchItem } from "@/service/room";
+import { getRoomList } from "@/service/room";
 import { ApiError } from "@/service/http";
+import {
+  ConditionFilter,
+  ListingFilterBar,
+  LocationSheet,
+  SortDropdown,
+  clearConditions,
+  clearLocation,
+  conditionChips,
+  hasClientFilter,
+  matchesTraits,
+  parseListingFilter,
+  parseSort,
+  sortByKey,
+  writeConditions,
+  writeLocation,
+  writeSort,
+  type ListingFilter,
+} from "./filter";
 import styles from "./ExplorePage.module.css";
 
 const PAGE_SIZE = 7;
 const AD_INTERVALS = [3, 4];
+/** 조건 필터로 걸러진 결과가 이보다 적으면 다음 페이지를 미리 불러옴 */
+const MIN_FILTERED_ROWS = 6;
 
 function showsAdAfter(index: number) {
   let cursor = -1;
@@ -46,6 +50,7 @@ function showsAdAfter(index: number) {
 type ListingRow = {
   id: string;
   summary: ListingSummary;
+  traits: ListingTraits;
 };
 
 async function fetchListingPage(
@@ -75,7 +80,11 @@ async function fetchListingPage(
     for (const item of result.list) {
       if (!stationOnly && !matchesRoomRegion(item, regions)) continue;
       if (!matchesRoomStation(item, station)) continue;
-      rows.push({ id: item.id, summary: roomListItemToSummary(item) });
+      rows.push({
+        id: item.id,
+        summary: roomListItemToSummary(item),
+        traits: roomTraits(item),
+      });
     }
     if (rows.length > 0 || !hasMore) break;
   }
@@ -86,27 +95,18 @@ async function fetchListingPage(
 export function ExplorePage() {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
+  const filter = useMemo(() => parseListingFilter(params), [params]);
+  const sort = parseSort(params);
   const selectedRegions = params.getAll("regions");
   const selectedStation = params.get("station")?.trim() ?? "";
   const selectedStationRegion = params.get("stationRegion")?.trim() ?? "";
-  const [open, setOpen] = useState(false);
-  const [stationOpen, setStationOpen] = useState(false);
-  const [stationQuery, setStationQuery] = useState("");
-  const [stationSuggestions, setStationSuggestions] = useState<
-    StationSearchItem[]
-  >([]);
-  const [stationSearchState, setStationSearchState] = useState<
-    "idle" | "loading" | "error"
-  >("idle");
-  const [sheetStep, setSheetStep] = useState<"city" | "district">("city");
-  const [draftCity, setDraftCity] = useState<string | null>(null);
-  const currentCity = cityOfRegion(selectedRegions[0]);
-
-  const districts = draftCity
-    ? ["전체", ...(REGION_TREE[draftCity] ?? [])]
-    : [];
   const regionKey = selectedRegions.join("|");
   const filterKey = `${regionKey}::${selectedStation}::${selectedStationRegion}`;
+
+  const [locationOpen, setLocationOpen] = useState(false);
+  const [locationSession, setLocationSession] = useState(0);
+  const [conditionOpen, setConditionOpen] = useState(false);
+  const [conditionSession, setConditionSession] = useState(0);
 
   const [rows, setRows] = useState<ListingRow[]>([]);
   const [total, setTotal] = useState(0);
@@ -116,15 +116,23 @@ export function ExplorePage() {
   const [error, setError] = useState("");
 
   const ready = loadedKey === filterKey;
-  const visibleRows = ready ? rows : [];
+  const loadedRows = useMemo(() => (ready ? rows : []), [ready, rows]);
+  const clientFiltered = hasClientFilter(filter);
+  const visibleRows = useMemo(
+    () => sortByKey(loadedRows.filter((row) => matchesTraits(row.traits, filter)), sort),
+    [loadedRows, filter, sort],
+  );
   const visibleError = ready ? error : "";
   const visibleHasMore = ready && hasMore;
-  const loading = !ready;
-  const listingCount = usesServerTotal(selectedRegions)
-    ? ready
-      ? total
-      : 0
-    : visibleRows.length;
+  const filling = clientFiltered && visibleHasMore && visibleRows.length === 0;
+  const loading = !ready || filling;
+  const serverCount = usesServerTotal(selectedRegions) ? (ready ? total : 0) : loadedRows.length;
+  const listingCount = clientFiltered ? visibleRows.length : serverCount;
+
+  const countOf = (draft: ListingFilter) =>
+    hasClientFilter(draft)
+      ? loadedRows.filter((row) => matchesTraits(row.traits, draft)).length
+      : serverCount;
 
   const loadingRef = useRef(false);
   const armedRef = useRef(true);
@@ -134,6 +142,7 @@ export function ExplorePage() {
   const regionsRef = useRef(selectedRegions);
   const stationRef = useRef(selectedStation);
   const stationRegionRef = useRef(selectedStationRegion);
+  const loadMoreRef = useRef<() => void>(() => {});
 
   useEffect(() => {
     const generation = ++generationRef.current;
@@ -231,6 +240,11 @@ export function ExplorePage() {
       })();
     };
 
+    loadMoreRef.current = () => {
+      armedRef.current = true;
+      loadMore();
+    };
+
     const onScroll = () => {
       if (!atBottom()) {
         armedRef.current = true;
@@ -261,102 +275,25 @@ export function ExplorePage() {
   }, []);
 
   useEffect(() => {
-    if (!stationOpen) return;
-    const q = stationQuery.trim();
-    if (!q) {
-      setStationSuggestions([]);
-      setStationSearchState("idle");
-      return;
-    }
+    if (!ready || !clientFiltered || !hasMore || loadingMore) return;
+    if (visibleRows.length >= MIN_FILTERED_ROWS) return;
+    const timer = window.setTimeout(() => loadMoreRef.current(), 0);
+    return () => window.clearTimeout(timer);
+  }, [ready, clientFiltered, hasMore, loadingMore, visibleRows.length]);
 
-    const controller = new AbortController();
-    let active = true;
-    const timer = window.setTimeout(() => {
-      setStationSearchState("loading");
-      searchStations({
-        q,
-        limit: 20,
-        signal: controller.signal,
-      })
-        .then((res) => {
-          if (!active) return;
-          setStationSuggestions(res.stations ?? []);
-          setStationSearchState("idle");
-        })
-        .catch(() => {
-          if (!active) return;
-          setStationSuggestions([]);
-          setStationSearchState("error");
-        });
-    }, 200);
-
-    return () => {
-      active = false;
-      window.clearTimeout(timer);
-      controller.abort();
-    };
-  }, [stationOpen, stationQuery]);
-
-  const filterLabel =
-    selectedRegions.length === 0
-      ? "지역을 고르세요"
-      : selectedRegions.length === 1
-        ? selectedRegions[0]
-        : `${selectedRegions[0]} 외 ${selectedRegions.length - 1}곳`;
-
-  function openFilter() {
-    setDraftCity(null);
-    setSheetStep("city");
-    setOpen(true);
+  function openLocation() {
+    setLocationSession((n) => n + 1);
+    setLocationOpen(true);
   }
 
-  function pickCity(city: string) {
-    setDraftCity(city);
-    setSheetStep("district");
+  function openConditions() {
+    setConditionSession((n) => n + 1);
+    setConditionOpen(true);
   }
 
-  function pickDistrict(district: string) {
-    if (!draftCity) return;
-    const value =
-      district === "전체"
-        ? `${draftCity} 전체`
-        : formatRegion(draftCity, district);
-    setParams(new URLSearchParams([["regions", value]]));
-    setOpen(false);
+  function applyConditions(next: ListingFilter) {
+    setParams(writeConditions(params, next));
   }
-
-  function clearFilter(event: MouseEvent) {
-    event.stopPropagation();
-    const next = new URLSearchParams(params);
-    next.delete("regions");
-    setParams(next);
-  }
-
-  function openStationFilter() {
-    setStationQuery("");
-    setStationSuggestions([]);
-    setStationSearchState("idle");
-    setStationOpen(true);
-  }
-
-  function pickStation(name: string, region: string) {
-    const next = new URLSearchParams([["station", name]]);
-    if (region.trim()) next.set("stationRegion", region.trim());
-    setParams(next);
-    setStationOpen(false);
-  }
-
-  function clearStation(event: MouseEvent) {
-    event.stopPropagation();
-    const next = new URLSearchParams(params);
-    next.delete("station");
-    next.delete("stationRegion");
-    setParams(next);
-  }
-
-  const placeLabel = [selectedRegions.length > 0 ? filterLabel : "", selectedStation]
-    .filter(Boolean)
-    .join(" · ");
 
   const openListing = (id: string) => {
     navigate(`/explore/listing/${id}`, {
@@ -368,6 +305,7 @@ export function ExplorePage() {
 
   const previewListings = visibleRows.slice(0, 2);
   const restListings = visibleRows.slice(2);
+  const hasConditions = conditionChips(filter).length > 0;
 
   function renderListing(item: ListingRow, index: number) {
     const card = (
@@ -395,62 +333,29 @@ export function ExplorePage() {
             내 방의 <span className={styles.accent}>살짝</span>을 찾아보세요
           </h2>
         </div>
+      </div>
 
-        <div className={styles.filterRow}>
-          <button
-            type="button"
-            className={cn(
-              styles.filterChip,
-              selectedRegions.length > 0 && styles.filterChipActive,
-            )}
-            onClick={openFilter}
-          >
-            <MapPin size={15} strokeWidth={2.3} />
-            <span>{filterLabel}</span>
-            <ChevronDown size={15} strokeWidth={2.3} />
-          </button>
-          {selectedRegions.length > 0 ? (
-            <button
-              type="button"
-              className={styles.filterClear}
-              aria-label="지역 필터 지우기"
-              onClick={clearFilter}
-            >
-              <X size={14} strokeWidth={2.4} />
-            </button>
-          ) : null}
-          <button
-            type="button"
-            className={cn(
-              styles.filterChip,
-              selectedStation && styles.filterChipActive,
-            )}
-            onClick={openStationFilter}
-          >
-            <TrainFront size={15} strokeWidth={2.3} />
-            <span>{selectedStation || "지하철역"}</span>
-            <ChevronDown size={15} strokeWidth={2.3} />
-          </button>
-          {selectedStation ? (
-            <button
-              type="button"
-              className={styles.filterClear}
-              aria-label="지하철역 필터 지우기"
-              onClick={clearStation}
-            >
-              <X size={14} strokeWidth={2.4} />
-            </button>
-          ) : null}
-        </div>
+      <div className={styles.filterSticky}>
+        <ListingFilterBar
+          filter={filter}
+          onOpenLocation={openLocation}
+          onOpenConditions={openConditions}
+          onClearLocation={() => setParams(writeLocation(params, clearLocation(filter)))}
+          onChange={applyConditions}
+          onClearConditions={() => applyConditions(clearConditions(filter))}
+        />
       </div>
 
       <div className={styles.feed}>
         <div className={styles.tourSpot} data-tour="explore">
           <div className={styles.feedHead}>
-            <p className={styles.feedPlace}>{placeLabel || "전체 지역"}</p>
             <p className={styles.feedLabel}>
-              공고 <em>{listingCount}</em>개
+              총 <em>{listingCount}</em>개의 공고
             </p>
+            <SortDropdown
+              value={sort}
+              onChange={(next) => setParams(writeSort(params, next), { replace: true })}
+            />
           </div>
 
           {loading ? (
@@ -489,7 +394,13 @@ export function ExplorePage() {
                 className={styles.emptyFace}
               />
               <p className={styles.emptyListingTitle}>
-                {selectedStation ? (
+                {clientFiltered ? (
+                  <>
+                    조건에 맞는 동거인을
+                    <br />
+                    아직 찾지 못했어요
+                  </>
+                ) : selectedStation ? (
                   <>
                     이 역 근처에는
                     <br />
@@ -510,19 +421,25 @@ export function ExplorePage() {
                 )}
               </p>
               <p className={styles.emptyListingDesc}>
-                {selectedStation
-                  ? "다른 역을 골라보면 찾을 수 있어요."
-                  : selectedRegions.length > 0
-                    ? "다른 지역을 골라보면 찾을 수 있어요."
-                    : "조금만 기다리면 새 공고가 올라올 거예요."}
+                {clientFiltered
+                  ? "조건을 조금 넓히면 더 많은 분을 만날 수 있어요."
+                  : selectedStation
+                    ? "다른 역을 골라보면 찾을 수 있어요."
+                    : selectedRegions.length > 0
+                      ? "다른 지역을 골라보면 찾을 수 있어요."
+                      : "조금만 기다리면 새 공고가 올라올 거예요."}
               </p>
-              {selectedStation || selectedRegions.length > 0 ? (
+              {clientFiltered || selectedStation || selectedRegions.length > 0 ? (
                 <button
                   type="button"
                   className={styles.emptyAction}
-                  onClick={selectedStation ? openStationFilter : openFilter}
+                  onClick={hasConditions ? openConditions : openLocation}
                 >
-                  {selectedStation ? "다른 역 보기" : "다른 지역 보기"}
+                  {hasConditions
+                    ? "조건 다시 고르기"
+                    : selectedStation
+                      ? "다른 역 보기"
+                      : "다른 지역 보기"}
                 </button>
               ) : null}
             </div>
@@ -532,7 +449,7 @@ export function ExplorePage() {
         {restListings.map((item, index) =>
           renderListing(item, index + previewListings.length),
         )}
-        {visibleHasMore || loadingMore ? (
+        {(visibleHasMore || loadingMore) && !loading ? (
           <div
             className={styles.sentinel}
             aria-live="polite"
@@ -562,174 +479,28 @@ export function ExplorePage() {
         ) : null}
       </div>
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent
-          sheet
-          className={styles.sheet}
-          overlayClassName={styles.sheetOverlay}
-          showCloseButton={false}
-        >
-          <span className={styles.sheetHandle} aria-hidden />
-          {sheetStep === "district" && draftCity ? (
-            <section
-              key={`district-${draftCity}`}
-              className={cn(styles.sheetPane, styles.sheetPaneNext)}
-            >
-              <DialogHeader className={styles.sheetHeader}>
-                <button
-                  type="button"
-                  className={styles.sheetBack}
-                  onClick={() => setSheetStep("city")}
-                >
-                  <ArrowLeft size={16} strokeWidth={2.5} />
-                  광역 다시 고르기
-                </button>
-                <DialogTitle className={styles.sheetTitle}>
-                  <span className={styles.accent}>{draftCity}</span>에서
-                  <br />
-                  어디를 찾으세요?
-                </DialogTitle>
-              </DialogHeader>
-              <div className={styles.sheetGrid}>
-                {districts.map((item) => {
-                  const value =
-                    item === "전체"
-                      ? `${draftCity} 전체`
-                      : formatRegion(draftCity, item);
-                  const active = selectedRegions[0] === value;
-                  return (
-                    <button
-                      key={value}
-                      type="button"
-                      className={cn(
-                        styles.sheetCell,
-                        item === "전체" && styles.sheetCellWide,
-                        active && styles.sheetCellOn,
-                      )}
-                      onClick={() => pickDistrict(item)}
-                    >
-                      {item === "전체" ? `${draftCity} 전체` : item}
-                      {active ? <Check size={15} strokeWidth={2.8} /> : null}
-                    </button>
-                  );
-                })}
-              </div>
-            </section>
-          ) : (
-            <section
-              key="city"
-              className={cn(
-                styles.sheetPane,
-                draftCity && styles.sheetPaneBack,
-              )}
-            >
-              <DialogHeader className={styles.sheetHeader}>
-                <DialogTitle className={styles.sheetTitle}>
-                  어느 지역의
-                  <br />
-                  공고를 찾으세요?
-                </DialogTitle>
-                <DialogDescription className={styles.sheetDesc}>
-                  시·도를 고르면 구·시를 이어서 골라요.
-                </DialogDescription>
-              </DialogHeader>
-              <div className={styles.sheetGrid}>
-                {REGION_CITIES.map((item) => (
-                  <button
-                    key={item}
-                    type="button"
-                    className={cn(
-                      styles.sheetCell,
-                      currentCity === item && styles.sheetCellOn,
-                    )}
-                    onClick={() => pickCity(item)}
-                  >
-                    {item}
-                  </button>
-                ))}
-              </div>
-            </section>
-          )}
-        </DialogContent>
-      </Dialog>
+      <LocationSheet
+        key={`location-${locationSession}`}
+        open={locationOpen}
+        value={filter}
+        onOpenChange={setLocationOpen}
+        onApply={(next) => {
+          setParams(writeLocation(params, next));
+          setLocationOpen(false);
+        }}
+      />
 
-      <Dialog open={stationOpen} onOpenChange={setStationOpen}>
-        <DialogContent
-          sheet
-          className={styles.sheet}
-          overlayClassName={styles.sheetOverlay}
-          showCloseButton={false}
-        >
-          <span className={styles.sheetHandle} aria-hidden />
-          <section className={styles.sheetPane}>
-            <DialogHeader className={styles.sheetHeader}>
-              <DialogTitle className={styles.sheetTitle}>
-                어느 역 근처의
-                <br />
-                공고를 찾으세요?
-              </DialogTitle>
-              <DialogDescription className={styles.sheetDesc}>
-                역 이름을 입력하면 그 역 공고만 보여요.
-              </DialogDescription>
-            </DialogHeader>
-            <div className={styles.stationSearch}>
-              <Search
-                className={styles.stationSearchIcon}
-                size={18}
-                strokeWidth={2.2}
-                aria-hidden
-              />
-              <Input
-                className={styles.stationSearchInput}
-                placeholder="역 이름 검색"
-                value={stationQuery}
-                onChange={(e) => setStationQuery(e.target.value)}
-              />
-              {stationQuery ? (
-                <button
-                  type="button"
-                  className={styles.stationSearchClear}
-                  aria-label="검색어 지우기"
-                  onClick={() => setStationQuery("")}
-                >
-                  <X className="size-3.5" />
-                </button>
-              ) : null}
-            </div>
-            <div className={styles.stationResults}>
-              {!stationQuery.trim() ? null : stationSearchState === "error" ? (
-                <p className={styles.stationHint}>역을 불러오지 못했어요.</p>
-              ) : stationSearchState === "loading" &&
-                stationSuggestions.length === 0 ? (
-                <p className={styles.stationHint}>찾는 중</p>
-              ) : stationSuggestions.length === 0 ? (
-                <p className={styles.stationHint}>맞는 역이 없어요.</p>
-              ) : (
-                stationSuggestions.map((station) => {
-                  const active =
-                    selectedStation === station.name &&
-                    selectedStationRegion === station.region;
-                  return (
-                    <button
-                      key={`${station.region}-${station.name}-${station.lines.join(",")}`}
-                      type="button"
-                      className={cn(
-                        styles.stationRow,
-                        active && styles.stationRowOn,
-                      )}
-                      onClick={() => pickStation(station.name, station.region)}
-                    >
-                      <SubwayLineBadges lines={station.lines} />
-                      <span className={styles.stationName}>{station.name}</span>
-                      {active ? <Check size={16} strokeWidth={2.6} /> : null}
-                    </button>
-                  );
-                })
-              )}
-            </div>
-          </section>
-        </DialogContent>
-      </Dialog>
+      <ConditionFilter
+        key={`condition-${conditionSession}`}
+        open={conditionOpen}
+        value={filter}
+        onOpenChange={setConditionOpen}
+        countOf={countOf}
+        onApply={(next) => {
+          applyConditions(next);
+          setConditionOpen(false);
+        }}
+      />
     </section>
   );
 }

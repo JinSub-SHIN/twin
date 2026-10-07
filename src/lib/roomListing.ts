@@ -1,4 +1,5 @@
 import { houseGallery } from "@/lib/housePhotos";
+import { roomTraits, traitTags } from "@/lib/listingTraits";
 import {
   buildCostChart,
   optionLabel,
@@ -122,27 +123,12 @@ function costChart(
   );
 }
 
-const LIFE_TAGS = ["비흡연", "조용한생활", "깔끔한분", "반려동물없음", "아침형"];
 const MOVE_IN = ["즉시 입주 가능", "이번 달 입주", "일정은 대화로"];
-const JOB_TAG: Record<string, string> = {
-  employee: "직장인",
-  student: "학생",
-  freelancer: "프리랜서",
-  jobseeker: "취준생",
-};
 
 function hash(value: string) {
   let n = 0;
   for (const ch of value) n = (n * 31 + ch.charCodeAt(0)) >>> 0;
   return n;
-}
-
-function lifeTags(item: RoomListItem) {
-  const seed = hash(item.id);
-  const tags = [LIFE_TAGS[seed % LIFE_TAGS.length], LIFE_TAGS[(seed + 2) % LIFE_TAGS.length]];
-  const job = item.job ? JOB_TAG[item.job] : "";
-  if (job) tags.unshift(job);
-  return [...new Set(tags)].slice(0, 3);
 }
 
 export function roomListItemToSummary(item: RoomListItem): ListingSummary {
@@ -176,7 +162,7 @@ export function roomListItemToSummary(item: RoomListItem): ListingSummary {
     pitch: "함께 살 동거인을 찾아요",
     recruitLabel: "1명 모집",
     moveInLabel: MOVE_IN[hash(item.id) % MOVE_IN.length],
-    tags: lifeTags(item),
+    tags: traitTags(roomTraits(item)),
   };
 }
 

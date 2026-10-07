@@ -17,7 +17,8 @@ export function ListingDetailPage() {
   const { listings, openInquiry, recordView, rememberListing } = useRoommate();
   const stored = listings.find((item) => item.id === listingId);
   const [remote, setRemote] = useState<RoommateListing | null>(null);
-  const [error, setError] = useState("");
+  const [failedId, setFailedId] = useState("");
+  const error = failedId === listingId ? "공고를 불러오지 못했어요." : "";
   const viewed = useRef("");
   const source = stored ?? (remote?.id === listingId ? remote : null);
   const listing = useMemo(
@@ -28,14 +29,12 @@ export function ListingDetailPage() {
   useEffect(() => {
     if (stored || !listingId) return;
     let active = true;
-    setError("");
-    setRemote(null);
     getRoom(listingId)
       .then((room) => {
         if (active) setRemote(roomToRoommateListing(room));
       })
       .catch(() => {
-        if (active) setError("공고를 불러오지 못했어요.");
+        if (active) setFailedId(listingId);
       });
     return () => {
       active = false;

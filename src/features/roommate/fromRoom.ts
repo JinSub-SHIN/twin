@@ -1,4 +1,5 @@
 import { houseGallery } from '@/lib/housePhotos'
+import { roomTraits, traitTags } from '@/lib/listingTraits'
 import { optionLabel } from '@/lib/listingView'
 import type { RoomDetail } from '@/service/room'
 import {
@@ -48,14 +49,14 @@ function smokingOf(room: RoomDetail): Smoking {
   if (room.smoking === 'cigarette') return 'yes'
   if (room.smoking === 'e_cig') return 'indoor-no'
   if (room.smoking === 'none' || room.avoid_smoke) return 'no'
-  return 'no'
+  return roomTraits(room).smoking
 }
 
 function drinkOf(room: RoomDetail): Drink {
   if (room.avoid_drink || room.drink_freq === 'never') return 'none'
   if (room.drink_freq === 'often') return 'often'
   if (room.drink_freq === 'sometimes') return 'sometimes'
-  return 'sometimes'
+  return roomTraits(room).drinking
 }
 
 function labeled<T extends string>(
@@ -91,6 +92,8 @@ export function roomToRoommateListing(room: RoomDetail): RoommateListing {
   const shareTotal = manOf(room.share_total)
   const shareRent = manOf(room.share_rent)
   const shareMaint = manOf(room.share_maint)
+  const traits = roomTraits(room)
+  const tags = preferTags(room)
 
   return {
     id: room.id,
@@ -106,7 +109,7 @@ export function roomToRoommateListing(room: RoomDetail): RoommateListing {
       detailAddress: '',
       stationName: station,
       stationLines: room.subway_line ?? [],
-      walkMinutes: 0,
+      walkMinutes: station ? traits.walkMinutes : 0,
     },
     space: {
       shareType: 'private-room',
@@ -119,7 +122,7 @@ export function roomToRoommateListing(room: RoomDetail): RoommateListing {
     },
     photos: houseGallery(room.id),
     price: {
-      depositMan: null,
+      depositMan: traits.depositMan,
       rentMan: shareTotal ?? shareRent ?? manOf(room.rent),
       maintenanceMan: shareTotal == null ? (shareMaint ?? manOf(room.maint_fee)) : null,
       utilities: 'separate',
@@ -127,7 +130,7 @@ export function roomToRoommateListing(room: RoomDetail): RoommateListing {
     living: {
       smoking: smokingOf(room),
       drink: drinkOf(room),
-      pet: room.avoid_pet ? 'none' : 'ok',
+      pet: room.avoid_pet ? 'none' : traits.pet,
       rhythm: room.home_time === 'mostly' ? 'evening' : room.home_time === 'rarely' ? 'morning' : 'flex',
       clean: room.clean_freq === 'daily' ? 'high' : room.clean_freq === 'rarely' ? 'easy' : 'normal',
       noise: room.pers_type === 'quiet' ? 'quiet' : room.pers_type === 'outgoing' ? 'ok' : 'normal',
@@ -145,7 +148,7 @@ export function roomToRoommateListing(room: RoomDetail): RoommateListing {
               : room.job
                 ? 'any'
                 : '',
-      tags: preferTags(room),
+      tags: tags.length > 0 ? tags : traitTags(traits),
     },
     host: {
       nickname: room.nick?.trim() || '호스트',

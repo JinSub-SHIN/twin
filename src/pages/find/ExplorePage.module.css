@@ -37,57 +37,13 @@
   color: var(--highlight);
 }
 
-.filterRow {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.filterChip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  min-height: 2.35rem;
-  padding: 0.4rem 0.75rem 0.4rem 0.7rem;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--card);
-  color: var(--foreground);
-  font-size: 0.86rem;
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  cursor: pointer;
-}
-
-.filterChip span {
-  max-width: 8.5rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.filterChip svg:first-child {
-  color: var(--highlight);
-}
-
-.filterChipActive {
-  border-color: var(--ring);
-  background: var(--accent);
-  color: var(--accent-foreground);
-}
-
-.filterClear {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.9rem;
-  height: 1.9rem;
-  border: 0;
-  border-radius: 999px;
-  background: var(--muted);
-  color: var(--muted-foreground);
-  cursor: pointer;
+.filterSticky {
+  position: sticky;
+  top: 0;
+  z-index: 15;
+  margin: -0.55rem -0.15rem -0.35rem;
+  padding: 0.55rem 0.15rem 0.35rem;
+  background: var(--background);
 }
 
 .sheetOverlay {
@@ -149,146 +105,10 @@
   background: color-mix(in oklch, var(--foreground) 14%, transparent);
 }
 
-.sheetPane {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-}
-
-.sheetPaneNext {
-  animation: sheet-pane-next 0.32s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.sheetPaneBack {
-  animation: sheet-pane-back 0.32s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-@keyframes sheet-pane-next {
-  from {
-    opacity: 0;
-    transform: translate3d(1.5rem, 0, 0);
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-  }
-}
-
-@keyframes sheet-pane-back {
-  from {
-    opacity: 0;
-    transform: translate3d(-1.5rem, 0, 0);
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-  }
-}
-
-.sheetHeader {
-  flex: none;
-  align-items: flex-start;
-  gap: 0.45rem;
-  padding: 0.75rem 1.5rem 1.25rem;
-}
-
-.sheetTitle {
-  margin: 0;
-  font-family: "Noto Sans KR", sans-serif;
-  font-size: 1.4rem;
-  font-weight: 700;
-  line-height: 1.38;
-  letter-spacing: -0.045em;
-  word-break: keep-all;
-}
-
-.sheetDesc {
-  margin: 0;
-  font-size: 0.88rem;
-  font-weight: 500;
-  letter-spacing: -0.02em;
-}
-
-.sheetBack {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  margin: -0.25rem 0 0.1rem -0.35rem;
-  padding: 0.3rem 0.45rem;
-  border: 0;
-  border-radius: 0.6rem;
-  background: transparent;
-  color: var(--muted-foreground);
-  font-size: 0.84rem;
-  font-weight: 650;
-  letter-spacing: -0.02em;
-  cursor: pointer;
-  transition: background-color 0.15s ease;
-}
-
-.sheetBack:active {
-  background: var(--muted);
-}
-
-.sheetGrid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.5rem;
-  min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  padding: 0 1.25rem 0.25rem;
-  scrollbar-width: none;
-}
-
-.sheetCell {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.25rem;
-  min-width: 0;
-  min-height: 3.25rem;
-  padding: 0 0.4rem;
-  border: 0;
-  border-radius: 0.95rem;
-  background: var(--muted);
-  color: var(--foreground);
-  font-size: 0.95rem;
-  font-weight: 650;
-  letter-spacing: -0.03em;
-  white-space: nowrap;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  transition:
-    transform 0.16s ease,
-    background-color 0.16s ease,
-    color 0.16s ease;
-}
-
-.sheetCell:active {
-  transform: scale(0.96);
-  background: color-mix(in oklch, var(--foreground) 10%, var(--muted));
-}
-
-.sheetCellWide {
-  grid-column: 1 / -1;
-}
-
-.sheetCellOn {
-  background: color-mix(in oklch, var(--highlight) 14%, var(--card));
-  color: var(--highlight);
-  font-weight: 800;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .sheet,
-  .sheetOverlay,
-  .sheetCell {
+  .sheetOverlay {
     transition: none;
-  }
-  .sheetPaneNext,
-  .sheetPaneBack {
-    animation: none;
   }
 }
 
@@ -390,23 +210,15 @@
 
 .feedHead {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0.1rem 0.15rem 0;
 }
 
-.feedPlace {
-  margin: 0;
-  font-size: 0.92rem;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  color: var(--foreground);
-}
-
 .feedLabel {
   margin: 0;
-  font-size: 0.8rem;
+  font-size: 0.86rem;
   font-weight: 650;
   letter-spacing: -0.02em;
   color: var(--muted-foreground);
@@ -479,95 +291,6 @@
   font-weight: 500;
   letter-spacing: -0.02em;
   color: var(--muted-foreground);
-}
-
-.stationSearch {
-  position: relative;
-  display: flex;
-  align-items: center;
-  margin: 0 1.15rem 0.7rem;
-}
-
-.stationSearchIcon {
-  position: absolute;
-  left: 0.9rem;
-  color: var(--muted-foreground);
-  pointer-events: none;
-}
-
-.stationSearchInput {
-  height: 2.9rem;
-  padding-left: 2.5rem !important;
-  padding-right: 2.5rem !important;
-  border: 0 !important;
-  border-radius: 0.9rem !important;
-  background: var(--muted) !important;
-  box-shadow: none !important;
-  font-size: 0.92rem;
-  font-weight: 600;
-}
-
-.stationSearchClear {
-  position: absolute;
-  right: 0.55rem;
-  display: grid;
-  place-items: center;
-  width: 1.55rem;
-  height: 1.55rem;
-  border: 0;
-  border-radius: 999px;
-  background: var(--card);
-  color: var(--muted-foreground);
-  cursor: pointer;
-}
-
-.stationResults {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  max-height: min(24rem, 52dvh);
-  overflow-y: auto;
-  padding: 0 0.45rem;
-}
-
-.stationHint {
-  margin: 0;
-  padding: 0.8rem 0.85rem 0.4rem;
-  font-size: 0.84rem;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  color: var(--muted-foreground);
-}
-
-.stationRow {
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-  width: 100%;
-  min-height: 3.2rem;
-  padding: 0.55rem 0.7rem;
-  border: 0;
-  border-radius: 0.85rem;
-  background: transparent;
-  color: var(--foreground);
-  text-align: left;
-  cursor: pointer;
-}
-
-.stationRow:active,
-.stationRowOn {
-  background: var(--muted);
-}
-
-.stationName {
-  min-width: 0;
-  flex: 1;
-  overflow: hidden;
-  font-size: 0.95rem;
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .emptyAction {
