@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type MouseEvent } from "react";
+import { Fragment, useEffect, useRef, useState, type MouseEvent } from "react";
 import { ArrowLeft, Check, ChevronDown, MapPin, Search, TrainFront, X } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ListingTeaserCard } from "@/components/ui/card";
@@ -32,6 +32,16 @@ import { ApiError } from "@/service/http";
 import styles from "./ExplorePage.module.css";
 
 const PAGE_SIZE = 7;
+const AD_INTERVALS = [3, 4];
+
+function showsAdAfter(index: number) {
+  let cursor = -1;
+  for (let step = 0; cursor < index; step += 1) {
+    cursor += AD_INTERVALS[step % AD_INTERVALS.length];
+    if (cursor === index) return true;
+  }
+  return false;
+}
 
 type ListingRow = {
   id: string;
@@ -348,6 +358,24 @@ export function ExplorePage() {
   const previewListings = visibleRows.slice(0, 2);
   const restListings = visibleRows.slice(2);
 
+  function renderListing(item: ListingRow, index: number) {
+    const card = (
+      <ListingTeaserCard
+        summary={item.summary}
+        onClick={() => openListing(item.id)}
+      />
+    );
+    if (!showsAdAfter(index)) return <Fragment key={item.id}>{card}</Fragment>;
+    return (
+      <Fragment key={item.id}>
+        {card}
+        <div className={styles.adBanner} aria-label="광고 영역">
+          광고 예정 배너 구역
+        </div>
+      </Fragment>
+    );
+  }
+
   return (
     <section className={styles.page}>
       <div className={styles.lead}>
@@ -439,13 +467,9 @@ export function ExplorePage() {
               <p className={styles.emptyDesc}>{visibleError}</p>
             </div>
           ) : previewListings.length > 0 ? (
-            previewListings.map((item) => (
-              <ListingTeaserCard
-                key={item.id}
-                summary={item.summary}
-                onClick={() => openListing(item.id)}
-              />
-            ))
+            previewListings.map((item, index) =>
+              renderListing(item, index),
+            )
           ) : (
             <div className={styles.emptyListing}>
               <img
@@ -494,13 +518,9 @@ export function ExplorePage() {
           )}
         </div>
 
-        {restListings.map((item) => (
-          <ListingTeaserCard
-            key={item.id}
-            summary={item.summary}
-            onClick={() => openListing(item.id)}
-          />
-        ))}
+        {restListings.map((item, index) =>
+          renderListing(item, index + previewListings.length),
+        )}
         {visibleHasMore || loadingMore ? (
           <div
             className={styles.sentinel}
