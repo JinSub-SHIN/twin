@@ -51,6 +51,7 @@ type ListingRow = {
 async function fetchListingPage(
   regions: string[],
   station: string,
+  stationRegion: string,
   page: number,
   isCancelled: () => boolean,
 ) {
@@ -59,10 +60,11 @@ async function fetchListingPage(
   let total = 0;
   const rows: ListingRow[] = [];
 
+  const stationOnly = Boolean(station.trim());
   while (rows.length === 0 && hasMore && cursor - page < 40) {
     const result = await getRoomList({
-      region: regionQueryOf(regions),
-      subway_stn: station || undefined,
+      region: stationOnly ? stationRegion.trim() || undefined : regionQueryOf(regions),
+      subway_stn: stationOnly ? station.trim() : undefined,
       page: cursor,
       limit: PAGE_SIZE,
     });
@@ -71,7 +73,7 @@ async function fetchListingPage(
     hasMore = result.has_more;
     cursor += 1;
     for (const item of result.list) {
-      if (!matchesRoomRegion(item, regions)) continue;
+      if (!stationOnly && !matchesRoomRegion(item, regions)) continue;
       if (!matchesRoomStation(item, station)) continue;
       rows.push({ id: item.id, summary: roomListItemToSummary(item) });
     }
@@ -86,6 +88,7 @@ export function ExplorePage() {
   const [params, setParams] = useSearchParams();
   const selectedRegions = params.getAll("regions");
   const selectedStation = params.get("station")?.trim() ?? "";
+  const selectedStationRegion = params.get("stationRegion")?.trim() ?? "";
   const [open, setOpen] = useState(false);
   const [stationOpen, setStationOpen] = useState(false);
   const [stationQuery, setStationQuery] = useState("");
@@ -103,7 +106,7 @@ export function ExplorePage() {
     ? ["전체", ...(REGION_TREE[draftCity] ?? [])]
     : [];
   const regionKey = selectedRegions.join("|");
-  const filterKey = `${regionKey}::${selectedStation}`;
+  const filterKey = `${regionKey}::${selectedStation}::${selectedStationRegion}`;
 
   const [rows, setRows] = useState<ListingRow[]>([]);
   const [total, setTotal] = useState(0);
@@ -130,12 +133,14 @@ export function ExplorePage() {
   const generationRef = useRef(0);
   const regionsRef = useRef(selectedRegions);
   const stationRef = useRef(selectedStation);
+  const stationRegionRef = useRef(selectedStationRegion);
 
   useEffect(() => {
     const generation = ++generationRef.current;
     const regions = regionKey ? regionKey.split("|") : [];
     regionsRef.current = regions;
     stationRef.current = selectedStation;
+    stationRegionRef.current = selectedStationRegion;
     nextPageRef.current = 1;
     hasMoreRef.current = false;
     loadingRef.current = true;
@@ -143,9 +148,15 @@ export function ExplorePage() {
 
     void (async () => {
       try {
-        const result = await fetchListingPage(regions, selectedStation, 1, () => {
-          return generationRef.current !== generation;
-        });
+        const result = await fetchListingPage(
+          regions,
+          selectedStation,
+          selectedStationRegion,
+          1,
+          () => {
+            return generationRef.current !== generation;
+          },
+        );
         if (!result || generationRef.current !== generation) return;
         setRows(result.rows);
         setTotal(result.total);
@@ -171,7 +182,7 @@ export function ExplorePage() {
         }
       }
     })();
-  }, [filterKey, regionKey, selectedStation]);
+  }, [filterKey, regionKey, selectedStation, selectedStationRegion]);
 
   useEffect(() => {
     const root = document.querySelector("main");
@@ -192,6 +203,7 @@ export function ExplorePage() {
           const result = await fetchListingPage(
             regionsRef.current,
             stationRef.current,
+            stationRegionRef.current,
             nextPageRef.current,
             () => generationRef.current !== generation,
           );
@@ -259,12 +271,10 @@ export function ExplorePage() {
 
     const controller = new AbortController();
     let active = true;
-    const city = cityOfRegion(selectedRegions[0]);
     const timer = window.setTimeout(() => {
       setStationSearchState("loading");
       searchStations({
         q,
-        region: city || undefined,
         limit: 20,
         signal: controller.signal,
       })
@@ -285,7 +295,7 @@ export function ExplorePage() {
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [stationOpen, stationQuery, regionKey]);
+  }, [stationOpen, stationQuery]);
 
   const filterLabel =
     selectedRegions.length === 0
@@ -329,9 +339,9 @@ export function ExplorePage() {
     setStationOpen(true);
   }
 
-  function pickStation(name: string) {
-    const next = new URLSearchParams(params);
-    next.set("station", name);
+  function pickStation(name: string, region: string) {
+    const next = new URLSearchParams([["station", name]]);
+    if (region.trim()) next.set("stationRegion", region.trim());
     setParams(next);
     setStationOpen(false);
   }
@@ -340,6 +350,7 @@ export function ExplorePage() {
     event.stopPropagation();
     const next = new URLSearchParams(params);
     next.delete("station");
+    next.delete("stationRegion");
     setParams(next);
   }
 
@@ -695,7 +706,9 @@ export function ExplorePage() {
                 <p className={styles.stationHint}>맞는 역이 없어요.</p>
               ) : (
                 stationSuggestions.map((station) => {
-                  const active = selectedStation === station.name;
+                  const active =
+                    selectedStation === station.name &&
+                    selectedStationRegion === station.region;
                   return (
                     <button
                       key={`${station.region}-${station.name}-${station.lines.join(",")}`}
@@ -704,7 +717,7 @@ export function ExplorePage() {
                         styles.stationRow,
                         active && styles.stationRowOn,
                       )}
-                      onClick={() => pickStation(station.name)}
+                      onClick={() => pickStation(station.name, station.region)}
                     >
                       <SubwayLineBadges lines={station.lines} />
                       <span className={styles.stationName}>{station.name}</span>

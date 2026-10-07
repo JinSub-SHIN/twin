@@ -595,6 +595,221 @@
   background: none;
 }
 
+.detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 1.15rem 1.05rem 1.05rem;
+  border: 1px solid color-mix(in oklch, var(--foreground) 8%, transparent);
+  border-radius: 1.35rem;
+  background: var(--card);
+  color: var(--foreground);
+  font-family: "Noto Sans KR", var(--font-sans), sans-serif;
+  box-shadow:
+    0 1px 2px oklch(0 0 0 / 0.04),
+    0 12px 28px -16px oklch(0 0 0 / 0.18);
+}
+
+.spot {
+  display: flex;
+  align-items: center;
+  gap: 0.28rem;
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: var(--muted-foreground);
+}
+
+.spot span {
+  min-width: 0;
+}
+
+.detailTitle {
+  margin: 0;
+  font-size: 1.38rem;
+  font-weight: 800;
+  line-height: 1.4;
+  letter-spacing: -0.045em;
+  word-break: keep-all;
+  white-space: pre-wrap;
+}
+
+.detailDesc {
+  margin: -0.25rem 0 0;
+  font-size: 0.86rem;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: -0.03em;
+  color: var(--muted-foreground);
+  word-break: keep-all;
+}
+
+.whisper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+}
+
+.whisperLabel {
+  margin: 0;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--highlight);
+}
+
+.whisperBody,
+.whisperEmpty {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.65;
+  letter-spacing: -0.03em;
+  word-break: keep-all;
+  white-space: pre-wrap;
+}
+
+.whisperEmpty {
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+
+.applyWish {
+  margin: 0 0 0.15rem;
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.55;
+  letter-spacing: -0.04em;
+  word-break: keep-all;
+  color: var(--foreground);
+}
+
+.glance {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.45rem;
+  margin-top: 0.2rem;
+}
+
+.glanceItem {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.28rem;
+  min-width: 0;
+  min-height: 5.5rem;
+  padding: 0.75rem 0.65rem 0.7rem;
+  border: 1px solid color-mix(in oklch, var(--foreground) 6%, transparent);
+  border-radius: 1rem;
+  background: var(--background);
+}
+
+.glanceIcon,
+.glanceEmoji {
+  color: var(--muted-foreground);
+}
+
+.glanceEmoji {
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.glanceLabel {
+  margin: 0.15rem 0 0;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: var(--muted-foreground);
+}
+
+.glanceValue {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 800;
+  line-height: 1.35;
+  letter-spacing: -0.04em;
+  color: var(--highlight);
+  word-break: keep-all;
+}
+
+.detailNotes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.84rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: var(--foreground);
+}
+
+.detailNotes li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+
+.detailAction {
+  margin-top: 0.15rem;
+}
+
+.mascotBand {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-top: 0.35rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid color-mix(in oklch, var(--foreground) 8%, transparent);
+}
+
+.mascotBand img {
+  flex-shrink: 0;
+  width: 4.4rem;
+  height: 4.4rem;
+  object-fit: contain;
+}
+
+.mascotBand p {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1.55;
+  letter-spacing: -0.04em;
+  word-break: keep-all;
+}
+
+.hostMark {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 2.7rem;
+  height: 2.7rem;
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--primary) 55%, white);
+  color: var(--highlight);
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+:global(html.dark) .hostMark {
+  background: color-mix(in oklch, var(--primary) 28%, var(--card));
+  color: var(--highlight);
+}
+
+.hostRow .hostName {
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.hostRow .hostMeta {
+  margin-top: 0.12rem;
+  font-size: 0.76rem;
+}
+
 @media (max-width: 360px) {
   .footer {
     grid-template-columns: 1fr 1fr;

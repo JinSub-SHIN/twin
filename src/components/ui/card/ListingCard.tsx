@@ -1,243 +1,125 @@
+import { type ReactNode } from "react";
+import { Banknote, PawPrint, UserRound } from "lucide-react";
 import {
   buildMateBurden,
-  type CostChart,
+  type FactChip,
   type ListingView,
 } from "@/lib/listingView";
+import { COUNSELOR_IMG } from "@/pages/home/CounselorAvatar";
 import styles from "@/pages/regist/ListingPreviewPage.module.css";
 
-function CostSplitChart({ chart }: { chart: CostChart }) {
-  const aria = [
-    chart.label,
-    chart.mateAmountLabel ? `살짝 ${chart.mateAmountLabel}` : null,
-    chart.totalLabel ? `전체 ${chart.totalLabel}` : null,
-    chart.negotiated ? "분담은 직접 조율" : null,
-  ]
-    .filter(Boolean)
-    .join(", ");
+function glanceValue(chip: FactChip) {
+  return chip.label.replace(/^(성격|집 체류|청소|음주|흡연)\s*/, "");
+}
 
-  return (
-    <article className={styles.costCard} aria-label={aria}>
-      <div className={styles.costCopy}>
-        <p className={styles.costLabel}>살짝 {chart.label}</p>
-        {chart.negotiated ? (
-          <>
-            <p className={styles.costTotal}>조율</p>
-            <p className={styles.costHint}>
-              {chart.totalLabel
-                ? `전체 ${chart.totalLabel} · 분담은 만나서 맞춰요`
-                : "분담은 만나서 맞춰요"}
-            </p>
-          </>
-        ) : chart.mateAmountLabel ? (
-          <>
-            <p className={styles.costTotal}>{chart.mateAmountLabel}</p>
-            <p className={styles.costHint}>
-              {chart.totalLabel
-                ? `전체 ${chart.totalLabel} 중 살짝 부담`
-                : "살짝이 낼 금액이에요"}
-            </p>
-          </>
-        ) : (
-          <p className={styles.costHint}>분담 비율이에요</p>
-        )}
-      </div>
-
-      {chart.negotiated ? (
-        <div className={styles.negotiateBar}>분담은 만나서 조율해요</div>
-      ) : chart.myPercent != null && chart.matePercent != null ? (
-        <>
-          <div className={styles.splitBar} aria-hidden>
-            <span
-              className={styles.splitMate}
-              style={{ flexGrow: chart.matePercent, flexBasis: 0 }}
-            >
-              {chart.matePercent >= 28 ? `살짝 ${chart.matePercent}%` : ""}
-            </span>
-            <span
-              className={styles.splitMe}
-              style={{ flexGrow: chart.myPercent, flexBasis: 0 }}
-            >
-              {chart.myPercent >= 28 ? `나 ${chart.myPercent}%` : ""}
-            </span>
-          </div>
-          <div className={styles.splitLegend}>
-            <span className={styles.legendMate}>
-              <i className={styles.legendDotMate} />
-              살짝 {chart.mateAmountLabel ?? `${chart.matePercent}%`}
-            </span>
-            <span className={styles.legendMe}>
-              나 {chart.myAmountLabel ?? `${chart.myPercent}%`}
-              <i className={styles.legendDotMe} />
-            </span>
-          </div>
-        </>
-      ) : null}
-    </article>
-  );
+function topicParticle(name: string) {
+  const last = name.trim().slice(-1);
+  const code = last.charCodeAt(0);
+  if (!last || code < 0xac00 || code > 0xd7a3) return "는";
+  return (code - 0xac00) % 28 === 0 ? "는" : "은";
 }
 
 export function ListingCard({
   view,
   idPrefix,
+  footer,
 }: {
   view: ListingView;
   idPrefix: string;
+  footer?: ReactNode;
 }) {
-  const hasStats = view.charts.length > 0;
   const burden = buildMateBurden(view.charts);
+  const amount = burden.negotiated && !burden.mateLabel ? "조율" : burden.mateLabel;
   const prefGenderWord =
     view.prefGender === "female"
       ? "여성"
       : view.prefGender === "male"
         ? "남성"
         : null;
+  const petBlocked = view.hardNos.some((item) => item.label.includes("반려"));
+  const life = view.lifestyle[0];
+  const restLife = view.lifestyle.slice(petBlocked || !life ? 0 : 1);
+  const bio = view.bio.trim();
+  const prefValue = prefGenderWord
+    ? `${prefGenderWord} 선호`
+    : view.prefGender === "any"
+      ? "성별 무관"
+      : "아직 없어요";
 
   return (
-    <div className={styles.sheet}>
-      <section className={styles.hero}>
-        <div className={styles.heroTags}>
-          <span className={styles.eyebrow}>살짝 공고</span>
-          {view.prefGender ? (
-            <span
-              className={
-                view.prefGender === "female"
-                  ? styles.prefTagFemale
-                  : view.prefGender === "male"
-                    ? styles.prefTagMale
-                    : styles.prefTag
-              }
-            >
-              {prefGenderWord ? `${prefGenderWord} 선호` : "성별 무관"}
-            </span>
-          ) : null}
-        </div>
-        <h2 className={styles.headline}>{view.headline}</h2>
-        {view.restrictListingByPrefGender && prefGenderWord ? (
-          <p className={styles.hostPrefNote}>
-            {prefGenderWord}만 볼 수 있는 공고예요
-          </p>
-        ) : null}
-
-        <div className={styles.host}>
-          <div className={styles.avatar} aria-hidden>
-            {view.photoUrl ? (
-              <img src={view.photoUrl} alt="" className={styles.avatarImg} />
-            ) : (
-              <span>{view.initial}</span>
-            )}
-          </div>
-          <div className={styles.hostText}>
-            <p className={styles.hostName}>{view.nickname}</p>
-            {view.meta ? <p className={styles.hostMeta}>{view.meta}</p> : null}
-          </div>
-        </div>
+    <article className={styles.detail} aria-label={`${view.nickname}의 공고`}>
+      <h2 id={`${idPrefix}-title`} className={styles.detailTitle}>
+        {view.headline}
+      </h2>
+      <section className={styles.whisper} aria-labelledby={`${idPrefix}-bio`}>
+        <h3 id={`${idPrefix}-bio`} className={styles.whisperLabel}>
+          살짝 한마디
+        </h3>
+        <p className={bio ? styles.whisperBody : styles.whisperEmpty}>
+          {bio || "아직 한마디가 없어요."}
+        </p>
       </section>
+      {view.meta ? <p className={styles.detailDesc}>{view.meta}</p> : null}
+      {view.restrictListingByPrefGender && prefGenderWord ? (
+        <p className={styles.detailDesc}>{prefGenderWord}만 볼 수 있는 공고예요</p>
+      ) : null}
 
-      <section className={styles.section} aria-labelledby={`${idPrefix}-bio`}>
-        <header className={styles.sectionHead}>
-          <h3 id={`${idPrefix}-bio`} className={styles.sectionTitle}>
-            한마디
-          </h3>
-          <p className={styles.sectionDesc}>살짝에게 전하는 소개예요</p>
-        </header>
-        <article className={styles.costCard}>
-          {view.bio ? (
-            <p className={styles.bio}>{view.bio}</p>
+      <div className={styles.glance}>
+        <div className={styles.glanceItem}>
+          <Banknote className={styles.glanceIcon} size={16} strokeWidth={2.2} aria-hidden />
+          <p className={styles.glanceLabel}>살짝 부담</p>
+          <p className={styles.glanceValue}>{amount ?? "아직 없어요"}</p>
+        </div>
+        <div className={styles.glanceItem}>
+          <UserRound className={styles.glanceIcon} size={16} strokeWidth={2.2} aria-hidden />
+          <p className={styles.glanceLabel}>함께할 분</p>
+          <p className={styles.glanceValue}>{prefValue}</p>
+        </div>
+        <div className={styles.glanceItem}>
+          {petBlocked || !life ? (
+            <PawPrint className={styles.glanceIcon} size={16} strokeWidth={2.2} aria-hidden />
           ) : (
-            <p className={styles.bioEmpty}>
-              아직 소개 글이 없어요. 프로필에서 한마디를 적어보면 매칭이 더
-              자연스러워져요.
-            </p>
+            <span className={styles.glanceEmoji} aria-hidden>
+              {life.emoji}
+            </span>
           )}
-        </article>
-      </section>
+          <p className={styles.glanceLabel}>
+            {petBlocked ? "반려동물" : life ? "생활" : "반려동물"}
+          </p>
+          <p className={styles.glanceValue}>
+            {petBlocked ? "어려워요" : life ? glanceValue(life) : "괜찮아요"}
+          </p>
+        </div>
+      </div>
 
-      {hasStats ? (
-        <section
-          className={styles.section}
-          aria-labelledby={`${idPrefix}-housing`}
-        >
-          <header className={styles.sectionHead}>
-            <h3 id={`${idPrefix}-housing`} className={styles.sectionTitle}>
-              주거 조건
-            </h3>
-            <p className={styles.sectionDesc}>
-              살짝이 매달 부담할 (예상)금액이에요
-            </p>
-          </header>
-          {burden.mateLabel || burden.negotiated ? (
-            <article className={styles.burdenCard}>
-              <p className={styles.burdenLabel}>살짝이 낼 돈</p>
-              <p className={styles.burdenTotal}>{burden.mateLabel ?? "조율"}</p>
-              {burden.mateBreakdown ? (
-                <p className={styles.burdenBreak}>{burden.mateBreakdown}</p>
-              ) : null}
-              {burden.houseBreakdown ? (
-                <p className={styles.burdenHouse}>
-                  집 전체 {burden.houseBreakdown}
-                </p>
-              ) : null}
-            </article>
-          ) : null}
-          <div className={styles.costCharts}>
-            {view.charts.map((chart) => (
-              <CostSplitChart key={chart.key} chart={chart} />
+      {restLife.length > 0 || view.hardNos.length > 0 ? (
+        <ul className={styles.detailNotes}>
+          {restLife.map((chip) => (
+            <li key={chip.label}>
+              <span aria-hidden>{chip.emoji}</span>
+              {chip.label}
+            </li>
+          ))}
+          {view.hardNos
+            .filter((item) => !(petBlocked && item.label.includes("반려")))
+            .map((item) => (
+              <li key={item.label}>
+                <span aria-hidden>{item.emoji}</span>
+                함께하기 어려워요 · {item.label}
+              </li>
             ))}
-          </div>
-        </section>
+        </ul>
       ) : null}
 
-      {view.lifestyle.length > 0 ? (
-        <section
-          className={styles.section}
-          aria-labelledby={`${idPrefix}-life`}
-        >
-          <header className={styles.sectionHead}>
-            <h3 id={`${idPrefix}-life`} className={styles.sectionTitle}>
-              생활 리듬
-            </h3>
-            <p className={styles.sectionDesc}>평소 생활 패턴이에요</p>
-          </header>
-          <article className={styles.costCard}>
-            <div className={styles.factWrap}>
-              {view.lifestyle.map((chip) => (
-                <span key={chip.label} className={styles.prefOption}>
-                  <span className={styles.factEmoji} aria-hidden>
-                    {chip.emoji}
-                  </span>
-                  {chip.label}
-                </span>
-              ))}
-            </div>
-          </article>
-        </section>
-      ) : null}
-
-      {view.hardNos.length > 0 ? (
-        <section
-          className={styles.section}
-          aria-labelledby={`${idPrefix}-hard`}
-        >
-          <header className={styles.sectionHead}>
-            <h3 id={`${idPrefix}-hard`} className={styles.sectionTitle}>
-              함께하기 어려운 점
-            </h3>
-            <p className={styles.sectionDesc}>이 부분은 맞춰주기 어려워요</p>
-          </header>
-          <article className={styles.costCard}>
-            <div className={styles.factWrap}>
-              {view.hardNos.map((item) => (
-                <span key={item.label} className={styles.prefOptionHard}>
-                  <span className={styles.factEmoji} aria-hidden>
-                    {item.emoji}
-                  </span>
-                  {item.label}
-                </span>
-              ))}
-            </div>
-          </article>
-        </section>
-      ) : null}
-    </div>
+      <div className={styles.mascotBand}>
+        <img src={COUNSELOR_IMG.greeting} alt="" />
+        <p>
+          {view.nickname}
+          {topicParticle(view.nickname)} 지금 이 공간에 새로운 인연이 생기길
+          바라고 있어요!!
+        </p>
+      </div>
+      {footer ? <div className={styles.detailAction}>{footer}</div> : null}
+    </article>
   );
 }

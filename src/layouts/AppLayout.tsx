@@ -11,10 +11,12 @@ export function AppLayout() {
   const isSignup = pathname.startsWith('/signup')
   const isLogin = pathname.startsWith('/login')
   const isProfileEdit = pathname.startsWith('/profile/edit')
-  const isListingPreview = pathname.startsWith('/explore/listing')
+  const isListingDetail = pathname.startsWith('/explore/listing/')
+  const isListingPreview = pathname.startsWith('/explore/listing') && !isListingDetail
   const isAuthPage = isSignup || isLogin
-  const hideHeader = isAuthPage || isProfileEdit || isListingPreview || isHome || isCounselor
-  const hideNav = isCounselor
+  const hideHeader =
+    isAuthPage || isProfileEdit || isListingPreview || isListingDetail || isHome || isCounselor
+  const hideNav = isCounselor || isListingDetail
 
   return (
     <div className={cn(styles.shell, styles.shellDefault)} data-app-shell>
@@ -26,11 +28,16 @@ export function AppLayout() {
             ? styles.mainHome
             : isCounselor
               ? styles.mainCounselor
-              : !isSignup && !isProfileEdit && !isListingPreview && styles.mainDefault,
+              : !isSignup &&
+                !isProfileEdit &&
+                !isListingPreview &&
+                !isListingDetail &&
+                styles.mainDefault,
           isLogin && styles.mainAuth,
           isSignup && styles.mainSignup,
           isProfileEdit && styles.mainProfileEdit,
           isListingPreview && styles.mainListingPreview,
+          isListingDetail && styles.mainListingDetail,
         )}
       >
         <Outlet />
