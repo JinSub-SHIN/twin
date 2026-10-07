@@ -666,11 +666,7 @@ export function ExplorePage() {
               ) : null}
             </div>
             <div className={styles.stationResults}>
-              {!stationQuery.trim() ? (
-                <p className={styles.stationHint}>
-                  역 이름을 입력하면 바로 아래에서 고를 수 있어요
-                </p>
-              ) : stationSearchState === "error" ? (
+              {!stationQuery.trim() ? null : stationSearchState === "error" ? (
                 <p className={styles.stationHint}>역을 불러오지 못했어요.</p>
               ) : stationSearchState === "loading" &&
                 stationSuggestions.length === 0 ? (

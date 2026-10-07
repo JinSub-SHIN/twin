@@ -1163,13 +1163,6 @@ export function ProfileEditPage() {
                             ) : null}
                           </div>
                         </div>
-                      ) : !(
-                          nearestStation &&
-                          nearestStation !== NO_NEARBY_STATION
-                        ) ? (
-                        <p className={styles.stationHint}>
-                          역 이름을 입력하면 바로 아래에서 고를 수 있어요
-                        </p>
                       ) : null}
                     </div>
                   </div>
