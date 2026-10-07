@@ -22,6 +22,7 @@ export type RoomListResponse = {
 
 export type RoomListQuery = {
   region?: string
+  subway_stn?: string
   page?: number
   limit?: number
 }

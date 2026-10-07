@@ -62,6 +62,7 @@ async function fetchListingPage(
   while (rows.length === 0 && hasMore && cursor - page < 40) {
     const result = await getRoomList({
       region: regionQueryOf(regions),
+      subway_stn: station || undefined,
       page: cursor,
       limit: PAGE_SIZE,
     });
@@ -116,12 +117,11 @@ export function ExplorePage() {
   const visibleError = ready ? error : "";
   const visibleHasMore = ready && hasMore;
   const loading = !ready;
-  const listingCount =
-    !selectedStation && usesServerTotal(selectedRegions)
-      ? ready
-        ? total
-        : 0
-      : visibleRows.length;
+  const listingCount = usesServerTotal(selectedRegions)
+    ? ready
+      ? total
+      : 0
+    : visibleRows.length;
 
   const loadingRef = useRef(false);
   const armedRef = useRef(true);
