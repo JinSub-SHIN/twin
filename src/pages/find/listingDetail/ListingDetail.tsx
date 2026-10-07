@@ -70,7 +70,7 @@ export function ListingDetail({
         onLike={toggleLike}
         onShare={() => void share()}
       />
-      <ListingGallery photos={listing.photos} badge={listing.kindLabel} />
+      <ListingGallery photos={listing.photos} />
 
       <div className={styles.body}>
         <ListingSummary listing={listing} />

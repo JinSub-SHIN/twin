@@ -5,7 +5,6 @@ const PHOTO = (id: string) =>
 
 export const MOCK_LISTING_DETAIL: ListingDetailData = {
   id: 'mock',
-  kindLabel: '월세 함께 나누기',
   area: {
     city: '서울시',
     district: '강남구',

@@ -49,7 +49,6 @@ export type ListingArea = {
 
 export type ListingDetailData = {
   id: string
-  kindLabel: string
   area: ListingArea
   title: string
   intro: string

@@ -3,13 +3,7 @@ import { ListingPhotoTile } from './ListingPhotoTile'
 import type { ListingPhoto } from './types'
 import styles from './ListingDetail.module.css'
 
-export function ListingGallery({
-  photos,
-  badge,
-}: {
-  photos: ListingPhoto[]
-  badge: string
-}) {
+export function ListingGallery({ photos }: { photos: ListingPhoto[] }) {
   const trackRef = useRef<HTMLDivElement>(null)
   const [index, setIndex] = useState(0)
 
@@ -34,7 +28,6 @@ export function ListingGallery({
           </div>
         ))}
       </div>
-      <span className={styles.galleryBadge}>{badge}</span>
       {photos.length > 1 ? (
         <span className={styles.galleryCount} aria-live="polite">
           {index + 1} / {photos.length}
