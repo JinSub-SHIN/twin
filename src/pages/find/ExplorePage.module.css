@@ -122,7 +122,7 @@
   overflow: hidden;
   box-shadow: 0 -10px 40px rgb(0 0 0 / 0.12);
   animation: none !important;
-  translate: none !important;
+  translate: 0 0 !important;
   transform: none !important;
   transition: transform 0.42s cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -130,7 +130,7 @@
 .sheet[data-starting-style],
 .sheet[data-ending-style] {
   animation: none !important;
-  translate: none !important;
+  translate: 0 0 !important;
   transform: translate3d(0, 100%, 0) !important;
 }
 

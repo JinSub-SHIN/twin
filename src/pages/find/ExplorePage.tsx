@@ -533,6 +533,7 @@ export function ExplorePage() {
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent
+          sheet
           className={styles.sheet}
           overlayClassName={styles.sheetOverlay}
           showCloseButton={false}
@@ -623,6 +624,7 @@ export function ExplorePage() {
 
       <Dialog open={stationOpen} onOpenChange={setStationOpen}>
         <DialogContent
+          sheet
           className={styles.sheet}
           overlayClassName={styles.sheetOverlay}
           showCloseButton={false}
