@@ -20,12 +20,14 @@ export function LocationCard({ area }: { area: ListingArea }) {
         </div>
         <div className={styles.locationBody}>
           <p className={styles.locationName}>
-            {area.city} {area.district} {area.dong}
+            {[area.city, area.district, area.dong].filter(Boolean).join(' ')}
           </p>
           {area.station ? (
             <p className={styles.locationSub}>
               <TrainFront size={14} strokeWidth={2.2} aria-hidden />
-              {area.station.name}까지 도보 {area.station.walkMinutes}분
+              {area.station.walkMinutes
+                ? `${area.station.name}까지 도보 ${area.station.walkMinutes}분`
+                : `${area.station.name} 인근`}
             </p>
           ) : null}
           <p className={styles.locationNote}>

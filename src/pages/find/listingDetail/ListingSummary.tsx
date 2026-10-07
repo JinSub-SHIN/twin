@@ -24,13 +24,14 @@ export function ListingSummary({ listing }: { listing: ListingDetailData }) {
     <section className={styles.summary}>
       <p className={styles.area}>
         <MapPin size={14} strokeWidth={2.3} aria-hidden />
-        {area.city} {area.district} {area.dong}
+        {[area.city, area.district, area.dong].filter(Boolean).join(' ')}
       </p>
       {area.station ? (
         <p className={styles.station}>
           <SubwayLineBadges lines={area.station.lines} />
           <span>
-            {area.station.name} 도보 {area.station.walkMinutes}분
+            {area.station.name}
+            {area.station.walkMinutes ? ` 도보 ${area.station.walkMinutes}분` : ''}
           </span>
         </p>
       ) : null}

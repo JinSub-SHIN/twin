@@ -830,6 +830,39 @@
   animation: toast-in 0.2s ease;
 }
 
+.pending {
+  display: flex;
+  min-height: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  padding: 2rem 1.4rem;
+  text-align: center;
+}
+
+.pending p {
+  margin: 0;
+  color: color-mix(in oklch, var(--foreground) 68%, transparent);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+
+.pending button {
+  height: 2.7rem;
+  padding: 0 1rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--foreground);
+  color: var(--background);
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  cursor: pointer;
+}
+
 @keyframes toast-in {
   from {
     opacity: 0;

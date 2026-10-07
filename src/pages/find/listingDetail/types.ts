@@ -31,7 +31,7 @@ export type LivingPolicy = {
 export type ListingHost = {
   nickname: string
   photoUrl?: string
-  gender: 'female' | 'male'
+  gender: 'female' | 'male' | 'other'
   ageGroup: string
   job: string
   residing: boolean
@@ -44,7 +44,7 @@ export type ListingArea = {
   city: string
   district: string
   dong: string
-  station?: { name: string; lines: string[]; walkMinutes: number }
+  station?: { name: string; lines: string[]; walkMinutes?: number }
 }
 
 export type ListingDetailData = {

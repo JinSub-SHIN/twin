@@ -15,9 +15,13 @@ import styles from './ListingDetail.module.css'
 export function ListingDetail({
   listing,
   onBack,
+  onInquire,
+  preview = false,
 }: {
   listing: ListingDetailData
   onBack: () => void
+  onInquire?: () => void
+  preview?: boolean
 }) {
   const rootRef = useRef<HTMLDivElement>(null)
   const [solid, setSolid] = useState(false)
@@ -82,11 +86,13 @@ export function ListingDetail({
         <SafetyNotice hostName={listing.host.nickname} />
       </div>
 
-      <BottomActionBar
-        liked={liked}
-        onLike={toggleLike}
-        onInquire={() => setToast('문의하기는 곧 열려요')}
-      />
+      {preview ? null : (
+        <BottomActionBar
+          liked={liked}
+          onLike={toggleLike}
+          onInquire={() => (onInquire ? onInquire() : setToast('문의하기는 곧 열려요'))}
+        />
+      )}
 
       {toast ? (
         <p className={styles.toast} role="status">

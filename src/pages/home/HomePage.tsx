@@ -32,6 +32,14 @@ export function HomePage() {
 
       <HowToGuide />
 
+      <button
+        type="button"
+        className={styles.findPeople}
+        onClick={() => navigate("/explore")}
+      >
+        함께 살 사람 찾기
+      </button>
+
       <div className={styles.adBanner} aria-label="광고 영역">
         광고 예정 배너 구역
       </div>

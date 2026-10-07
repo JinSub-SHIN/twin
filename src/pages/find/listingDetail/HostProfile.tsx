@@ -2,10 +2,10 @@ import { BadgeCheck, House } from 'lucide-react'
 import type { ListingHost } from './types'
 import styles from './ListingDetail.module.css'
 
-const GENDER = { female: '여성', male: '남성' } as const
+const GENDER = { female: '여성', male: '남성', other: '기타' } as const
 
 export function HostProfile({ host }: { host: ListingHost }) {
-  const facts = [GENDER[host.gender], host.ageGroup, host.job]
+  const facts = [GENDER[host.gender], host.ageGroup, host.job].filter(Boolean)
 
   return (
     <section className={styles.block} aria-labelledby="host-title">
@@ -47,7 +47,7 @@ export function HostProfile({ host }: { host: ListingHost }) {
               지금 이 집에 살고 있어요
             </span>
           ) : null}
-          <span>{host.joinedAt} 가입</span>
+          {host.joinedAt ? <span>{host.joinedAt} 가입</span> : null}
           {host.verified ? <span>본인인증 완료</span> : null}
         </div>
       </div>

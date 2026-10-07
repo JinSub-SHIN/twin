@@ -107,6 +107,21 @@
   filter: drop-shadow(0 8px 14px oklch(0.45 0.06 145 / 0.12));
 }
 
+.findPeople {
+  width: calc(100% - 2.3rem);
+  height: 3.15rem;
+  margin: 0.85rem 1.15rem 0;
+  border: 0;
+  border-radius: 1rem;
+  background: var(--foreground);
+  color: var(--background);
+  font-family: inherit;
+  font-size: 0.98rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  cursor: pointer;
+}
+
 .adBanner {
   display: grid;
   place-items: center;

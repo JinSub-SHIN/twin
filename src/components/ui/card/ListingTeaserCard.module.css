@@ -1,18 +1,17 @@
 .card {
-  position: relative;
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 0.55rem;
   width: 100%;
-  padding: 1rem 1.05rem 0.95rem;
-  border: 1px solid rgb(15 23 42 / 0.08);
-  border-radius: 1rem;
-  background: #fff;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid color-mix(in oklch, var(--foreground) 8%, transparent);
+  border-radius: 1.25rem;
+  background: var(--background);
   box-shadow:
     0 1px 2px rgb(15 23 42 / 0.04),
-    0 6px 18px -8px rgb(15 23 42 / 0.12);
-  color: #333;
+    0 10px 24px -16px rgb(15 23 42 / 0.28);
+  color: var(--foreground);
   text-align: left;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
@@ -20,91 +19,126 @@
 
 .card:active {
   transform: scale(0.985);
-  border-color: rgb(15 23 42 / 0.14);
+}
+
+.photo {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 10;
+  background: color-mix(in oklch, var(--primary) 28%, var(--card));
+}
+
+.photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photoFallback {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  color: var(--highlight);
 }
 
 .station {
+  position: absolute;
+  right: 0.7rem;
+  bottom: 0.7rem;
+  left: 0.7rem;
   display: flex;
   align-items: center;
-  gap: 0.45rem;
-  min-width: 0;
+  gap: 0.4rem;
+  width: fit-content;
+  max-width: calc(100% - 1.4rem);
+  padding: 0.28rem 0.55rem 0.28rem 0.4rem;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.92);
+  box-shadow: 0 4px 14px rgb(15 23 42 / 0.12);
 }
 
 .stationName {
   min-width: 0;
   overflow: hidden;
-  font-family: "Noto Sans KR", sans-serif;
-  font-size: 0.92rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #17211b;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.28rem;
+  padding: 0.9rem 1rem 1rem;
+}
+
+.place {
+  font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: -0.03em;
-  color: #111;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  color: var(--muted-foreground);
 }
 
-.head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-}
-
-.title {
-  min-width: 0;
-  overflow: hidden;
-  font-family: "Noto Sans KR", sans-serif;
-  font-size: 1.08rem;
-  font-weight: 700;
+.pitch {
+  font-size: 1.05rem;
+  font-weight: 800;
   line-height: 1.35;
-  letter-spacing: -0.04em;
-  color: #111;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  letter-spacing: -0.045em;
+}
+
+.when {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.15rem;
+}
+
+.when span {
+  padding: 0.18rem 0.5rem;
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--primary) 28%, var(--background));
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--highlight);
 }
 
 .price {
-  flex-shrink: 0;
-  font-family: "Noto Sans KR", sans-serif;
-  font-size: 0.95rem;
+  margin-top: 0.2rem;
+  font-size: 1rem;
   font-weight: 900;
   letter-spacing: -0.04em;
-  color: #2451d6;
-  white-space: nowrap;
+  color: var(--highlight);
 }
 
-.facts {
+.tags {
   display: flex;
-  flex-direction: column;
-  gap: 0.28rem;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.15rem;
 }
 
-.fact {
-  overflow: hidden;
-  font-family: "Noto Sans KR", sans-serif;
-  font-size: 0.92rem;
+.tags span {
+  font-size: 0.78rem;
   font-weight: 700;
-  line-height: 1.35;
   letter-spacing: -0.03em;
-  color: #111;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  color: color-mix(in oklch, var(--foreground) 72%, transparent);
 }
 
 :global(.dark) .card {
-  border-color: rgb(255 255 255 / 0.08);
   background: var(--card);
-  color: var(--foreground);
+  box-shadow: none;
 }
 
-:global(.dark) .title,
+:global(.dark) .station {
+  background: rgb(18 24 20 / 0.88);
+}
+
 :global(.dark) .stationName {
-  color: var(--foreground);
-}
-
-:global(.dark) .price {
-  color: #8eb0ff;
-}
-
-:global(.dark) .fact {
-  color: var(--foreground);
+  color: #f4f7f2;
 }

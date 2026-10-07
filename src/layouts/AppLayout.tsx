@@ -11,12 +11,19 @@ export function AppLayout() {
   const isSignup = pathname.startsWith('/signup')
   const isLogin = pathname.startsWith('/login')
   const isProfileEdit = pathname.startsWith('/profile/edit')
+  const isRoommateImmersive = /^\/roommate\/(new|done|chat|match)/.test(pathname)
   const isListingDetail = pathname.startsWith('/explore/listing/')
   const isListingPreview = pathname.startsWith('/explore/listing') && !isListingDetail
   const isAuthPage = isSignup || isLogin
   const hideHeader =
-    isAuthPage || isProfileEdit || isListingPreview || isListingDetail || isHome || isCounselor
-  const hideNav = isCounselor || isListingDetail
+    isAuthPage ||
+    isProfileEdit ||
+    isListingPreview ||
+    isListingDetail ||
+    isRoommateImmersive ||
+    isHome ||
+    isCounselor
+  const hideNav = isCounselor || isListingDetail || isRoommateImmersive
 
   return (
     <div className={cn(styles.shell, styles.shellDefault)} data-app-shell>
@@ -32,12 +39,13 @@ export function AppLayout() {
                 !isProfileEdit &&
                 !isListingPreview &&
                 !isListingDetail &&
+                !isRoommateImmersive &&
                 styles.mainDefault,
           isLogin && styles.mainAuth,
           isSignup && styles.mainSignup,
           isProfileEdit && styles.mainProfileEdit,
           isListingPreview && styles.mainListingPreview,
-          isListingDetail && styles.mainListingDetail,
+          (isListingDetail || isRoommateImmersive) && styles.mainListingDetail,
         )}
       >
         <Outlet />

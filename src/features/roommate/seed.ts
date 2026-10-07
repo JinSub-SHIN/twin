@@ -1,0 +1,117 @@
+import type { RoommateListing } from './types'
+
+const photo = (id: string) =>
+  `https://images.unsplash.com/${id}?auto=format&fit=crop&w=900&q=70`
+
+export const SEED_LISTINGS: RoommateListing[] = [
+  {
+    id: 'seed-yeoksam',
+    mine: false,
+    status: 'PUBLISHED',
+    title: '지금 있는 집의 여유 공간,\n함께 사용할 동거인을 찾고 있어요',
+    intro: '조용하고 깔끔한 집에서 편하게 함께 생활하실 분을 기다리고 있어요.',
+    area: {
+      city: '서울시',
+      district: '강남구',
+      dong: '역삼동',
+      roadAddress: '서울 강남구 테헤란로 123',
+      detailAddress: '101동 1204호',
+      stationName: '역삼역',
+      stationLines: ['seoul_2'],
+      walkMinutes: 8,
+    },
+    space: {
+      shareType: 'private-room',
+      houseType: 'two',
+      sharedAreas: ['living', 'kitchen', 'bath'],
+      furnished: true,
+      description:
+        '현재 거주 중인 집의 빈 방을 함께 사용해요. 방은 따로 쓰고, 거실과 주방, 화장실은 함께 써요.',
+    },
+    photos: [
+      { id: 'living', url: photo('photo-1586023492125-27b2c045efd7'), label: '거실', cover: true },
+      { id: 'room', url: photo('photo-1505693416388-ac5ce068fe85'), label: '침실', cover: false },
+      { id: 'kitchen', url: photo('photo-1556911220-bff31c812dba'), label: '주방', cover: false },
+    ],
+    price: { depositMan: 300, rentMan: 40, maintenanceMan: 5, utilities: 'separate' },
+    living: {
+      smoking: 'no',
+      drink: 'sometimes',
+      pet: 'none',
+      rhythm: 'evening',
+      clean: 'normal',
+      noise: 'quiet',
+    },
+    preference: {
+      gender: 'any',
+      age: '30s',
+      job: 'worker',
+      tags: ['깔끔한 분', '비흡연', '조용한 생활', '반려동물 없음', '직장인'],
+    },
+    host: {
+      nickname: '김진우',
+      gender: 'male',
+      ageGroup: '30대',
+      job: '직장인',
+      residing: true,
+      joinedAt: '2026년 3월',
+      verified: true,
+      message: '현재 이 집에 거주하고 있어요. 서로 편하게 생활할 수 있는 분을 찾고 있습니다 :)',
+    },
+    stats: { views: 128, saves: 14, inquiries: 3 },
+  },
+  {
+    id: 'seed-mapo',
+    mine: false,
+    status: 'PUBLISHED',
+    title: '저녁엔 조용한 집에서\n함께 생활할 사람을 찾아요',
+    intro: '직장 다니면서 살고 있는 집이에요. 각자 생활하되 부딪히지 않으면 좋겠어요.',
+    area: {
+      city: '서울시',
+      district: '마포구',
+      dong: '연남동',
+      roadAddress: '',
+      detailAddress: '',
+      stationName: '홍대입구역',
+      stationLines: ['seoul_2', 'airport_railroad'],
+      walkMinutes: 12,
+    },
+    space: {
+      shareType: 'private-room',
+      houseType: 'three',
+      sharedAreas: ['kitchen', 'bath'],
+      furnished: true,
+      description: '개인 방을 비워 두었어요. 주방과 화장실은 함께 사용합니다.',
+    },
+    photos: [
+      { id: 'room', url: photo('photo-1493809842364-78817add7ffb'), label: '침실', cover: true },
+      { id: 'kitchen', url: photo('photo-1484154218962-a197022b5858'), label: '주방', cover: false },
+    ],
+    price: { depositMan: 200, rentMan: 35, maintenanceMan: 4, utilities: 'separate' },
+    living: {
+      smoking: 'indoor-no',
+      drink: 'none',
+      pet: 'ok',
+      rhythm: 'morning',
+      clean: 'high',
+      noise: 'quiet',
+    },
+    preference: {
+      gender: 'female',
+      age: '20s',
+      job: 'any',
+      tags: ['비흡연', '깔끔한 분', '아침형'],
+    },
+    host: {
+      nickname: '이하은',
+      gender: 'female',
+      ageGroup: '20대',
+      job: '직장인',
+      residing: true,
+      joinedAt: '2026년 1월',
+      verified: true,
+      message: '평일엔 회사에서 시간을 많이 보내요. 집에서는 조용히 쉬고 싶어요.',
+    },
+    stats: { views: 86, saves: 9, inquiries: 1 },
+  },
+]

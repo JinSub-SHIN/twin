@@ -260,6 +260,11 @@ export type ListingSummary = {
   prefGenderLabel: string | null;
   restrictListingByPrefGender: boolean;
   bio: string;
+  coverUrl?: string;
+  pitch?: string;
+  recruitLabel?: string;
+  moveInLabel?: string;
+  tags?: string[];
 };
 
 export function isListingLocked(restricted?: boolean) {
