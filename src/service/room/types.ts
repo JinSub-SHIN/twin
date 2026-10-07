@@ -7,6 +7,7 @@ export type RoomListItem = {
   region: string
   district: string
   subway_stn: string | null
+  subway_line?: string[] | null
   pref_gender: string | null
   /** 직접조율이면 "직접조율" 같은 문자열로 내려옴 */
   share_total: number | string | null

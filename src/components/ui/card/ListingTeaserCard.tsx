@@ -1,3 +1,4 @@
+import { SubwayLineBadges } from "@/components/ui/subway";
 import type { ListingSummary } from "@/lib/listingView";
 import styles from "./ListingTeaserCard.module.css";
 
@@ -28,21 +29,23 @@ export function ListingTeaserCard({
   return (
     <button
       type="button"
-      className={[
-        styles.card,
-        summary.station ? styles.cardWithStop : "",
-        summary.mateLabel ? styles.cardWithPrice : "",
-      ]
-        .filter(Boolean)
-        .join(" ")}
+      className={styles.card}
       onClick={onClick}
     >
-      {summary.station ? (
-        <span className={styles.ribbon}>{summary.station}</span>
-      ) : null}
       <span className={styles.head}>
         <span className={styles.title}>{place}</span>
+        {summary.mateLabel ? (
+          <strong className={styles.price}>{summary.mateLabel}</strong>
+        ) : null}
       </span>
+      {summary.station ? (
+        <span className={styles.station}>
+          {summary.subwayLines.length > 0 ? (
+            <SubwayLineBadges lines={summary.subwayLines} />
+          ) : null}
+          <span className={styles.stationName}>{summary.station}</span>
+        </span>
+      ) : null}
       <span className={styles.facts}>
         <span className={styles.fact}>
           {pref.emoji} {pref.label}

@@ -23,42 +23,30 @@
   border-color: rgb(15 23 42 / 0.14);
 }
 
-.cardWithStop {
-  overflow: hidden;
-  padding-right: 4.4rem;
+.station {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
 }
 
-.cardWithPrice {
-  padding-bottom: 2.45rem;
-}
-
-.ribbon {
-  position: absolute;
-  top: 1.05rem;
-  right: -2.6rem;
-  width: 9.2rem;
-  padding: 0.24rem 1.8rem;
+.stationName {
+  min-width: 0;
   overflow: hidden;
-  transform: rotate(45deg);
-  background: #2451d6;
-  box-shadow: 0 2px 6px rgb(22 54 140 / 0.25);
   font-family: "Noto Sans KR", sans-serif;
-  font-size: 0.68rem;
+  font-size: 0.92rem;
   font-weight: 700;
-  line-height: 1.3;
   letter-spacing: -0.03em;
-  text-align: center;
-  color: #fff;
+  color: #111;
   text-overflow: ellipsis;
   white-space: nowrap;
-  pointer-events: none;
 }
 
 .head {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: 0.6rem;
+  gap: 0.75rem;
 }
 
 .title {
@@ -75,9 +63,7 @@
 }
 
 .price {
-  position: absolute;
-  right: 1.05rem;
-  bottom: 0.85rem;
+  flex-shrink: 0;
   font-family: "Noto Sans KR", sans-serif;
   font-size: 0.95rem;
   font-weight: 900;
@@ -95,11 +81,11 @@
 .fact {
   overflow: hidden;
   font-family: "Noto Sans KR", sans-serif;
-  font-size: 0.88rem;
-  font-weight: 500;
-  line-height: 1.4;
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1.35;
   letter-spacing: -0.03em;
-  color: #3f3f46;
+  color: #111;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -110,17 +96,13 @@
   color: var(--foreground);
 }
 
-:global(.dark) .title {
+:global(.dark) .title,
+:global(.dark) .stationName {
   color: var(--foreground);
 }
 
 :global(.dark) .price {
   color: #8eb0ff;
-}
-
-:global(.dark) .ribbon {
-  background: #3d6adf;
-  box-shadow: 0 2px 6px rgb(0 0 0 / 0.35);
 }
 
 :global(.dark) .fact {

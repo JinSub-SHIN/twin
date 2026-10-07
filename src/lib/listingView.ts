@@ -250,6 +250,7 @@ export type ListingSummary = {
   headline: string;
   region: string | null;
   station: string | null;
+  subwayLines: string[];
   nickname: string;
   initial: string;
   photoUrl?: string;
@@ -273,6 +274,7 @@ export function buildListingSummary(user: UserProfile): ListingSummary {
     headline: view.headline,
     region: user.pref?.regions?.[0]?.trim() || null,
     station: formatNearbyStation(user.pref?.nearestStation),
+    subwayLines: [],
     nickname: view.nickname,
     initial: view.initial,
     photoUrl: view.photoUrl,

@@ -29,6 +29,12 @@ export function regionQueryOf(regions: string[]) {
   return cities.length === 1 ? cities[0] : undefined;
 }
 
+export function matchesRoomStation(item: RoomListItem, station?: string | null) {
+  const wanted = stationLabel(station);
+  if (!wanted) return true;
+  return stationLabel(item.subway_stn) === wanted;
+}
+
 export function matchesRoomRegion(item: RoomListItem, regions: string[]) {
   if (regions.length === 0) return true;
   return regions.some((region) => {
@@ -131,6 +137,7 @@ export function roomListItemToSummary(item: RoomListItem): ListingSummary {
     headline: region ?? "살짝 공고",
     region,
     station,
+    subwayLines: item.subway_line ?? [],
     nickname: item.nick,
     initial: item.nick.trim().slice(0, 1) || "ㅅ",
     meta,
