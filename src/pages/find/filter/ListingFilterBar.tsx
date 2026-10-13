@@ -31,7 +31,11 @@ export function ListingFilterBar({
       <div className={styles.bar}>
         <button
           type="button"
-          className={cn(styles.barBtn, styles.barBtnLocation, located && styles.barBtnOn)}
+          className={cn(
+            styles.barBtn,
+            styles.barBtnLocation,
+            located && styles.barBtnOn,
+          )}
           onClick={onOpenLocation}
         >
           <MapPin size={16} strokeWidth={2.3} />
@@ -66,7 +70,9 @@ export function ListingFilterBar({
         >
           <SlidersHorizontal size={16} strokeWidth={2.3} />
           조건 필터
-          {chips.length > 0 ? <span className={styles.badge}>{chips.length}</span> : null}
+          {chips.length > 0 ? (
+            <span className={styles.badge}>{chips.length}</span>
+          ) : null}
         </button>
       </div>
 
@@ -81,12 +87,20 @@ export function ListingFilterBar({
               />
             ))}
             {hidden > 0 ? (
-              <button type="button" className={styles.more} onClick={onOpenConditions}>
+              <button
+                type="button"
+                className={styles.more}
+                onClick={onOpenConditions}
+              >
                 +{hidden}
               </button>
             ) : null}
           </div>
-          <button type="button" className={styles.clearAll} onClick={onClearConditions}>
+          <button
+            type="button"
+            className={styles.clearAll}
+            onClick={onClearConditions}
+          >
             전체 삭제
           </button>
         </div>

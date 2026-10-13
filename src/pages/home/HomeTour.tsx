@@ -19,7 +19,7 @@ const STEPS = [
     route: "/",
     kicker: "이용방법",
     title: "여기서 시작해요",
-    desc: "방이 있으면 ‘나눠요’, 없으면 ‘구해요’. 세 단계만 따라가면 돼요.",
+    desc: "조건 정하기부터 함께 살기까지, 세 단계만 따라가면 돼요.",
   },
   {
     id: "counselor",
@@ -38,7 +38,7 @@ const STEPS = [
   {
     id: "profile",
     route: "/profile",
-    kicker: "프로필",
+    kicker: "마이",
     title: "나를 살짝 소개해요",
     desc: "원하는 조건과 생활 리듬을 적어 두면, 맞는 살짝을 더 쉽게 만날 수 있어요.",
   },

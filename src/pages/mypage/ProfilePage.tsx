@@ -1,6 +1,13 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 import { getAdditionalRemaining, getAgeGroup } from "@/types/user";
@@ -22,6 +29,7 @@ const JOB_LABEL = {
 
 export function ProfilePage() {
   const { user, isLoggedIn, completion } = useAuth();
+  const [pauseOpen, setPauseOpen] = useState(false);
 
   if (!isLoggedIn || !user) {
     return (
@@ -102,13 +110,43 @@ export function ProfilePage() {
           <div className={styles.bar} style={{ width: `${completion}%` }} />
         </div>
         <p className={styles.progressLabel}>프로필 완성도 {completion}%</p>
-        <Link
-          to="/profile/edit"
-          className={cn(buttonVariants({ size: "lg" }), styles.action)}
-        >
-          {remaining.length > 0 ? "추가 정보 입력" : "추가 정보 수정"}
-        </Link>
+        {remaining.length > 0 ? (
+          <Link
+            to="/profile/edit"
+            className={cn(buttonVariants({ size: "lg" }), styles.action)}
+          >
+            추가 정보 입력
+          </Link>
+        ) : (
+          <button
+            type="button"
+            className={cn(buttonVariants({ size: "lg" }), styles.action)}
+            onClick={() => setPauseOpen(true)}
+          >
+            추가 정보 수정
+          </button>
+        )}
       </div>
+
+      <Dialog open={pauseOpen} onOpenChange={setPauseOpen}>
+        <DialogContent className={styles.pausePanel} showCloseButton={false}>
+          <DialogTitle className={styles.pauseTitle}>
+            잠시 중단됐어요
+          </DialogTitle>
+          <DialogDescription className={styles.pauseDesc}>
+            추가 정보 수정은 임시로 이용할 수 없어요.
+            <br />
+            조금만 기다려 주세요.
+          </DialogDescription>
+          <Button
+            type="button"
+            className={styles.pauseConfirm}
+            onClick={() => setPauseOpen(false)}
+          >
+            확인
+          </Button>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }

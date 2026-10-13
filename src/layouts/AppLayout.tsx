@@ -11,7 +11,8 @@ export function AppLayout() {
   const isSignup = pathname.startsWith('/signup')
   const isLogin = pathname.startsWith('/login')
   const isProfileEdit = pathname.startsWith('/profile/edit')
-  const isRoommateImmersive = /^\/roommate\/(new|done|chat|match)/.test(pathname)
+  const isRoommateFlow = pathname === '/roommate/new' || pathname === '/roommate/done'
+  const isRoommateImmersive = /^\/roommate\/(chat|match)/.test(pathname)
   const isListingDetail = pathname.startsWith('/explore/listing/')
   const isListingPreview = pathname.startsWith('/explore/listing') && !isListingDetail
   const isAuthPage = isSignup || isLogin
@@ -21,6 +22,7 @@ export function AppLayout() {
     isListingPreview ||
     isListingDetail ||
     isRoommateImmersive ||
+    isRoommateFlow ||
     isHome ||
     isCounselor
   const hideNav = isCounselor || isListingDetail || isRoommateImmersive
@@ -40,12 +42,14 @@ export function AppLayout() {
                 !isListingPreview &&
                 !isListingDetail &&
                 !isRoommateImmersive &&
+                !isRoommateFlow &&
                 styles.mainDefault,
           isLogin && styles.mainAuth,
           isSignup && styles.mainSignup,
           isProfileEdit && styles.mainProfileEdit,
           isListingPreview && styles.mainListingPreview,
-          (isListingDetail || isRoommateImmersive) && styles.mainListingDetail,
+          (isListingDetail || isRoommateImmersive || isRoommateFlow) && styles.mainListingDetail,
+          isRoommateFlow && styles.mainRoommateFlow,
         )}
       >
         <Outlet />

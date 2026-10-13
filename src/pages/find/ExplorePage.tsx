@@ -68,7 +68,9 @@ async function fetchListingPage(
   const stationOnly = Boolean(station.trim());
   while (rows.length === 0 && hasMore && cursor - page < 40) {
     const result = await getRoomList({
-      region: stationOnly ? stationRegion.trim() || undefined : regionQueryOf(regions),
+      region: stationOnly
+        ? stationRegion.trim() || undefined
+        : regionQueryOf(regions),
       subway_stn: stationOnly ? station.trim() : undefined,
       page: cursor,
       limit: PAGE_SIZE,
@@ -119,14 +121,22 @@ export function ExplorePage() {
   const loadedRows = useMemo(() => (ready ? rows : []), [ready, rows]);
   const clientFiltered = hasClientFilter(filter);
   const visibleRows = useMemo(
-    () => sortByKey(loadedRows.filter((row) => matchesTraits(row.traits, filter)), sort),
+    () =>
+      sortByKey(
+        loadedRows.filter((row) => matchesTraits(row.traits, filter)),
+        sort,
+      ),
     [loadedRows, filter, sort],
   );
   const visibleError = ready ? error : "";
   const visibleHasMore = ready && hasMore;
   const filling = clientFiltered && visibleHasMore && visibleRows.length === 0;
   const loading = !ready || filling;
-  const serverCount = usesServerTotal(selectedRegions) ? (ready ? total : 0) : loadedRows.length;
+  const serverCount = usesServerTotal(selectedRegions)
+    ? ready
+      ? total
+      : 0
+    : loadedRows.length;
   const listingCount = clientFiltered ? visibleRows.length : serverCount;
 
   const countOf = (draft: ListingFilter) =>
@@ -340,7 +350,9 @@ export function ExplorePage() {
           filter={filter}
           onOpenLocation={openLocation}
           onOpenConditions={openConditions}
-          onClearLocation={() => setParams(writeLocation(params, clearLocation(filter)))}
+          onClearLocation={() =>
+            setParams(writeLocation(params, clearLocation(filter)))
+          }
           onChange={applyConditions}
           onClearConditions={() => applyConditions(clearConditions(filter))}
         />
@@ -354,7 +366,9 @@ export function ExplorePage() {
             </p>
             <SortDropdown
               value={sort}
-              onChange={(next) => setParams(writeSort(params, next), { replace: true })}
+              onChange={(next) =>
+                setParams(writeSort(params, next), { replace: true })
+              }
             />
           </div>
 
@@ -383,9 +397,7 @@ export function ExplorePage() {
               <p className={styles.emptyDesc}>{visibleError}</p>
             </div>
           ) : previewListings.length > 0 ? (
-            previewListings.map((item, index) =>
-              renderListing(item, index),
-            )
+            previewListings.map((item, index) => renderListing(item, index))
           ) : (
             <div className={styles.emptyListing}>
               <img
@@ -429,7 +441,9 @@ export function ExplorePage() {
                       ? "다른 지역을 골라보면 찾을 수 있어요."
                       : "조금만 기다리면 새 공고가 올라올 거예요."}
               </p>
-              {clientFiltered || selectedStation || selectedRegions.length > 0 ? (
+              {clientFiltered ||
+              selectedStation ||
+              selectedRegions.length > 0 ? (
                 <button
                   type="button"
                   className={styles.emptyAction}

@@ -62,6 +62,7 @@ export type RoommateListing = {
     depositMan: number | null
     rentMan: number | null
     maintenanceMan: number | null
+    sharePercent: number
     utilities: Utilities
   }
   living: {
@@ -91,8 +92,22 @@ export type RoommateListing = {
   stats: { views: number; saves: number; inquiries: number }
 }
 
-export type ListingDraft = Omit<RoommateListing, 'id' | 'status' | 'stats' | 'mine'> & {
+export type ListingDraft = Omit<
+  RoommateListing,
+  'id' | 'status' | 'stats' | 'mine' | 'space' | 'price' | 'living' | 'preference'
+> & {
   id?: string
+  space: Omit<RoommateListing['space'], 'houseType'> & {
+    houseType: HouseType | ''
+  }
+  price: Omit<RoommateListing['price'], 'utilities'> & {
+    utilities: Utilities | ''
+  }
+  living: { [K in keyof RoommateListing['living']]: RoommateListing['living'][K] | '' }
+  preference: Omit<RoommateListing['preference'], 'gender' | 'age'> & {
+    gender: PrefGender | ''
+    age: PrefAge | 'any' | ''
+  }
 }
 
 export type ChatMessage = {

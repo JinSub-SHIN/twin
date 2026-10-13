@@ -33,7 +33,13 @@ export const SEED_LISTINGS: RoommateListing[] = [
       { id: 'room', url: photo('photo-1505693416388-ac5ce068fe85'), label: '침실', cover: false },
       { id: 'kitchen', url: photo('photo-1556911220-bff31c812dba'), label: '주방', cover: false },
     ],
-    price: { depositMan: 300, rentMan: 40, maintenanceMan: 5, utilities: 'separate' },
+    price: {
+      depositMan: 300,
+      rentMan: 40,
+      maintenanceMan: 5,
+      sharePercent: 100,
+      utilities: 'separate',
+    },
     living: {
       smoking: 'no',
       drink: 'sometimes',
@@ -87,7 +93,13 @@ export const SEED_LISTINGS: RoommateListing[] = [
       { id: 'room', url: photo('photo-1493809842364-78817add7ffb'), label: '침실', cover: true },
       { id: 'kitchen', url: photo('photo-1484154218962-a197022b5858'), label: '주방', cover: false },
     ],
-    price: { depositMan: 200, rentMan: 35, maintenanceMan: 4, utilities: 'separate' },
+    price: {
+      depositMan: 200,
+      rentMan: 35,
+      maintenanceMan: 4,
+      sharePercent: 100,
+      utilities: 'separate',
+    },
     living: {
       smoking: 'indoor-no',
       drink: 'none',

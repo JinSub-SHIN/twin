@@ -17,11 +17,18 @@ const RHYTHM = {
   flex: '생활 시간은 비교적 자유로워요',
 } as const
 
-export function monthlyBurden(listing: Pick<RoommateListing, 'price'>) {
+export function monthlyBurden(listing: {
+  price: {
+    rentMan: number | null
+    maintenanceMan: number | null
+    sharePercent?: number
+  }
+}) {
   const rent = listing.price.rentMan ?? 0
   const fee = listing.price.maintenanceMan ?? 0
   if (listing.price.rentMan == null && listing.price.maintenanceMan == null) return null
-  return rent + fee
+  const ratio = listing.price.sharePercent ?? 100
+  return Math.round(((rent + fee) * ratio) / 10) / 10
 }
 
 export function toListingDetail(listing: RoommateListing): ListingDetailData {

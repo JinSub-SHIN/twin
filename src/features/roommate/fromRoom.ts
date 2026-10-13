@@ -125,6 +125,7 @@ export function roomToRoommateListing(room: RoomDetail): RoommateListing {
       depositMan: traits.depositMan,
       rentMan: shareTotal ?? shareRent ?? manOf(room.rent),
       maintenanceMan: shareTotal == null ? (shareMaint ?? manOf(room.maint_fee)) : null,
+      sharePercent: 100,
       utilities: 'separate',
     },
     living: {

@@ -79,6 +79,10 @@
   background: var(--background);
 }
 
+.mainRoommateFlow {
+  padding-bottom: calc(4rem + env(safe-area-inset-bottom));
+}
+
 .mainListingPreview {
   display: flex;
   flex-direction: column;

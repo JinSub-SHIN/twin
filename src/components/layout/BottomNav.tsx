@@ -1,19 +1,29 @@
-import { Home, Search, UserRound } from 'lucide-react'
-import { NavLink } from 'react-router-dom'
+import { House, Search, SquarePlus, UserRound } from 'lucide-react'
+import { NavLink, useLocation } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import styles from './BottomNav.module.css'
 
 const NAV_ITEMS = [
-  { to: '/', label: '홈', icon: Home, end: true },
+  { to: '/', label: '홈', icon: House, end: true },
   { to: '/explore', label: '찾기', icon: Search },
-  { to: '/profile', label: '프로필', icon: UserRound },
+  { to: '/roommate/new', label: '등록', icon: SquarePlus },
+  { to: '/profile', label: '마이', icon: UserRound },
 ] as const
 
 type BottomNavProps = {
   immersive?: boolean
 }
 
+function isNavActive(to: string, pathname: string, isActive: boolean) {
+  if (to === '/roommate/new') {
+    return pathname === '/roommate/new' || pathname === '/roommate/done'
+  }
+  return isActive
+}
+
 export function BottomNav({ immersive = false }: BottomNavProps) {
+  const { pathname } = useLocation()
+
   return (
     <nav
       aria-label="하단 메뉴"
@@ -27,24 +37,28 @@ export function BottomNav({ immersive = false }: BottomNavProps) {
               <NavLink
                 to={item.to}
                 end={'end' in item ? item.end : false}
-                className={({ isActive }) =>
-                  cn(
+                className={({ isActive }) => {
+                  const active = isNavActive(item.to, pathname, isActive)
+                  return cn(
                     styles.link,
                     immersive ? styles.linkImmersive : styles.linkDefault,
-                    isActive && (immersive ? styles.linkImmersiveActive : styles.linkDefaultActive),
+                    active && (immersive ? styles.linkImmersiveActive : styles.linkDefaultActive),
                   )
-                }
+                }}
               >
-                {({ isActive }) => (
+                {({ isActive }) => {
+                  const active = isNavActive(item.to, pathname, isActive)
+                  return (
                   <>
-                    <span className={cn(styles.dot, isActive ? styles.dotOn : styles.dotOff)} />
+                    <span className={cn(styles.dot, active ? styles.dotOn : styles.dotOff)} />
                     <Icon
-                      className={cn(styles.icon, isActive && styles.iconActive)}
-                      strokeWidth={isActive ? 2.5 : 2}
+                      className={cn(styles.icon, active && styles.iconActive)}
+                      strokeWidth={active ? 2.5 : 2}
                     />
                     {item.label}
                   </>
-                )}
+                  )
+                }}
               </NavLink>
             </li>
           )

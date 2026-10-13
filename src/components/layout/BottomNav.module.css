@@ -23,7 +23,7 @@
 
 .list {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   height: 4rem;
   list-style: none;
   margin: 0;
@@ -58,7 +58,8 @@
 }
 
 .linkDefaultActive {
-  color: var(--foreground);
+  color: var(--highlight);
+  font-weight: 800;
 }
 
 .dot {
@@ -67,7 +68,7 @@
   width: 0.25rem;
   height: 0.25rem;
   border-radius: 9999px;
-  background: var(--primary);
+  background: var(--highlight);
   transition:
     transform 0.3s ease,
     opacity 0.3s ease;
