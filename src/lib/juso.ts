@@ -1,3 +1,5 @@
+import { jusoApiUrl } from './jusoApiUrl'
+
 export type JusoItem = {
   roadAddr: string
   jibunAddr: string
@@ -35,7 +37,7 @@ export async function searchJuso(keyword: string, page = 1): Promise<JusoItem[]>
     resultType: 'json',
   })
 
-  const response = await fetch(`/juso-api/addrlink/addrLinkApi.do?${params}`)
+  const response = await fetch(jusoApiUrl(params))
   if (!response.ok) {
     throw new Error('주소 검색에 실패했습니다.')
   }
@@ -47,7 +49,7 @@ export async function searchJuso(keyword: string, page = 1): Promise<JusoItem[]>
   } catch {
     throw new Error(
       raw.trimStart().startsWith('<')
-        ? '주소 검색 서버에 연결할 수 없습니다. dev 서버 재시작 후 다시 시도해 주세요.'
+        ? '주소 검색 서버에 연결할 수 없습니다. 배포 환경이면 /juso-api 프록시(vercel.json 등)를 확인해 주세요.'
         : '주소 검색 응답을 처리할 수 없습니다.',
     )
   }

@@ -1,0 +1,11 @@
+# SPA + 도로명 주소 API (로컬 vite proxy와 동일 경로)
+[[redirects]]
+from = "/juso-api/*"
+to = "https://www.juso.go.kr/:splat"
+status = 200
+force = true
+
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200
