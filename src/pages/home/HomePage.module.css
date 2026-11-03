@@ -246,9 +246,14 @@
 .guide {
   margin: 0 1.15rem;
   padding: 1.1rem 0.95rem 1.15rem;
+  border: 1.5px solid color-mix(in oklch, var(--home-forest) 14%, transparent);
   border-radius: 1.35rem;
   background: var(--home-warm);
   box-shadow: var(--home-shadow);
+}
+
+:global(.dark) .guide {
+  border-color: var(--border);
 }
 
 .sectionTitle {

@@ -110,31 +110,22 @@ export function ProfilePage() {
           <div className={styles.bar} style={{ width: `${completion}%` }} />
         </div>
         <p className={styles.progressLabel}>프로필 완성도 {completion}%</p>
-        {remaining.length > 0 ? (
-          <Link
-            to="/profile/edit"
-            className={cn(buttonVariants({ size: "lg" }), styles.action)}
-          >
-            추가 정보 입력
-          </Link>
-        ) : (
-          <button
-            type="button"
-            className={cn(buttonVariants({ size: "lg" }), styles.action)}
-            onClick={() => setPauseOpen(true)}
-          >
-            추가 정보 수정
-          </button>
-        )}
+        <button
+          type="button"
+          className={cn(buttonVariants({ size: "lg" }), styles.action)}
+          onClick={() => setPauseOpen(true)}
+        >
+          {remaining.length > 0 ? "추가 정보 입력" : "추가 정보 수정"}
+        </button>
       </div>
 
       <Dialog open={pauseOpen} onOpenChange={setPauseOpen}>
         <DialogContent className={styles.pausePanel} showCloseButton={false}>
           <DialogTitle className={styles.pauseTitle}>
-            잠시 중단됐어요
+            기능 점검 중
           </DialogTitle>
           <DialogDescription className={styles.pauseDesc}>
-            추가 정보 수정은 임시로 이용할 수 없어요.
+            추가 정보 입력·수정 기능은 점검 중이에요.
             <br />
             조금만 기다려 주세요.
           </DialogDescription>
