@@ -6,6 +6,7 @@ import { ChatPage } from "@/features/roommate/ChatPage";
 import { CreatePage } from "@/features/roommate/CreatePage";
 import { DonePage } from "@/features/roommate/DonePage";
 import { MatchPage } from "@/features/roommate/MatchPage";
+import { AddPhotosPage } from "@/features/roommate/AddPhotosPage";
 import { MinePage } from "@/features/roommate/MinePage";
 import { AppLayout } from "@/layouts/AppLayout";
 import { LoginPage } from "@/pages/auth/LoginPage";
@@ -32,6 +33,10 @@ function App() {
             <Route path="/roommate/new" element={<CreatePage />} />
             <Route path="/roommate/done" element={<DonePage />} />
             <Route path="/roommate/mine" element={<MinePage />} />
+            <Route
+              path="/roommate/listing/:listingId/photos"
+              element={<AddPhotosPage />}
+            />
             <Route path="/roommate/chat/:threadId" element={<ChatPage />} />
             <Route path="/roommate/match/:threadId" element={<MatchPage />} />
             <Route path="/explore/listing" element={<ListingPreviewPage />} />

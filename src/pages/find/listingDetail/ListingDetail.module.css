@@ -1,4 +1,4 @@
-.root {
+﻿.root {
   --soft: color-mix(in oklch, var(--primary) 16%, var(--background));
   --soft-line: color-mix(in oklch, var(--foreground) 7%, transparent);
   --brand-ink: var(--highlight);
@@ -8,7 +8,7 @@
   flex-direction: column;
   min-height: 100%;
   color: var(--foreground);
-  font-family: "Noto Sans KR", var(--font-sans), sans-serif;
+  font-family: var(--font-sans), sans-serif;
 }
 
 /* —— Top bar —— */

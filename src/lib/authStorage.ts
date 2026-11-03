@@ -2,6 +2,7 @@ import type { UserProfile } from '@/types/user'
 
 const STORAGE_KEY = 'saljjak.user'
 const TOKEN_KEY = 'saljjak.accessToken'
+const USER_ID_KEY = 'saljjak.userId'
 
 export function loadAccessToken() {
   return localStorage.getItem(TOKEN_KEY)?.trim() || ''
@@ -18,6 +19,23 @@ export function saveAccessToken(token: string) {
 
 export function clearAccessToken() {
   localStorage.removeItem(TOKEN_KEY)
+}
+
+export function saveUserId(userId: string) {
+  const value = userId.trim()
+  if (!value) {
+    localStorage.removeItem(USER_ID_KEY)
+    return
+  }
+  localStorage.setItem(USER_ID_KEY, value)
+}
+
+export function loadUserId() {
+  return localStorage.getItem(USER_ID_KEY)?.trim() || ''
+}
+
+export function clearUserId() {
+  localStorage.removeItem(USER_ID_KEY)
 }
 
 export function authHeaders(): HeadersInit | undefined {
@@ -42,4 +60,5 @@ export function saveUser(user: UserProfile): void {
 export function clearUser(): void {
   localStorage.removeItem(STORAGE_KEY)
   localStorage.removeItem(TOKEN_KEY)
+  clearUserId()
 }

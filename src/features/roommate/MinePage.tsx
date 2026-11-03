@@ -51,6 +51,13 @@ export function MinePage() {
                   </p>
                 </span>
               </button>
+              <button
+                type="button"
+                className={styles.linkBtn}
+                onClick={() => navigate(`/roommate/listing/${listing.id}/photos`)}
+              >
+                사진 추가
+              </button>
             </li>
           ))}
         </ul>

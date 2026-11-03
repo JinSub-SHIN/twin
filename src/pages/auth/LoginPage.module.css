@@ -1,4 +1,4 @@
-.page {
+﻿.page {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -37,7 +37,7 @@
 }
 
 .title {
-  font-family: "Noto Sans KR", var(--font-sans), sans-serif;
+  font-family: var(--font-sans), sans-serif;
   font-size: 1.85rem;
   font-weight: 800;
   line-height: 1.2;
@@ -222,7 +222,7 @@
 }
 
 .modalIcon {
-  font-family: "Noto Sans KR", var(--font-sans), sans-serif;
+  font-family: var(--font-sans), sans-serif;
   font-size: 1.35rem;
   font-weight: 800;
   line-height: 1;
@@ -238,7 +238,7 @@
 }
 
 .modalTitle {
-  font-family: "Noto Sans KR", var(--font-sans), sans-serif;
+  font-family: var(--font-sans), sans-serif;
   font-size: 1.2rem;
   font-weight: 800;
   letter-spacing: -0.03em;

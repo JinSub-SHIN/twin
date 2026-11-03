@@ -38,6 +38,20 @@ export function emptyDraft(): ListingDraft {
       noise: '',
     },
     preference: { gender: '', age: '', job: '', tags: [] },
+    register: {
+      houseTypeInput: '',
+      moveInType: 'negotiate',
+      recruitCount: 1,
+      privateRoomCount: 1,
+      photoPublic: true,
+      restrictGender: false,
+    },
+    consent: {
+      profileAgree: false,
+      locationAgree: false,
+      pushAgree: false,
+      marketingAgree: false,
+    },
     host: {
       nickname: '나',
       gender: 'female',

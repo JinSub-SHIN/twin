@@ -4,6 +4,7 @@ import {
   ArrowRight,
   Bath,
   Check,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   CookingPot,
@@ -22,6 +23,14 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { resolveStorageUserId } from "@/lib/authUserId";
+import { loadAccessToken } from "@/lib/authStorage";
+import { submitListingDraft } from "@/lib/roomRegister/submitListing";
+import { isSupabaseConfigured } from "@/lib/supabase/client";
+import { uploadRoomPhotoFromUrl } from "@/lib/supabase/roomPhotos";
+import { registerErrorMessage } from "@/service/room/register";
+import { ApiError } from "@/service/http";
+import { useAuth } from "@/context/AuthContext";
 import { SubwayLineBadges } from "@/components/ui/subway";
 import { REGION_CITIES, REGION_TREE } from "@/lib/regions";
 import { cn } from "@/lib/utils";
@@ -29,7 +38,12 @@ import { ListingDetail } from "@/pages/find/listingDetail";
 import { COUNSELOR_IMG } from "@/pages/home/CounselorAvatar";
 import { PRESET_TAGS } from "./draft";
 import { MAX_PHOTOS, readPhoto } from "./photo";
-import { searchStations, type StationSearchItem } from "@/service/room";
+import { searchJuso, type JusoItem } from "@/lib/juso";
+import {
+  searchRoomAddress,
+  searchStations,
+  type StationSearchItem,
+} from "@/service/room";
 import { useRoommate } from "./store";
 import { areaLabel, monthlyBurden, toListingDetail } from "./toDetail";
 import type {
@@ -44,6 +58,7 @@ import type {
   PrefAge,
   PrefGender,
   PrefJob,
+  PhotoCategory,
   SharedArea,
   Smoking,
   Utilities,
@@ -188,8 +203,8 @@ const QUESTIONS: Question[] = [
     id: "price",
     step: 2,
     auto: false,
-    title: "한달 얼마를 나누면 좋을까요?",
-    sub: "현재 월세와 관리비를 얼마를 내고계세요?",
+    title: "현재 내고 있는 월세는 얼마인가요?",
+    sub: "내고 있는 월세와 관리비를 알려주세요.",
   },
   {
     id: "smoking",
@@ -345,11 +360,8 @@ function missingOf(id: QuestionId, draft: ListingDraft) {
     (id === "age" && !draft.preference.age)
   )
     return "required";
-  if (
-    id === "address" &&
-    (!draft.area.city || !draft.area.district || !draft.area.dong.trim())
-  )
-    return "동까지 입력해주세요.";
+  if (id === "address" && (!draft.area.city || !draft.area.district))
+    return "지역을 골라주세요.";
   return "";
 }
 
@@ -369,9 +381,19 @@ const REQUIRED: QuestionId[] = [
   "address",
 ];
 
+const PHOTO_CATEGORIES: PhotoCategory[] = [
+  "거실",
+  "방",
+  "주방",
+  "화장실",
+  "현관",
+  "기타",
+];
+
 export function CreatePage() {
   const navigate = useNavigate();
-  const { draft, setDraft, publishDraft, resetDraft } = useRoommate();
+  const { user } = useAuth();
+  const { draft, setDraft, resetDraft } = useRoommate();
   const [pos, setPos] = useState(INTRO);
   const [resumePos, setResumePos] = useState<number | null>(readStoredPos);
   const [dir, setDir] = useState<"forward" | "back">("forward");
@@ -457,18 +479,49 @@ export function CreatePage() {
     goTo(indexOf(id), "back");
   };
 
-  const submit = () => {
+  const submit = async () => {
     if (submitRef.current) return;
     const missing = REQUIRED.find((id) => missingOf(id, draft));
     if (missing) {
       editFrom(missing);
       return;
     }
+    if (!draft.consent.profileAgree) {
+      showTip("매칭 프로필 제공 동의가 필요해요.");
+      return;
+    }
+    if (!loadAccessToken()) {
+      showTip("로그인 후 공고를 등록할 수 있어요.");
+      navigate("/login", { state: { from: "/roommate/new" } });
+      return;
+    }
+    if (
+      draft.preference.gender &&
+      draft.preference.gender !== "any" &&
+      draft.register.restrictGender === undefined
+    ) {
+      /* restrictGender is boolean, default false — ok */
+    }
+
     submitRef.current = true;
     setSubmitting(true);
-    const listing = publishDraft();
-    writeStoredPos(null);
-    navigate("/roommate/done", { replace: true, state: { id: listing.id } });
+    try {
+      await submitListingDraft(draft);
+      resetDraft();
+      writeStoredPos(null);
+      navigate("/roommate/done", { replace: true });
+    } catch (err) {
+      submitRef.current = false;
+      const message =
+        err instanceof ApiError
+          ? registerErrorMessage(err)
+          : err instanceof Error
+            ? err.message
+            : registerErrorMessage(err);
+      showTip(message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (detailOpen) {
@@ -623,13 +676,33 @@ export function CreatePage() {
     switch (question.id) {
       case "house":
         return (
-          <ChoiceList
-            options={HOUSE}
-            value={draft.space.houseType || null}
-            onPick={(houseType) =>
-              pick(() => patch({ space: { ...draft.space, houseType } }))
-            }
-          />
+          <>
+            <ChoiceList
+              options={HOUSE}
+              value={draft.space.houseType || null}
+              onPick={(houseType) =>
+                pick(() => patch({ space: { ...draft.space, houseType } }))
+              }
+            />
+            {draft.space.houseType === "other" ? (
+              <label className={styles.field} style={{ marginTop: "1rem" }}>
+                <span className={styles.fieldLabel}>기타 — 직접 입력</span>
+                <input
+                  className={styles.input}
+                  value={draft.register.houseTypeInput}
+                  onChange={(event) =>
+                    patch({
+                      register: {
+                        ...draft.register,
+                        houseTypeInput: event.target.value,
+                      },
+                    })
+                  }
+                  placeholder="예) 오피스텔, 복층"
+                />
+              </label>
+            ) : null}
+          </>
         );
       case "areas":
         return (
@@ -712,13 +785,65 @@ export function CreatePage() {
         );
       case "gender":
         return (
-          <ChoiceList
-            options={GENDER}
-            value={draft.preference.gender || null}
-            onPick={(gender) =>
-              pick(() => patch({ preference: { ...draft.preference, gender } }))
-            }
-          />
+          <>
+            <ChoiceList
+              options={GENDER}
+              value={draft.preference.gender || null}
+              onPick={(gender) =>
+                pick(() =>
+                  patch({
+                    preference: { ...draft.preference, gender },
+                    register: {
+                      ...draft.register,
+                      restrictGender:
+                        gender === "any"
+                          ? false
+                          : draft.register.restrictGender,
+                    },
+                  }),
+                )
+              }
+            />
+            {draft.preference.gender && draft.preference.gender !== "any" ? (
+              <div className={styles.field} style={{ marginTop: "1rem" }}>
+                <span className={styles.fieldLabel}>상세 공개</span>
+                <div className={styles.segment} role="radiogroup">
+                  <button
+                    type="button"
+                    role="radio"
+                    aria-checked={!draft.register.restrictGender}
+                    className={cn(
+                      styles.segmentItem,
+                      !draft.register.restrictGender && styles.segmentOn,
+                    )}
+                    onClick={() =>
+                      patch({
+                        register: { ...draft.register, restrictGender: false },
+                      })
+                    }
+                  >
+                    목록만 공개
+                  </button>
+                  <button
+                    type="button"
+                    role="radio"
+                    aria-checked={draft.register.restrictGender}
+                    className={cn(
+                      styles.segmentItem,
+                      draft.register.restrictGender && styles.segmentOn,
+                    )}
+                    onClick={() =>
+                      patch({
+                        register: { ...draft.register, restrictGender: true },
+                      })
+                    }
+                  >
+                    {labelOf(GENDER, draft.preference.gender)} 회원만 상세 열람
+                  </button>
+                </div>
+              </div>
+            ) : null}
+          </>
         );
       case "age":
         return (
@@ -809,6 +934,7 @@ export function CreatePage() {
           <ReviewStep
             draft={draft}
             patch={patch}
+            userAgreements={user}
             onEdit={editFrom}
             onPreview={() => setDetailOpen(true)}
           />
@@ -847,18 +973,17 @@ export function CreatePage() {
         )}
       >
         <h1 className={styles.title}>{withMark(question.title)}</h1>
-        {question.id === "address" ? (
-          <div className={styles.privacyBanner}>
-            <Lock size={18} strokeWidth={2.3} />
-            <p>정확한 주소는 매칭 전까지 공개되지 않아요.</p>
-            <strong>
-              공고에는 {draft.area.district || "구"} {draft.area.dong || "동"}
-              까지만 보여요.
-            </strong>
-          </div>
-        ) : (
-          <p className={styles.sub}>{question.sub}</p>
-        )}
+        <p className={styles.sub}>
+          {question.id === "address" ? (
+            <>
+              정확한 주소는 매칭 전까지 공개되지 않아요.
+              <br />
+              공고에는 {draft.area.district || "구"}까지만 보여요.
+            </>
+          ) : (
+            question.sub
+          )}
+        </p>
         <div className={styles.content}>{body()}</div>
       </div>
 
@@ -1082,35 +1207,62 @@ function PhotoStep({
     const picked = [...files].slice(0, room);
     setLoading(true);
     setError("");
-    const results = await Promise.allSettled(
-      picked.map((file) => readPhoto(file)),
-    );
+
+    if (isSupabaseConfigured() && !resolveStorageUserId()) {
+      setError("사진을 서버에 올리려면 로그인이 필요해요.");
+      setLoading(false);
+      return;
+    }
+
     const stamp = Date.now();
-    const added: ListingPhoto[] = results.flatMap((result, index) =>
-      result.status === "fulfilled"
-        ? [
-            {
-              id: `photo-${stamp}-${index}`,
-              url: result.value,
-              label: "집 사진",
-              cover: false,
-            },
-          ]
-        : [],
-    );
+    const added: ListingPhoto[] = [];
+    let failed = 0;
+
+    for (let index = 0; index < picked.length; index += 1) {
+      const file = picked[index];
+      try {
+        const localUrl = await readPhoto(file);
+        let url = localUrl;
+        if (isSupabaseConfigured()) {
+          const userId = resolveStorageUserId();
+          if (!userId) throw new Error("login");
+          url = await uploadRoomPhotoFromUrl(userId, localUrl);
+        }
+        added.push({
+          id: `photo-${stamp}-${index}`,
+          url,
+          label: "집 사진",
+          cover: false,
+        });
+      } catch {
+        failed += 1;
+      }
+    }
+
+    if (added.length === 0) {
+      setError(
+        failed > 0 && isSupabaseConfigured()
+          ? "사진 업로드에 실패했어요. 로그인·Supabase 설정을 확인해 주세요."
+          : "사진을 불러오지 못했어요. 다른 사진으로 다시 시도해 주세요.",
+      );
+      setLoading(false);
+      return;
+    }
+
     const next = [...photos, ...added];
     if (next.length > 0 && !next.some((photo) => photo.cover)) {
       next[0] = { ...next[0], cover: true };
     }
     onChange(next);
     if (!selected && added[0]) setSelectedId(added[0].id);
-    const failed = results.length - added.length;
     if (failed > 0)
-      setError(
-        `사진 ${failed}장을 불러오지 못했어요. 다른 사진으로 다시 시도해주세요.`,
-      );
+      setError(`사진 ${failed}장을 올리지 못했어요. 나머지는 저장됐어요.`);
     else if (files.length > room)
       setError(`사진은 최대 ${MAX_PHOTOS}장까지 올릴 수 있어요.`);
+    else if (!isSupabaseConfigured())
+      setError(
+        "Supabase(.env) 미설정 — 미리보기만 가능하고, 등록 시 업로드가 필요해요.",
+      );
     setLoading(false);
   };
 
@@ -1150,7 +1302,13 @@ function PhotoStep({
       <>
         <label className={cn(styles.photoEmpty, loading && styles.photoBusy)}>
           <ImagePlus size={30} strokeWidth={1.8} />
-          <strong>{loading ? "사진을 불러오는 중…" : "사진 추가하기"}</strong>
+          <strong>
+            {loading
+              ? isSupabaseConfigured()
+                ? "Supabase에 업로드 중…"
+                : "사진을 불러오는 중…"
+              : "사진 추가하기"}
+          </strong>
           <span>침실, 거실, 주방처럼 생활이 보이는 사진이 좋아요.</span>
           {fileInput}
         </label>
@@ -1185,6 +1343,29 @@ function PhotoStep({
           {selectedIndex + 1}/{photos.length}
         </span>
       </div>
+
+      <label className={styles.field}>
+        <span className={styles.fieldLabel}>사진 카테고리 (선택)</span>
+        <select
+          value={selected.category ?? ""}
+          onChange={(event) => {
+            const value = event.target.value as PhotoCategory | "";
+            const next = photos.map((photo) =>
+              photo.id === selected.id
+                ? { ...photo, category: value || null }
+                : photo,
+            );
+            onChange(next);
+          }}
+        >
+          <option value="">선택 안 함</option>
+          {PHOTO_CATEGORIES.map((category) => (
+            <option key={category} value={category}>
+              {category}
+            </option>
+          ))}
+        </select>
+      </label>
 
       <div className={styles.photoTools}>
         <div className={styles.photoOrder}>
@@ -1384,47 +1565,47 @@ function ShareGraph({
     <div className={styles.shareBlock}>
       <p className={styles.shareAsk}>살짝과 나눌 비중을 정해주세요</p>
       <div className={styles.sharePanel}>
-      <div
-        ref={trackRef}
-        className={styles.shareTrack}
-        role="slider"
-        tabIndex={0}
-        aria-label="살짝과 나눌 비중"
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-valuenow={value}
-        aria-valuetext={`살짝 ${value}퍼센트`}
-        onPointerDown={(event) => {
-          event.currentTarget.setPointerCapture(event.pointerId);
-          move(event.clientX);
-        }}
-        onPointerMove={(event) => {
-          if (!event.currentTarget.hasPointerCapture(event.pointerId)) return;
-          move(event.clientX);
-        }}
-        onKeyDown={(event) => {
-          if (event.key === "ArrowRight" || event.key === "ArrowUp") {
-            event.preventDefault();
-            onChange(Math.min(100, value + 1));
-          }
-          if (event.key === "ArrowLeft" || event.key === "ArrowDown") {
-            event.preventDefault();
-            onChange(Math.max(0, value - 1));
-          }
-        }}
-      >
-        <span className={styles.shareBar}>
-          <span className={styles.shareMate} style={{ width: `${value}%` }} />
-        </span>
-        <span className={styles.shareHandle} style={{ left: `${value}%` }}>
-          <em>{value}%</em>
-        </span>
-      </div>
-      <div className={styles.shareLegend}>
-        <span>살짝 {value}%</span>
-        <span>나 {100 - value}%</span>
-      </div>
-      {children}
+        <div
+          ref={trackRef}
+          className={styles.shareTrack}
+          role="slider"
+          tabIndex={0}
+          aria-label="살짝과 나눌 비중"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={value}
+          aria-valuetext={`살짝 ${value}퍼센트`}
+          onPointerDown={(event) => {
+            event.currentTarget.setPointerCapture(event.pointerId);
+            move(event.clientX);
+          }}
+          onPointerMove={(event) => {
+            if (!event.currentTarget.hasPointerCapture(event.pointerId)) return;
+            move(event.clientX);
+          }}
+          onKeyDown={(event) => {
+            if (event.key === "ArrowRight" || event.key === "ArrowUp") {
+              event.preventDefault();
+              onChange(Math.min(100, value + 1));
+            }
+            if (event.key === "ArrowLeft" || event.key === "ArrowDown") {
+              event.preventDefault();
+              onChange(Math.max(0, value - 1));
+            }
+          }}
+        >
+          <span className={styles.shareBar}>
+            <span className={styles.shareMate} style={{ width: `${value}%` }} />
+          </span>
+          <span className={styles.shareHandle} style={{ left: `${value}%` }}>
+            <em>{value}%</em>
+          </span>
+        </div>
+        <div className={styles.shareLegend}>
+          <span>살짝 {value}%</span>
+          <span>나 {100 - value}%</span>
+        </div>
+        {children}
       </div>
     </div>
   );
@@ -1540,7 +1721,10 @@ function StationSearch({
           setState("idle");
         })
         .catch((error: unknown) => {
-          if (!active || (error instanceof DOMException && error.name === "AbortError"))
+          if (
+            !active ||
+            (error instanceof DOMException && error.name === "AbortError")
+          )
             return;
           setResults([]);
           setState("error");
@@ -1562,21 +1746,34 @@ function StationSearch({
         <div className={styles.stationPicked}>
           <SubwayLineBadges lines={stationLines} />
           <strong>{stationName}</strong>
-          <button type="button" aria-label="역 지우기" onClick={() => onPick(null)}>
+          <button
+            type="button"
+            aria-label="역 지우기"
+            onClick={() => onPick(null)}
+          >
             <X size={15} strokeWidth={2.4} />
           </button>
         </div>
       ) : null}
-      <div className={cn(styles.stationSearch, query.trim() && styles.stationSearchOpen)}>
+      <div
+        className={cn(
+          styles.stationSearch,
+          query.trim() && styles.stationSearchOpen,
+        )}
+      >
         <Search size={18} strokeWidth={2.2} />
         <input
           value={query}
-          placeholder="역 이름 검색"
+          placeholder="역 이름 검색 (예: 강남역)"
           enterKeyHint="search"
           onChange={(event) => setQuery(event.target.value)}
         />
         {query ? (
-          <button type="button" aria-label="검색어 지우기" onClick={() => setQuery("")}>
+          <button
+            type="button"
+            aria-label="검색어 지우기"
+            onClick={() => setQuery("")}
+          >
             <X size={14} strokeWidth={2.4} />
           </button>
         ) : null}
@@ -1596,7 +1793,9 @@ function StationSearch({
             {results.map((station) => {
               const selected = stationName === station.name;
               return (
-                <li key={`${station.region}-${station.name}-${station.lines.join(",")}`}>
+                <li
+                  key={`${station.region}-${station.name}-${station.lines.join(",")}`}
+                >
                   <button
                     type="button"
                     className={selected ? styles.stationItemOn : undefined}
@@ -1635,49 +1834,61 @@ function AddressStep({
   const setArea = (next: Partial<ListingDraft["area"]>) =>
     patch({ area: { ...draft.area, ...next } });
 
+  const [addressOpen, setAddressOpen] = useState(false);
+  const districtLabel = [draft.area.city, draft.area.district]
+    .filter(Boolean)
+    .join(" ");
+  const privacyArea = draft.area.district || "구";
+
   return (
     <>
-      <div className={styles.regionPill}>
-        <MapPin size={16} strokeWidth={2.2} />
-        <strong>
-          {draft.area.city} {draft.area.district}
-        </strong>
-        <button type="button" onClick={onChangeRegion}>
-          변경
-        </button>
-      </div>
-      <label className={styles.field}>
-        <span className={styles.fieldLabel}>동</span>
-        <input
-          className={styles.input}
-          placeholder="예) 역삼동"
-          enterKeyHint="next"
-          value={draft.area.dong}
-          onChange={(event) => setArea({ dong: event.target.value })}
-        />
-      </label>
-      <label className={styles.field}>
-        <span className={styles.fieldLabel}>
-          도로명 주소 <span>(선택)</span>
+      <div className={styles.privacyBanner}>
+        <span className={styles.privacyIcon}>
+          <Lock size={16} strokeWidth={2.3} />
         </span>
-        <input
-          className={styles.input}
-          placeholder="예) 테헤란로 123"
-          value={draft.area.roadAddress}
-          onChange={(event) => setArea({ roadAddress: event.target.value })}
-        />
-      </label>
-      <label className={styles.field}>
+        <p>
+          정확한 주소는 매칭 전까지 공개되지 않아요.
+          <strong>공고에는 {privacyArea}까지만 보여요.</strong>
+        </p>
+      </div>
+
+      <section className={styles.regionCard}>
+        <p className={styles.regionTitle}>
+          <MapPin size={16} strokeWidth={2.3} />
+          지역 선택
+        </p>
+        <button
+          type="button"
+          className={styles.regionSelect}
+          onClick={onChangeRegion}
+        >
+          <MapPin size={16} strokeWidth={2.3} />
+          <strong>{districtLabel || "시·도와 구를 골라주세요"}</strong>
+          <ChevronDown size={18} strokeWidth={2.2} />
+        </button>
+      </section>
+
+      <div className={styles.addressGroup}>
         <span className={styles.fieldLabel}>
           상세 주소 <span>(선택)</span>
         </span>
-        <input
-          className={styles.input}
+        <ClearField
+          label="도로명 주소"
+          placeholder="예) 테헤란로 123"
+          value={draft.area.roadAddress}
+          onChange={(roadAddress) => setArea({ roadAddress })}
+          onOpen={() => setAddressOpen(true)}
+          inline
+        />
+        <ClearField
+          label="상세 주소"
           placeholder="예) 101동 101호"
           value={draft.area.detailAddress}
-          onChange={(event) => setArea({ detailAddress: event.target.value })}
+          onChange={(detailAddress) => setArea({ detailAddress })}
+          inline
         />
-      </label>
+      </div>
+
       <StationSearch
         city={draft.area.city}
         stationName={draft.area.stationName}
@@ -1689,24 +1900,323 @@ function AddressStep({
           })
         }
       />
+      <div className={styles.addressMap} aria-hidden>
+        <span className={styles.mapRoadH} />
+        <span className={styles.mapRoadV} />
+        <span className={styles.mapRoadD} />
+        <span className={styles.mapPin}>
+          <MapPin size={16} strokeWidth={2.4} />
+        </span>
+        {draft.area.stationName ? (
+          <span className={styles.mapStation}>{draft.area.stationName}</span>
+        ) : null}
+        <span className={styles.mapCheck}>지도 위치 확인</span>
+      </div>
+      {addressOpen ? (
+        <AddressSearchSheet
+          city={draft.area.city}
+          onClose={() => setAddressOpen(false)}
+          onSelect={(picked) => {
+            setArea({
+              roadAddress: picked.roadAddress,
+              dong: picked.dong,
+              stationName: picked.stationName,
+              stationLines: picked.stationLines,
+              walkMinutes: picked.walkMinutes,
+            });
+            setAddressOpen(false);
+          }}
+        />
+      ) : null}
     </>
+  );
+}
+
+function stationLabel(name: string) {
+  const text = name.trim();
+  if (!text) return "";
+  return text.endsWith("역") ? text : `${text}역`;
+}
+
+function AddressSearchSheet({
+  city,
+  onClose,
+  onSelect,
+}: {
+  city: string;
+  onClose: () => void;
+  onSelect: (picked: {
+    roadAddress: string;
+    dong: string;
+    stationName: string;
+    stationLines: string[];
+    walkMinutes: number;
+  }) => void;
+}) {
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<JusoItem[]>([]);
+  const [state, setState] = useState<"idle" | "loading" | "error">("idle");
+  const [picking, setPicking] = useState(false);
+  const [hint, setHint] = useState("");
+
+  useEffect(() => {
+    const q = query.trim();
+    if (q.length < 2) {
+      setResults([]);
+      setState("idle");
+      setHint("");
+      return;
+    }
+
+    let active = true;
+    const timer = window.setTimeout(() => {
+      setState("loading");
+      setHint("");
+      searchJuso(q)
+        .then((list) => {
+          if (!active) return;
+          setResults(list);
+          setState("idle");
+        })
+        .catch((error: unknown) => {
+          if (!active) return;
+          setResults([]);
+          setState("error");
+          setHint(
+            error instanceof Error
+              ? error.message
+              : "주소를 불러오지 못했어요.",
+          );
+        });
+    }, 250);
+
+    return () => {
+      active = false;
+      window.clearTimeout(timer);
+    };
+  }, [query]);
+
+  const pick = async (item: JusoItem) => {
+    if (picking) return;
+    setPicking(true);
+    setHint("");
+    try {
+      let roadAddress = item.roadAddr.trim();
+      let stationName = "";
+      let stationLines: string[] = [];
+      let walkMinutes = 10;
+
+      try {
+        const enriched = await searchRoomAddress({
+          q: item.roadAddr,
+          region: city || undefined,
+        });
+        if (enriched.road_address?.trim()) {
+          roadAddress = enriched.road_address.trim();
+        }
+        if (enriched.subway_stn?.trim()) {
+          stationName = stationLabel(enriched.subway_stn);
+        }
+        if (enriched.subway_line?.length) {
+          stationLines = [...enriched.subway_line];
+        }
+        if (
+          typeof enriched.walk_min === "number" &&
+          !Number.isNaN(enriched.walk_min)
+        ) {
+          walkMinutes = enriched.walk_min;
+        }
+      } catch {
+        /* 역·도보 자동 입력만 생략 */
+      }
+
+      onSelect({
+        roadAddress,
+        dong: item.emdNm?.trim() ?? "",
+        stationName,
+        stationLines,
+        walkMinutes,
+      });
+    } catch {
+      setHint("주소를 적용하지 못했어요. 다시 선택해 주세요.");
+    } finally {
+      setPicking(false);
+    }
+  };
+
+  const trimmed = query.trim();
+
+  return (
+    <div className={styles.sheetBackdrop} role="presentation" onClick={onClose}>
+      <div
+        className={styles.addressSheet}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="address-search-title"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <h2 id="address-search-title" className={styles.sheetTitle}>
+          도로명 주소 검색
+        </h2>
+        <p className={styles.sheetDesc}>
+          도로명·건물명·지번으로 검색한 뒤 항목을 선택해 주세요.
+        </p>
+        <div
+          className={cn(
+            styles.stationSearch,
+            trimmed && styles.stationSearchOpen,
+          )}
+        >
+          <Search size={18} strokeWidth={2.2} />
+          <input
+            value={query}
+            placeholder="도로명, 건물명, 지번"
+            enterKeyHint="search"
+            autoFocus
+            disabled={picking}
+            onChange={(event) => setQuery(event.target.value)}
+          />
+          {query ? (
+            <button
+              type="button"
+              aria-label="검색어 지우기"
+              disabled={picking}
+              onClick={() => setQuery("")}
+            >
+              <X size={14} strokeWidth={2.4} />
+            </button>
+          ) : null}
+        </div>
+
+        {hint ? <p className={styles.error}>{hint}</p> : null}
+
+        {trimmed.length >= 2 ? (
+          <div className={styles.stationResults}>
+            <p>
+              {picking
+                ? "주소 적용 중…"
+                : state === "loading" && results.length === 0
+                  ? "찾는 중"
+                  : state === "error"
+                    ? "주소를 불러오지 못했어요"
+                    : results.length > 0
+                      ? `${results.length}건`
+                      : "맞는 주소가 없어요"}
+            </p>
+            <ul>
+              {results.map((item) => (
+                <li key={`${item.zipNo}-${item.roadAddr}`}>
+                  <button
+                    type="button"
+                    disabled={picking}
+                    onClick={() => void pick(item)}
+                  >
+                    <span>
+                      <strong>{item.roadAddr}</strong>
+                      <em>{item.jibunAddr}</em>
+                    </span>
+                    <ChevronRight size={16} strokeWidth={2.2} />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : (
+          <p className={styles.addressSearchEmpty}>
+            {trimmed ? "두 글자 이상 입력해 주세요." : "검색어를 입력해 주세요."}
+          </p>
+        )}
+
+        <button
+          type="button"
+          className={cn(styles.ghost, styles.full)}
+          disabled={picking}
+          onClick={onClose}
+        >
+          닫기
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ClearField({
+  label,
+  placeholder,
+  value,
+  onChange,
+  onOpen,
+  inline = false,
+}: {
+  label: string;
+  placeholder: string;
+  value: string;
+  onChange: (value: string) => void;
+  onOpen?: () => void;
+  inline?: boolean;
+}) {
+  return (
+    <label className={styles.clearField}>
+      {inline ? null : <span className={styles.fieldLabel}>{label}</span>}
+      <span className={styles.clearControl}>
+        {inline ? <em>{label}</em> : null}
+        {onOpen ? (
+          <button
+            type="button"
+            className={cn(styles.clearOpen, !value && styles.clearOpenEmpty)}
+            onClick={onOpen}
+          >
+            {value || placeholder}
+          </button>
+        ) : (
+          <input
+            placeholder={placeholder}
+            value={value}
+            onChange={(event) => onChange(event.target.value)}
+          />
+        )}
+        {value ? (
+          <button
+            type="button"
+            aria-label={`${label} 지우기`}
+            onClick={() => onChange("")}
+          >
+            <X size={14} strokeWidth={2.4} />
+          </button>
+        ) : null}
+      </span>
+    </label>
   );
 }
 
 function ReviewStep({
   draft,
   patch,
+  userAgreements,
   onEdit,
   onPreview,
 }: {
   draft: ListingDraft;
   patch: (next: Partial<ListingDraft>) => void;
+  userAgreements: ReturnType<typeof useAuth>["user"];
   onEdit: (id: QuestionId) => void;
   onPreview: () => void;
 }) {
   const cover = draft.photos.find((photo) => photo.cover) ?? draft.photos[0];
   const burden = monthlyBurden(draft);
-  const { price, living, preference, space } = draft;
+  const { price, living, preference, space, consent, register } = draft;
+
+  useEffect(() => {
+    if (consent.profileAgree) return;
+    patch({
+      consent: {
+        profileAgree: userAgreements?.agreedMatch ?? false,
+        locationAgree: userAgreements?.agreedLocation ?? false,
+        pushAgree: userAgreements?.agreedPush ?? false,
+        marketingAgree: userAgreements?.agreedMarketing ?? false,
+      },
+    });
+  }, []);
 
   return (
     <>
@@ -1742,9 +2252,75 @@ function ReviewStep({
         </label>
         <div className={styles.reviewBadges}>
           <span>{burden == null ? "월세 미입력" : `월 ${burden}만원`}</span>
-          <span>1명 모집</span>
+          <span>{register.recruitCount}명 모집</span>
         </div>
+        <label className={styles.field}>
+          <span className={styles.fieldLabel}>
+            살짝에게 한마디 (최대 200자)
+          </span>
+          <textarea
+            className={styles.textarea}
+            rows={3}
+            maxLength={200}
+            value={draft.intro}
+            onChange={(event) => patch({ intro: event.target.value })}
+          />
+        </label>
       </div>
+
+      <section className={styles.reviewCard}>
+        <header>
+          <h2>동의</h2>
+        </header>
+        <label className={styles.checkRow}>
+          <input
+            type="checkbox"
+            checked={consent.profileAgree}
+            onChange={(event) =>
+              patch({
+                consent: { ...consent, profileAgree: event.target.checked },
+              })
+            }
+          />
+          <span>매칭 프로필 정보 제공 동의 (필수)</span>
+        </label>
+        <label className={styles.checkRow}>
+          <input
+            type="checkbox"
+            checked={consent.locationAgree}
+            onChange={(event) =>
+              patch({
+                consent: { ...consent, locationAgree: event.target.checked },
+              })
+            }
+          />
+          <span>위치기반 서비스 이용 동의</span>
+        </label>
+        <label className={styles.checkRow}>
+          <input
+            type="checkbox"
+            checked={consent.pushAgree}
+            onChange={(event) =>
+              patch({
+                consent: { ...consent, pushAgree: event.target.checked },
+              })
+            }
+          />
+          <span>푸시 알림 수신 동의</span>
+        </label>
+        <label className={styles.checkRow}>
+          <input
+            type="checkbox"
+            checked={consent.marketingAgree}
+            onChange={(event) =>
+              patch({
+                consent: { ...consent, marketingAgree: event.target.checked },
+              })
+            }
+          />
+          <span>마케팅 정보 수신 동의</span>
+        </label>
+      </section>
 
       <ReviewCard title="공간 정보" onEdit={() => onEdit("house")}>
         <p>{labelOf(HOUSE, space.houseType) || "집 구조 미선택"}</p>
@@ -1778,15 +2354,17 @@ function ReviewStep({
           ]
             .filter(Boolean)
             .map((label) => (
-            <span key={label}>{label}</span>
-          ))}
+              <span key={label}>{label}</span>
+            ))}
         </div>
       </ReviewCard>
 
       <ReviewCard title="원하는 동거인" onEdit={() => onEdit("gender")}>
         <div className={styles.reviewTags}>
           <span>
-            {preference.gender ? labelOf(GENDER, preference.gender) : "성별 미선택"}
+            {preference.gender
+              ? labelOf(GENDER, preference.gender)
+              : "성별 미선택"}
           </span>
           <span>
             {!preference.age || preference.age === "any"

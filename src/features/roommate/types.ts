@@ -27,11 +27,38 @@ export type PrefAge = '20s' | '30s' | '40s'
 export type PrefJob = 'worker' | 'student' | 'freelance' | 'any'
 export type Utilities = 'separate' | 'included'
 
+export type PhotoCategory =
+  | '거실'
+  | '방'
+  | '주방'
+  | '화장실'
+  | '현관'
+  | '기타'
+
 export type ListingPhoto = {
   id: string
   url: string
   label: string
+  category?: PhotoCategory | null
   cover: boolean
+}
+
+export type MoveInType = 'immediate' | 'this_month' | 'negotiate'
+
+export type ListingRegisterMeta = {
+  houseTypeInput: string
+  moveInType: MoveInType
+  recruitCount: number
+  privateRoomCount: number
+  photoPublic: boolean
+  restrictGender: boolean
+}
+
+export type ListingRegisterConsent = {
+  profileAgree: boolean
+  locationAgree: boolean
+  pushAgree: boolean
+  marketingAgree: boolean
 }
 
 export type RoommateListing = {
@@ -108,6 +135,8 @@ export type ListingDraft = Omit<
     gender: PrefGender | ''
     age: PrefAge | 'any' | ''
   }
+  register: ListingRegisterMeta
+  consent: ListingRegisterConsent
 }
 
 export type ChatMessage = {

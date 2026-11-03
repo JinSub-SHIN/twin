@@ -1,4 +1,4 @@
-.page {
+﻿.page {
   --home-deep: oklch(0.38 0.075 152);
   --home-forest: oklch(0.47 0.1 150);
   --home-mint: oklch(0.955 0.028 155);
@@ -38,7 +38,7 @@
 
 .brand {
   margin: 0;
-  font-family: "Noto Sans KR", var(--font-sans), sans-serif;
+  font-family: var(--font-sans), sans-serif;
   font-size: 1.35rem;
   font-weight: 900;
   letter-spacing: -0.07em;
@@ -97,7 +97,7 @@
 
 .headline {
   margin: 0;
-  font-family: "Noto Sans KR", var(--font-sans), sans-serif;
+  font-family: var(--font-sans), sans-serif;
   font-size: 1.5rem;
   font-weight: 900;
   line-height: 1.3;
@@ -160,16 +160,26 @@
   transform: scale(0.97);
 }
 
-.actionPrimary {
-  background: linear-gradient(150deg, var(--home-forest), var(--home-deep));
-  color: #fff;
-  box-shadow: 0 10px 22px oklch(0.38 0.075 152 / 0.24);
+.actionPrimary,
+.actionSecondary {
+  background: linear-gradient(
+    155deg,
+    color-mix(in oklch, var(--home-mint) 72%, var(--home-warm)),
+    var(--home-warm)
+  );
+  color: var(--home-ink);
+  border: 1.5px solid color-mix(in oklch, var(--home-forest) 14%, transparent);
+  box-shadow: var(--home-shadow);
 }
 
-.actionSecondary {
-  background: var(--home-warm);
-  color: var(--home-ink);
-  box-shadow: var(--home-shadow);
+:global(.dark) .actionPrimary,
+:global(.dark) .actionSecondary {
+  background: linear-gradient(
+    155deg,
+    color-mix(in oklch, var(--home-mint) 55%, var(--card)),
+    var(--card)
+  );
+  border-color: var(--border);
 }
 
 .actionIcon {
@@ -178,17 +188,19 @@
   margin-bottom: auto;
 }
 
+.actionPrimary .actionIcon,
 .actionSecondary .actionIcon {
-  color: var(--home-deep);
+  color: var(--home-forest);
 }
 
+:global(.dark) .actionPrimary .actionIcon,
 :global(.dark) .actionSecondary .actionIcon {
   color: var(--highlight);
 }
 
 .actionTitle {
   margin-top: 1.1rem;
-  font-family: "Noto Sans KR", var(--font-sans), sans-serif;
+  font-family: var(--font-sans), sans-serif;
   font-size: 1rem;
   font-weight: 800;
   line-height: 1.3;
@@ -204,7 +216,7 @@
   line-height: 1.45;
   letter-spacing: -0.03em;
   word-break: keep-all;
-  opacity: 0.82;
+  color: var(--home-sub);
 }
 
 .actionGo {
@@ -219,14 +231,16 @@
   border-radius: 999px;
 }
 
-.actionPrimary .actionGo {
-  background: #fff;
+.actionPrimary .actionGo,
+.actionSecondary .actionGo {
+  background: color-mix(in oklch, var(--home-forest) 11%, var(--home-warm));
   color: var(--home-deep);
 }
 
-.actionSecondary .actionGo {
-  background: var(--home-forest);
-  color: #fff;
+:global(.dark) .actionPrimary .actionGo,
+:global(.dark) .actionSecondary .actionGo {
+  background: color-mix(in oklch, var(--highlight) 16%, var(--card));
+  color: var(--foreground);
 }
 
 .guide {
@@ -242,7 +256,7 @@
   align-items: center;
   gap: 0.35rem;
   margin: 0;
-  font-family: "Noto Sans KR", var(--font-sans), sans-serif;
+  font-family: var(--font-sans), sans-serif;
   font-size: 1rem;
   font-weight: 800;
   letter-spacing: -0.05em;
@@ -350,7 +364,7 @@
   gap: 0.5rem;
   margin: 0;
   padding: 0 0.2rem;
-  font-family: "Noto Sans KR", var(--font-sans), sans-serif;
+  font-family: var(--font-sans), sans-serif;
   font-size: 0.98rem;
   font-weight: 800;
   letter-spacing: -0.05em;
@@ -449,7 +463,7 @@
 
 .counselorTitle {
   margin-top: 0.4rem;
-  font-family: "Noto Sans KR", var(--font-sans), sans-serif;
+  font-family: var(--font-sans), sans-serif;
   font-size: 1.1rem;
   font-weight: 900;
   letter-spacing: -0.05em;

@@ -1,4 +1,4 @@
-.page {
+﻿.page {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
@@ -90,7 +90,7 @@
 }
 
 .avatarFallback {
-  font-family: "Noto Sans KR", var(--font-sans), sans-serif;
+  font-family: var(--font-sans), sans-serif;
   font-size: 0.78rem;
   font-weight: 800;
   letter-spacing: -0.06em;
@@ -161,7 +161,7 @@
 }
 
 .pauseTitle {
-  font-family: "Noto Sans KR", var(--font-sans), sans-serif;
+  font-family: var(--font-sans), sans-serif;
   font-size: 1.05rem;
   font-weight: 800;
   letter-spacing: -0.04em;

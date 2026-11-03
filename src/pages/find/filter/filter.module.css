@@ -1,4 +1,4 @@
-/* —— Filter bar —— */
+﻿/* —— Filter bar —— */
 .bar {
   display: flex;
   align-items: center;
@@ -248,7 +248,7 @@
 
 .sheetTitle {
   margin: 0;
-  font-family: "Noto Sans KR", sans-serif;
+  font-family: var(--font-sans), sans-serif;
   font-size: 1.15rem;
   font-weight: 800;
   letter-spacing: -0.045em;

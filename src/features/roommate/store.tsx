@@ -16,7 +16,7 @@ import type {
 
 const DRAFT_KEY = "ssj-listing-draft";
 const DRAFT_VERSION_KEY = "ssj-listing-draft-v";
-const DRAFT_VERSION = "2";
+const DRAFT_VERSION = "3";
 
 function mergeDraft(saved: Partial<ListingDraft>): ListingDraft {
   const base = emptyDraft();
@@ -28,6 +28,8 @@ function mergeDraft(saved: Partial<ListingDraft>): ListingDraft {
     price: { ...base.price, ...saved.price },
     living: { ...base.living, ...saved.living },
     preference: { ...base.preference, ...saved.preference },
+    register: { ...base.register, ...saved.register },
+    consent: { ...base.consent, ...saved.consent },
     host: { ...base.host, ...saved.host },
   };
 }

@@ -1,4 +1,4 @@
-.badges {
+﻿.badges {
   display: inline-flex;
   align-items: center;
   justify-content: flex-start;
@@ -14,7 +14,7 @@
   height: 1.55rem;
   border-radius: 999px;
   color: #fff;
-  font-family: "Noto Sans KR", var(--font-sans), sans-serif;
+  font-family: var(--font-sans), sans-serif;
   font-weight: 700;
   letter-spacing: -0.03em;
 }

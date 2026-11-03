@@ -18,7 +18,12 @@ import {
   NaverSignInButton,
 } from '@/components/ui/button'
 import { useAuth } from '@/context/AuthContext'
-import { clearAccessToken, loadUser, saveAccessToken } from '@/lib/authStorage'
+import {
+  clearAccessToken,
+  loadUser,
+  saveAccessToken,
+  saveUserId,
+} from '@/lib/authStorage'
 import { cn } from '@/lib/utils'
 import { loginUser } from '@/service/auth'
 import { ApiError } from '@/service/http'
@@ -75,6 +80,17 @@ function readAccessToken(body: unknown) {
     }
   }
   return ''
+}
+
+function readStorageUserId(body: unknown) {
+  const root = asRecord(body)
+  const nested = asRecord(root?.user) ?? asRecord(root?.data) ?? root
+  return (
+    readString(nested, 'user_id') ||
+    readString(nested, 'userId') ||
+    readString(nested, 'uuid') ||
+    ''
+  )
 }
 
 function userFromLogin(loginId: string, body: unknown): UserProfile {
@@ -145,6 +161,7 @@ export function LoginPage() {
     try {
       const result = await loginUser({ id, password })
       saveAccessToken(readAccessToken(result))
+      saveUserId(readStorageUserId(result))
       signup(userFromLogin(id, result))
       navigate('/profile', { replace: true })
     } catch (err) {
