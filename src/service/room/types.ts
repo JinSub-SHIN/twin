@@ -6,11 +6,24 @@ export type RoomListItem = {
   job: string | null
   region: string
   district: string
+  dong?: string | null
   subway_stn: string | null
   subway_line?: string[] | null
+  walk_min?: number | null
+  title?: string | null
   pref_gender: string | null
   /** 직접조율이면 "직접조율" 같은 문자열로 내려옴 */
   share_total: number | string | null
+  house_type?: string | null
+  recruit_count?: number | null
+  move_in_type?: 'immediate' | 'this_month' | 'negotiate' | string | null
+  smoking_policy?: string | null
+  pet_policy?: string | null
+  noise_lifestyle?: string | null
+  clean_importance?: string | null
+  drink_freq?: string | null
+  pref_tags?: string[] | null
+  cover_photo?: string | null
 }
 
 export type RoomListResponse = {
@@ -20,11 +33,28 @@ export type RoomListResponse = {
   list: RoomListItem[]
 }
 
+export type RoomCountResponse = {
+  total: number
+}
+
 export type RoomListQuery = {
   region?: string
+  district?: string
   subway_stn?: string
+  walk_min_max?: number
   page?: number
   limit?: number
+  house_type?: string
+  smoking_policy?: string
+  drink_freq?: string
+  pet_policy?: string
+  noise_lifestyle?: string
+  clean_importance?: string
+  pref_gender?: 'male' | 'female'
+  pref_age_range?: string
+  pref_job?: string
+  rent_min?: number
+  rent_max?: number
 }
 
 export type StationSearchItem = {

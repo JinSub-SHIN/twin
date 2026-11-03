@@ -226,9 +226,12 @@ export function hasLocation(filter: ListingFilter) {
   return Boolean(filter.region || filter.subwayStation || filter.distance);
 }
 
-/** 서버 목록 조회 범위 밖(클라이언트에서 거르는) 조건이 있는지 */
+/** 목록 API로 처리되지 않는 조건(보증금 등)만 클라이언트에서 추가 필터 */
 export function hasClientFilter(filter: ListingFilter) {
-  return Boolean(filter.distance) || conditionChips(filter).length > 0;
+  const hasDeposit =
+    Boolean(filter.minDeposit) ||
+    (filter.maxDeposit !== undefined && filter.maxDeposit < DEPOSIT_RANGE.max);
+  return hasDeposit;
 }
 
 function inRange(value: number | null, min: number | undefined, max: number | undefined, limit: number) {
@@ -242,24 +245,9 @@ function inRange(value: number | null, min: number | undefined, max: number | un
 }
 
 export function matchesTraits(traits: ListingTraits, filter: ListingFilter) {
-  if (filter.distance && traits.walkMinutes > filter.distance) return false;
-  if (filter.smoking && traits.smoking !== filter.smoking) return false;
-  if (filter.pet && traits.pet !== filter.pet) return false;
-  if (filter.drinking && traits.drinking !== filter.drinking) return false;
-  if (filter.lifestyle && traits.lifestyle !== filter.lifestyle) return false;
-  if (filter.cleanliness && traits.cleanliness !== filter.cleanliness) return false;
-  if (filter.gender && traits.hostGender !== filter.gender) return false;
-  if (filter.ageRange && traits.ageRange !== filter.ageRange) return false;
-  if (filter.occupation && traits.occupation !== filter.occupation) return false;
-  for (const extra of filter.extras ?? []) {
-    if (extra === "nonSmoker" && traits.smoking !== "no") return false;
-    if (extra === "noPet" && traits.pet !== "none") return false;
-    if (extra === "quiet" && traits.lifestyle !== "quiet") return false;
-  }
-  if (!inRange(traits.monthlyMan, filter.minMonthlyCost, filter.maxMonthlyCost, MONTHLY_RANGE.max)) {
-    return false;
-  }
-  if (!inRange(traits.depositMan, filter.minDeposit, filter.maxDeposit, DEPOSIT_RANGE.max)) {
+  if (
+    !inRange(traits.depositMan, filter.minDeposit, filter.maxDeposit, DEPOSIT_RANGE.max)
+  ) {
     return false;
   }
   return true;

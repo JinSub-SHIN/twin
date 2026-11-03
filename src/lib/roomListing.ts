@@ -1,4 +1,3 @@
-import { houseGallery } from "@/lib/housePhotos";
 import { roomTraits, traitTags } from "@/lib/listingTraits";
 import {
   buildCostChart,
@@ -64,8 +63,14 @@ function stationLabel(value: string | null | undefined) {
   return text.endsWith("역") ? text : `${text}역`;
 }
 
-function placeLabel(item: { region?: string | null; district?: string | null }) {
-  return [item.region?.trim(), item.district?.trim()].filter(Boolean).join(" ");
+function placeLabel(item: {
+  region?: string | null;
+  district?: string | null;
+  dong?: string | null;
+}) {
+  return [item.region?.trim(), item.district?.trim(), item.dong?.trim()]
+    .filter(Boolean)
+    .join(" ");
 }
 
 function genderLabel(gender: string | null | undefined) {
@@ -123,12 +128,31 @@ function costChart(
   );
 }
 
-const MOVE_IN = ["즉시 입주 가능", "이번 달 입주", "일정은 대화로"];
+const MOVE_IN_LABEL: Record<string, string> = {
+  immediate: "즉시 입주 가능",
+  this_month: "이번 달 입주",
+  negotiate: "일정은 대화로",
+};
 
-function hash(value: string) {
-  let n = 0;
-  for (const ch of value) n = (n * 31 + ch.charCodeAt(0)) >>> 0;
-  return n;
+function houseTag(houseType: string | null | undefined) {
+  const t = houseType?.trim();
+  if (!t) return null;
+  if (t === "원룸" || t === "투룸") return t;
+  if (t === "쓰리룸 이상") return "쓰리룸이상";
+  if (t === "기타") return "기타";
+  return t.replace(/\s+/g, "");
+}
+
+function listTags(item: RoomListItem) {
+  const tags: string[] = [];
+  const house = houseTag(item.house_type);
+  if (house) tags.push(house);
+  for (const tag of item.pref_tags ?? []) {
+    const text = tag?.trim();
+    if (text) tags.push(text);
+  }
+  if (tags.length > 0) return tags.slice(0, 5);
+  return traitTags(roomTraits(item));
 }
 
 export function roomListItemToSummary(item: RoomListItem): ListingSummary {
@@ -158,11 +182,16 @@ export function roomListItemToSummary(item: RoomListItem): ListingSummary {
       : null,
     restrictListingByPrefGender: false,
     bio: "",
-    coverUrl: houseGallery(item.id)[0]?.url,
-    pitch: "함께 살 동거인을 찾아요",
-    recruitLabel: "1명 모집",
-    moveInLabel: MOVE_IN[hash(item.id) % MOVE_IN.length],
-    tags: traitTags(roomTraits(item)),
+    coverUrl: item.cover_photo?.trim() || undefined,
+    pitch: item.title?.trim() || "함께 살 동거인을 찾아요",
+    recruitLabel:
+      item.recruit_count != null && item.recruit_count > 0
+        ? `${item.recruit_count}명 모집`
+        : "1명 모집",
+    moveInLabel:
+      (item.move_in_type && MOVE_IN_LABEL[item.move_in_type]) ||
+      MOVE_IN_LABEL.negotiate,
+    tags: listTags(item),
   };
 }
 

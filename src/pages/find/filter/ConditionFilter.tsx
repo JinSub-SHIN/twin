@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { FilterBottomSheet } from "./FilterBottomSheet";
 import { LivingConditionFilter } from "./LivingConditionFilter";
@@ -6,6 +6,7 @@ import { PriceFilter } from "./PriceFilter";
 import { RoommateFilter } from "./RoommateFilter";
 import { clearConditions, conditionChips } from "./model";
 import type { ListingFilter } from "./types";
+import { useRoomCountPreview } from "./useRoomCountPreview";
 import styles from "./filter.module.css";
 
 type Tab = "living" | "roommate" | "price";
@@ -22,22 +23,33 @@ export function ConditionFilter({
   open,
   initialTab = "living",
   value,
+  legacyRegions = [],
   onOpenChange,
-  countOf,
   onApply,
 }: {
   open: boolean;
   initialTab?: Tab;
   value: ListingFilter;
+  /** URL regions (다중 구 선택 등). count/list와 동일한 region 해석 */
+  legacyRegions?: string[];
   onOpenChange: (open: boolean) => void;
-  /** 선택 중인 조건으로 보여줄 공고 개수 */
-  countOf: (draft: ListingFilter) => number;
   onApply: (next: ListingFilter) => void;
 }) {
   const [draft, setDraft] = useState(value);
   const [tab, setTab] = useState<Tab>(initialTab);
   const keys = conditionChips(draft).map((chip) => chip.key.replace(/-.*$/, ""));
-  const count = countOf(draft);
+  const { total, loading } = useRoomCountPreview(draft, legacyRegions, open);
+
+  useEffect(() => {
+    if (open) setDraft(value);
+  }, [open, value]);
+
+  const countLabel =
+    loading && total === null
+      ? "…"
+      : total != null
+        ? String(total)
+        : "—";
 
   return (
     <FilterBottomSheet
@@ -45,7 +57,7 @@ export function ConditionFilter({
       onOpenChange={onOpenChange}
       title="조건 필터"
       tall
-      applyLabel={`${count}개 공고 보기`}
+      applyLabel={`${countLabel}개 공고 보기`}
       onReset={() => setDraft(clearConditions(draft))}
       onApply={() => onApply(draft)}
       tabs={

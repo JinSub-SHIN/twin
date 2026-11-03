@@ -4,11 +4,13 @@ import { ListingTeaserCard } from "@/components/ui/card";
 import type { ListingSummary } from "@/lib/listingView";
 import { roomTraits, type ListingTraits } from "@/lib/listingTraits";
 import {
+  buildRoomListQuery,
+  listLocationOf,
+  usesServerListTotal,
+} from "@/lib/roomListQuery";
+import {
   matchesRoomRegion,
-  matchesRoomStation,
-  regionQueryOf,
   roomListItemToSummary,
-  usesServerTotal,
 } from "@/lib/roomListing";
 import { COUNSELOR_IMG } from "@/pages/home/CounselorAvatar";
 import { getRoomList } from "@/service/room";
@@ -54,10 +56,10 @@ type ListingRow = {
 };
 
 async function fetchListingPage(
+  filter: ListingFilter,
   regions: string[],
-  station: string,
-  stationRegion: string,
   page: number,
+  clientRegionFilter: boolean,
   isCancelled: () => boolean,
 ) {
   let cursor = page;
@@ -65,23 +67,16 @@ async function fetchListingPage(
   let total = 0;
   const rows: ListingRow[] = [];
 
-  const stationOnly = Boolean(station.trim());
   while (rows.length === 0 && hasMore && cursor - page < 40) {
-    const result = await getRoomList({
-      region: stationOnly
-        ? stationRegion.trim() || undefined
-        : regionQueryOf(regions),
-      subway_stn: stationOnly ? station.trim() : undefined,
-      page: cursor,
-      limit: PAGE_SIZE,
-    });
+    const result = await getRoomList(
+      buildRoomListQuery(filter, regions, cursor, PAGE_SIZE),
+    );
     if (isCancelled()) return null;
     total = result.total;
     hasMore = result.has_more;
     cursor += 1;
     for (const item of result.list) {
-      if (!stationOnly && !matchesRoomRegion(item, regions)) continue;
-      if (!matchesRoomStation(item, station)) continue;
+      if (clientRegionFilter && !matchesRoomRegion(item, regions)) continue;
       rows.push({
         id: item.id,
         summary: roomListItemToSummary(item),
@@ -97,13 +92,30 @@ async function fetchListingPage(
 export function ExplorePage() {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
-  const filter = useMemo(() => parseListingFilter(params), [params]);
+  const filterKey = useMemo(() => {
+    const next = new URLSearchParams(params);
+    next.delete("sort");
+    return next.toString();
+  }, [params]);
+  const filter = useMemo(
+    () => parseListingFilter(new URLSearchParams(filterKey)),
+    [filterKey],
+  );
   const sort = parseSort(params);
-  const selectedRegions = params.getAll("regions");
-  const selectedStation = params.get("station")?.trim() ?? "";
-  const selectedStationRegion = params.get("stationRegion")?.trim() ?? "";
-  const regionKey = selectedRegions.join("|");
-  const filterKey = `${regionKey}::${selectedStation}::${selectedStationRegion}`;
+  const selectedRegions = useMemo(() => {
+    const p = new URLSearchParams(filterKey);
+    return p.getAll("regions");
+  }, [filterKey]);
+  const selectedStation = useMemo(() => {
+    const p = new URLSearchParams(filterKey);
+    return p.get("station")?.trim() ?? "";
+  }, [filterKey]);
+  const listLoc = useMemo(
+    () => listLocationOf(filter, selectedRegions),
+    [filter, selectedRegions],
+  );
+  const clientRegionFilter =
+    selectedRegions.length > 1 && !listLoc.subway_stn && !listLoc.district;
 
   const [locationOpen, setLocationOpen] = useState(false);
   const [locationSession, setLocationSession] = useState(0);
@@ -132,17 +144,12 @@ export function ExplorePage() {
   const visibleHasMore = ready && hasMore;
   const filling = clientFiltered && visibleHasMore && visibleRows.length === 0;
   const loading = !ready || filling;
-  const serverCount = usesServerTotal(selectedRegions)
+  const serverCount = usesServerListTotal(filter, selectedRegions)
     ? ready
       ? total
       : 0
     : loadedRows.length;
   const listingCount = clientFiltered ? visibleRows.length : serverCount;
-
-  const countOf = (draft: ListingFilter) =>
-    hasClientFilter(draft)
-      ? loadedRows.filter((row) => matchesTraits(row.traits, draft)).length
-      : serverCount;
 
   const loadingRef = useRef(false);
   const armedRef = useRef(true);
@@ -151,30 +158,32 @@ export function ExplorePage() {
   const generationRef = useRef(0);
   const regionsRef = useRef(selectedRegions);
   const stationRef = useRef(selectedStation);
-  const stationRegionRef = useRef(selectedStationRegion);
+  const filterRef = useRef(filter);
+  const clientRegionRef = useRef(clientRegionFilter);
   const loadMoreRef = useRef<() => void>(() => {});
 
   useEffect(() => {
     const generation = ++generationRef.current;
-    const regions = regionKey ? regionKey.split("|") : [];
+    const regions = selectedRegions;
+    const regionFilter = clientRegionFilter;
     regionsRef.current = regions;
     stationRef.current = selectedStation;
-    stationRegionRef.current = selectedStationRegion;
+    filterRef.current = filter;
+    clientRegionRef.current = regionFilter;
     nextPageRef.current = 1;
     hasMoreRef.current = false;
     loadingRef.current = true;
     armedRef.current = true;
+    setLoadedKey(null);
 
     void (async () => {
       try {
         const result = await fetchListingPage(
+          filter,
           regions,
-          selectedStation,
-          selectedStationRegion,
           1,
-          () => {
-            return generationRef.current !== generation;
-          },
+          regionFilter,
+          () => generationRef.current !== generation,
         );
         if (!result || generationRef.current !== generation) return;
         setRows(result.rows);
@@ -201,7 +210,7 @@ export function ExplorePage() {
         }
       }
     })();
-  }, [filterKey, regionKey, selectedStation, selectedStationRegion]);
+  }, [filterKey, filter, selectedRegions, clientRegionFilter]);
 
   useEffect(() => {
     const root = document.querySelector("main");
@@ -220,10 +229,10 @@ export function ExplorePage() {
       void (async () => {
         try {
           const result = await fetchListingPage(
+            filterRef.current,
             regionsRef.current,
-            stationRef.current,
-            stationRegionRef.current,
             nextPageRef.current,
+            clientRegionRef.current,
             () => generationRef.current !== generation,
           );
           if (!result || generationRef.current !== generation) return;
@@ -509,7 +518,7 @@ export function ExplorePage() {
         open={conditionOpen}
         value={filter}
         onOpenChange={setConditionOpen}
-        countOf={countOf}
+        legacyRegions={selectedRegions}
         onApply={(next) => {
           applyConditions(next);
           setConditionOpen(false);
