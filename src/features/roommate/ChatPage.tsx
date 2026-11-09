@@ -28,6 +28,32 @@ function roomPlace(room: ChatRoomSummary) {
   return parts.join(' · ') || '살짝 공고'
 }
 
+function listingChipSubtitle(room: ChatRoomSummary) {
+  const status = room.apply_status
+  if (room.is_owner) {
+    switch (status) {
+      case 'pending':
+        return '함께 살기 신청을 확인해 주세요'
+      case 'accepted':
+        return '함께 살기 매칭이 완료됐어요'
+      case 'rejected':
+        return '함께 살기 신청을 거절했어요'
+      default:
+        return '내 공고 문의'
+    }
+  }
+  switch (status) {
+    case 'pending':
+      return '함께 살기 답변을 기다리고 있어요'
+    case 'accepted':
+      return '함께 살기 매칭이 완료됐어요'
+    case 'rejected':
+      return '함께 살기 신청이 거절됐어요'
+    default:
+      return '이 공고에 대해 문의하고 있어요'
+  }
+}
+
 export function ChatPage() {
   const navigate = useNavigate()
   const { threadId: chatRoomId = '' } = useParams()
@@ -47,7 +73,14 @@ export function ChatPage() {
   const inputRef = useRef<HTMLInputElement>(null)
   const threadRef = useRef<HTMLDivElement>(null)
   const stickToBottomRef = useRef(true)
+  const userClosedKeyboardRef = useRef(false)
   const keyboardInset = useVisualViewportBottomInset()
+
+  const maintainComposerFocus = useCallback(() => {
+    const input = inputRef.current
+    if (!input || document.activeElement === input) return
+    input.focus({ preventScroll: true })
+  }, [])
 
   useEffect(() => {
     if (!loadAccessToken()) {
@@ -86,6 +119,7 @@ export function ChatPage() {
   const submitMessage = useCallback(() => {
     const value = text.trim()
     if (!value || sending || !chatRoomId) return
+    const keepKeyboard = document.activeElement === inputRef.current
     stickToBottomRef.current = true
     setSending(true)
     void sendChatMessage(chatRoomId, { content: value })
@@ -109,8 +143,20 @@ export function ChatPage() {
           })
         }
       })
-      .finally(() => setSending(false))
-  }, [appendMessage, chatRoomId, navigate, sending, setError, text])
+      .finally(() => {
+        setSending(false)
+        if (!keepKeyboard || userClosedKeyboardRef.current) return
+        requestAnimationFrame(() => maintainComposerFocus())
+      })
+  }, [
+    appendMessage,
+    chatRoomId,
+    maintainComposerFocus,
+    navigate,
+    sending,
+    setError,
+    text,
+  ])
 
   useEffect(() => {
     if (!chatRoomId) return
@@ -220,9 +266,7 @@ export function ChatPage() {
           {coverUrl ? <img src={coverUrl} alt="" /> : null}
           <span>
             <p>{roomPlace(room)}</p>
-            <p className={styles.sub}>
-              {room.is_owner ? '내 공고 문의' : '이 공고에 대해 문의하고 있어요'}
-            </p>
+            <p className={styles.sub}>{listingChipSubtitle(room)}</p>
           </span>
         </button>
       ) : null}
@@ -411,6 +455,7 @@ export function ChatPage() {
 
       <div
         className={styles.composer}
+        data-composer
         style={
           keyboardInset > 0
             ? { marginBottom: keyboardInset }
@@ -422,6 +467,17 @@ export function ChatPage() {
           value={text}
           placeholder="메시지를 입력하세요"
           onChange={(event) => setText(event.target.value)}
+          onFocus={() => {
+            userClosedKeyboardRef.current = false
+          }}
+          onBlur={() => {
+            window.setTimeout(() => {
+              const next = document.activeElement
+              if (next === inputRef.current) return
+              if (next?.closest('[data-composer]')) return
+              userClosedKeyboardRef.current = true
+            }, 0)
+          }}
           onKeyDown={(event) => {
             if (event.key !== 'Enter' || event.nativeEvent.isComposing) return
             event.preventDefault()
@@ -435,7 +491,12 @@ export function ChatPage() {
           type="button"
           className={styles.iconBtn}
           aria-label="보내기"
-          disabled={sending}
+          aria-busy={sending}
+          tabIndex={-1}
+          onPointerDown={(event) => {
+            event.preventDefault()
+            maintainComposerFocus()
+          }}
           onClick={submitMessage}
         >
           <Send size={18} />

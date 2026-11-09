@@ -466,23 +466,48 @@
 .listingChip {
   display: flex;
   gap: 0.7rem;
+  align-items: center;
+  box-sizing: border-box;
+  width: calc(100% - 2rem);
   margin: 0 1rem;
   padding: 0.55rem;
+  border: 0;
   border-radius: 1rem;
   background: var(--card);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 
 .listingChip img {
+  flex-shrink: 0;
   width: 3.4rem;
   height: 3.4rem;
   border-radius: 0.7rem;
   object-fit: cover;
 }
 
+.listingChip > span {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  text-align: left;
+}
+
 .listingChip p {
   margin: 0;
+  width: 100%;
   font-size: 0.8rem;
   font-weight: 700;
+  text-align: left;
+}
+
+.listingChip .sub {
+  width: 100%;
+  text-align: left;
 }
 
 .done {
