@@ -1,11 +1,25 @@
+import type { AuthTokenPair } from '@/lib/authTokens'
 import type { UserProfile } from '@/types/user'
 
 const STORAGE_KEY = 'saljjak.user'
 const TOKEN_KEY = 'saljjak.accessToken'
+const REFRESH_KEY = 'saljjak.refreshToken'
+const EXPIRES_AT_KEY = 'saljjak.accessExpiresAt'
 const USER_ID_KEY = 'saljjak.userId'
 
 export function loadAccessToken() {
   return localStorage.getItem(TOKEN_KEY)?.trim() || ''
+}
+
+export function loadRefreshToken() {
+  return localStorage.getItem(REFRESH_KEY)?.trim() || ''
+}
+
+export function loadAccessExpiresAt(): number | null {
+  const raw = localStorage.getItem(EXPIRES_AT_KEY)
+  if (!raw) return null
+  const n = Number(raw)
+  return Number.isFinite(n) && n > 0 ? n : null
 }
 
 export function saveAccessToken(token: string) {
@@ -17,8 +31,21 @@ export function saveAccessToken(token: string) {
   localStorage.setItem(TOKEN_KEY, value)
 }
 
-export function clearAccessToken() {
+export function saveAuthTokens(tokens: AuthTokenPair) {
+  saveAccessToken(tokens.accessToken)
+  localStorage.setItem(REFRESH_KEY, tokens.refreshToken.trim())
+  const expiresAt = Date.now() + tokens.expiresIn * 1000
+  localStorage.setItem(EXPIRES_AT_KEY, String(expiresAt))
+}
+
+export function clearAuthTokens() {
   localStorage.removeItem(TOKEN_KEY)
+  localStorage.removeItem(REFRESH_KEY)
+  localStorage.removeItem(EXPIRES_AT_KEY)
+}
+
+export function clearAccessToken() {
+  clearAuthTokens()
 }
 
 export function saveUserId(userId: string) {
@@ -59,6 +86,13 @@ export function saveUser(user: UserProfile): void {
 
 export function clearUser(): void {
   localStorage.removeItem(STORAGE_KEY)
-  localStorage.removeItem(TOKEN_KEY)
+  clearAuthTokens()
   clearUserId()
+}
+
+/** access 만료 5분 전이면 true */
+export function shouldRefreshAccessProactively(): boolean {
+  const expiresAt = loadAccessExpiresAt()
+  if (!expiresAt || !loadRefreshToken()) return false
+  return expiresAt - Date.now() < 5 * 60 * 1000
 }

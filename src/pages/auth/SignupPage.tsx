@@ -19,6 +19,8 @@ import {
   NaverSignInButton,
 } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
+import { saveAuthTokens } from "@/lib/authStorage";
+import { parseAuthTokenPair } from "@/lib/authTokens";
 import { cn } from "@/lib/utils";
 import {
   checkLoginId,
@@ -491,13 +493,15 @@ export function SignupPage() {
       setSubmitting(true);
       setError("");
       try {
-        await signupUser({
+        const signupResult = await signupUser({
           id: loginId.trim(),
           password,
           gender,
           birth,
           phone: phone.trim(),
         });
+        const tokens = parseAuthTokenPair(signupResult);
+        if (tokens) saveAuthTokens(tokens);
       } catch (err) {
         setError(
           err instanceof ApiError

@@ -21,9 +21,11 @@ import { useAuth } from '@/context/AuthContext'
 import {
   clearAccessToken,
   loadUser,
-  saveAccessToken,
+  saveAuthTokens,
   saveUserId,
 } from '@/lib/authStorage'
+import { parseAuthTokenPair } from '@/lib/authTokens'
+import { consumeAuthNotice } from '@/lib/authSession'
 import { cn } from '@/lib/utils'
 import { loginUser } from '@/service/auth'
 import { ApiError } from '@/service/http'
@@ -66,20 +68,6 @@ function readString(record: Record<string, unknown> | null, key: string) {
 function readGender(value: unknown): Gender | null {
   if (value === 'male' || value === 'female' || value === 'other') return value
   return null
-}
-
-function readAccessToken(body: unknown) {
-  const root = asRecord(body)
-  const data = asRecord(root?.data)
-  const keys = ['access_token', 'accessToken', 'token']
-  for (const source of [root, data]) {
-    if (!source) continue
-    for (const key of keys) {
-      const value = readString(source, key)
-      if (value) return value
-    }
-  }
-  return ''
 }
 
 function readStorageUserId(body: unknown) {
@@ -137,6 +125,13 @@ export function LoginPage() {
   const [failModalOpen, setFailModalOpen] = useState(false)
 
   useEffect(() => {
+    const fromState = (location.state as { authNotice?: string } | null)
+      ?.authNotice
+    const notice = fromState?.trim() || consumeAuthNotice()
+    if (notice) setError(notice)
+  }, [location.state])
+
+  useEffect(() => {
     if (isLoggedIn) navigate('/profile', { replace: true })
   }, [isLoggedIn, navigate])
 
@@ -160,7 +155,14 @@ export function LoginPage() {
     const id = loginId.trim()
     try {
       const result = await loginUser({ id, password })
-      saveAccessToken(readAccessToken(result))
+      const tokens = parseAuthTokenPair(result)
+      if (!tokens) {
+        setError(
+          '로그인 응답에 토큰이 없습니다. 서버 설정을 확인한 뒤 다시 시도해 주세요.',
+        )
+        return
+      }
+      saveAuthTokens(tokens)
       saveUserId(readStorageUserId(result))
       signup(userFromLogin(id, result))
       navigate('/profile', { replace: true })

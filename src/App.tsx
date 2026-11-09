@@ -1,4 +1,5 @@
 import { Route, Routes, Navigate } from "react-router-dom";
+import { AuthSessionSync } from "@/components/auth/AuthSessionSync";
 import { AuthProvider } from "@/context/AuthContext";
 import { RoommateProvider } from "@/features/roommate/store";
 import { BrowsePage } from "@/features/roommate/BrowsePage";
@@ -25,6 +26,7 @@ import { ListingPreviewPage } from "@/pages/regist/ListingPreviewPage";
 function App() {
   return (
     <AuthProvider>
+      <AuthSessionSync />
       <RoommateProvider>
         <Routes>
           <Route element={<AppLayout />}>
