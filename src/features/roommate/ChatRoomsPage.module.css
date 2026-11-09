@@ -1,8 +1,89 @@
+.chatList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin: 0;
+  padding: 0.25rem 0.4rem 0.5rem;
+  list-style: none;
+}
+
+.chatRoomCard {
+  display: flex;
+  flex-direction: column;
+  border-radius: 1.2rem;
+  border: 1px solid color-mix(in oklch, var(--border) 50%, var(--foreground) 14%);
+  background: linear-gradient(
+    168deg,
+    color-mix(in oklch, var(--card) 70%, white 30%) 0%,
+    var(--card) 42%,
+    color-mix(in oklch, var(--card) 92%, var(--foreground) 8%) 100%
+  );
+  box-shadow:
+    inset 0 1px 0 color-mix(in oklch, white 55%, transparent),
+    inset 0 -1px 0 color-mix(in oklch, var(--foreground) 7%, transparent);
+}
+
+:global(.dark) .chatRoomCard {
+  background: linear-gradient(
+    168deg,
+    color-mix(in oklch, var(--card) 88%, white 12%) 0%,
+    var(--card) 50%,
+    color-mix(in oklch, var(--card) 85%, black 15%) 100%
+  );
+  box-shadow:
+    inset 0 1px 0 color-mix(in oklch, white 12%, transparent),
+    inset 0 -1px 0 color-mix(in oklch, black 25%, transparent);
+}
+
+.chatRoomLink {
+  display: block;
+  text-decoration: none;
+  color: var(--foreground);
+}
+
+.chatRoomBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 1rem 0.95rem 1.02rem;
+}
+
+.chatTitle {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1.3;
+  color: var(--foreground);
+}
+
+.chatMeta {
+  margin: 0.22rem 0 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.45;
+  letter-spacing: -0.02em;
+  color: color-mix(in oklch, var(--foreground) 82%, var(--muted-foreground));
+}
+
 .swipeRow {
   position: relative;
-  overflow: hidden;
-  border-radius: 1.05rem;
+  overflow: visible;
+  border-radius: 1.2rem;
   list-style: none;
+  box-shadow:
+    0 2px 4px oklch(0.22 0.02 150 / 12%),
+    0 6px 16px oklch(0.22 0.03 150 / 14%),
+    0 14px 32px oklch(0.22 0.025 150 / 12%),
+    0 24px 48px oklch(0.2 0.02 150 / 8%);
+}
+
+:global(.dark) .swipeRow {
+  box-shadow:
+    0 2px 6px oklch(0 0 0 / 32%),
+    0 10px 24px oklch(0 0 0 / 38%),
+    0 20px 44px oklch(0 0 0 / 28%);
 }
 
 .swipeActions {
@@ -10,10 +91,13 @@
   top: 0;
   right: 0;
   bottom: 0;
+  z-index: 0;
   display: flex;
   align-items: stretch;
   justify-content: flex-end;
   width: 4.75rem;
+  overflow: hidden;
+  border-radius: inherit;
 }
 
 .leaveBtn {
@@ -63,6 +147,7 @@
   z-index: 1;
   touch-action: pan-y;
   will-change: transform;
+  border-radius: inherit;
 }
 
 .dialogContent {
@@ -156,6 +241,61 @@
   border: 1px solid var(--border);
   color: var(--foreground);
   font-weight: 700;
+}
+
+.inquiryTag {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.4;
+  color: color-mix(in oklch, var(--foreground) 88%, var(--muted-foreground));
+}
+
+.applyStatus {
+  display: flex;
+  align-items: center;
+  gap: 0.42rem;
+  margin: 0;
+  padding: 0.48rem 0.62rem;
+  border-radius: 0.72rem;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.4;
+  word-break: keep-all;
+  color: var(--foreground);
+  background: color-mix(in oklch, var(--muted) 38%, var(--card));
+  box-shadow: inset 0 1px 0 color-mix(in oklch, white 35%, transparent);
+}
+
+.applyStatus[data-status='pending'] {
+  background: color-mix(in oklch, var(--highlight) 14%, var(--card));
+}
+
+.applyStatus[data-status='pending'] .applyStatusIcon {
+  color: var(--highlight);
+}
+
+.applyStatus[data-status='accepted'] {
+  background: color-mix(in oklch, var(--highlight) 12%, var(--card));
+  color: var(--foreground);
+}
+
+.applyStatus[data-status='accepted'] .applyStatusIcon {
+  color: var(--highlight);
+}
+
+.applyStatus[data-status='rejected'] {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--muted-foreground);
+  background: color-mix(in oklch, var(--muted) 55%, var(--card));
+}
+
+.applyStatusIcon {
+  flex-shrink: 0;
+  opacity: 1;
 }
 
 .unreadBadge {

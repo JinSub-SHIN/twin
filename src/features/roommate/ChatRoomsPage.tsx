@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { MessageCircle } from 'lucide-react'
+import { CheckCircle2, Clock3, MessageCircle } from 'lucide-react'
 import { Button, buttonVariants } from '@/components/ui/button'
 import {
   Dialog,
@@ -45,11 +45,32 @@ function unreadLabel(count: number) {
   return count > 99 ? '99+' : String(count)
 }
 
-function statusChip(status: ChatRoomSummary['apply_status']) {
-  if (status === 'pending') return { label: '신청 대기', className: activityStyles.chipAccent }
-  if (status === 'accepted') return { label: '매칭됨', className: activityStyles.chipPrimary }
-  if (status === 'rejected') return { label: '거절됨', className: activityStyles.chip }
-  return null
+type ApplyStatusTone = 'pending' | 'accepted' | 'rejected'
+
+function applyStatusLine(
+  status: ChatRoomSummary['apply_status'],
+  isOwner: boolean,
+) {
+  if (!status) return null
+  if (status === 'pending') {
+    return {
+      tone: 'pending' as ApplyStatusTone,
+      label: isOwner ? '함께 살기 신청이 왔어요' : '답변을 기다리는 중',
+      Icon: Clock3,
+    }
+  }
+  if (status === 'accepted') {
+    return {
+      tone: 'accepted' as ApplyStatusTone,
+      label: '함께 살기 매칭됨',
+      Icon: CheckCircle2,
+    }
+  }
+  return {
+    tone: 'rejected' as ApplyStatusTone,
+    label: isOwner ? '신청을 거절했어요' : '신청이 거절됐어요',
+    Icon: null,
+  }
 }
 
 export function ChatRoomsPage() {
@@ -185,9 +206,13 @@ export function ChatRoomsPage() {
           ) : null}
 
           {!loading && rooms.length > 0 ? (
-            <ul className={activityStyles.items}>
+            <ul className={listStyles.chatList}>
               {rooms.map((room) => {
-                const chip = statusChip(room.apply_status)
+                const applyLine = applyStatusLine(
+                  room.apply_status,
+                  room.is_owner,
+                )
+                const StatusIcon = applyLine?.Icon ?? null
                 const unread = unreadCount(room)
                 const isOpen = openRowId === room.chat_room_id
                 return (
@@ -203,11 +228,11 @@ export function ChatRoomsPage() {
                     }
                     onLeave={() => requestLeave(room.chat_room_id)}
                     leaving={leavingId === room.chat_room_id}
-                    className={activityStyles.item}
+                    className={listStyles.chatRoomCard}
                   >
                     <Link
                       to={`/roommate/chat/${room.chat_room_id}`}
-                      className={activityStyles.itemLink}
+                      className={listStyles.chatRoomLink}
                       onClick={(event) => {
                         if (isOpen) {
                           event.preventDefault()
@@ -215,36 +240,53 @@ export function ChatRoomsPage() {
                         }
                       }}
                     >
-                      <div className={activityStyles.itemHead}>
-                        <div className={activityStyles.itemMain}>
-                          <span className={activityStyles.itemAvatar} aria-hidden>
-                            {partnerInitials(room.partner_nick)}
-                          </span>
-                          <div className={activityStyles.itemCopy}>
-                            <p className={activityStyles.itemTitle}>
-                              {room.partner_nick}
-                            </p>
-                            <p className={activityStyles.itemMeta}>
-                              {roomPlace(room)}
-                            </p>
+                      <div className={listStyles.chatRoomBody}>
+                        <div className={activityStyles.itemHead}>
+                          <div className={activityStyles.itemMain}>
+                            <span
+                              className={activityStyles.itemAvatar}
+                              aria-hidden
+                            >
+                              {partnerInitials(room.partner_nick)}
+                            </span>
+                            <div className={activityStyles.itemCopy}>
+                              <p className={listStyles.chatTitle}>
+                                {room.partner_nick}
+                              </p>
+                              <p className={listStyles.chatMeta}>
+                                {roomPlace(room)}
+                              </p>
+                            </div>
                           </div>
+                          {unread > 0 ? (
+                            <span
+                              className={listStyles.unreadBadge}
+                              aria-label={`읽지 않은 메시지 ${unread}개`}
+                            >
+                              {unreadLabel(unread)}
+                            </span>
+                          ) : null}
                         </div>
-                        {unread > 0 ? (
-                          <span
-                            className={listStyles.unreadBadge}
-                            aria-label={`읽지 않은 메시지 ${unread}개`}
+                        {applyLine ? (
+                          <p
+                            className={listStyles.applyStatus}
+                            data-status={applyLine.tone}
                           >
-                            {unreadLabel(unread)}
-                          </span>
-                        ) : null}
-                      </div>
-                      <div className={activityStyles.chips}>
-                        <span className={activityStyles.chip}>
-                          {room.is_owner ? '내 공고 문의' : '문의 중'}
-                        </span>
-                        {chip ? (
-                          <span className={chip.className}>{chip.label}</span>
-                        ) : null}
+                            {StatusIcon ? (
+                              <StatusIcon
+                                className={listStyles.applyStatusIcon}
+                                size={16}
+                                strokeWidth={2.25}
+                                aria-hidden
+                              />
+                            ) : null}
+                            <span>{applyLine.label}</span>
+                          </p>
+                        ) : (
+                          <p className={listStyles.inquiryTag}>
+                            {room.is_owner ? '내 공고 문의' : '문의 중'}
+                          </p>
+                        )}
                       </div>
                     </Link>
                   </ChatSwipeRow>
@@ -330,11 +372,11 @@ function ChatListSkeleton() {
   const bone = activityStyles.skeletonBone
   return (
     <ul
-      className={activityStyles.items}
+      className={listStyles.chatList}
       aria-busy="true"
       aria-label="불러오는 중"
     >
-      <li className={`${activityStyles.item} ${activityStyles.skeletonItem}`}>
+      <li className={`${listStyles.chatRoomCard} ${activityStyles.skeletonItem}`}>
         <div className={activityStyles.itemHead}>
           <div className={activityStyles.itemMain}>
             <span
