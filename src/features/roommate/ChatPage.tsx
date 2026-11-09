@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { ArrowLeft, Send } from 'lucide-react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useChatMessages } from '@/hooks/useChatMessages'
+import { useVisualViewportBottomInset } from '@/hooks/useVisualViewportBottomInset'
 import { resolveStorageUserId } from '@/lib/authUserId'
 import { loadAccessToken } from '@/lib/authStorage'
 import {
@@ -45,6 +46,8 @@ export function ChatPage() {
   const myId = resolveStorageUserId()
   const inputRef = useRef<HTMLInputElement>(null)
   const threadRef = useRef<HTMLDivElement>(null)
+  const stickToBottomRef = useRef(true)
+  const keyboardInset = useVisualViewportBottomInset()
 
   useEffect(() => {
     if (!loadAccessToken()) {
@@ -57,7 +60,7 @@ export function ChatPage() {
   useEffect(() => {
     if (!chatRoomId || roomLoading) return
     const timer = window.setTimeout(() => {
-      inputRef.current?.focus()
+      inputRef.current?.focus({ preventScroll: true })
     }, 0)
     return () => window.clearTimeout(timer)
   }, [chatRoomId, roomLoading])
@@ -65,8 +68,49 @@ export function ChatPage() {
   useEffect(() => {
     const el = threadRef.current
     if (!el) return
+    const onScroll = () => {
+      const distance = el.scrollHeight - el.scrollTop - el.clientHeight
+      stickToBottomRef.current = distance < 120
+    }
+    el.addEventListener('scroll', onScroll, { passive: true })
+    return () => el.removeEventListener('scroll', onScroll)
+  }, [chatRoomId])
+
+  useEffect(() => {
+    const el = threadRef.current
+    if (!el || loading) return
+    if (!stickToBottomRef.current) return
     el.scrollTop = el.scrollHeight
   }, [messages, loading])
+
+  const submitMessage = useCallback(() => {
+    const value = text.trim()
+    if (!value || sending || !chatRoomId) return
+    stickToBottomRef.current = true
+    setSending(true)
+    void sendChatMessage(chatRoomId, { content: value })
+      .then((res) => {
+        appendMessage(res.message)
+        setText('')
+        setError('')
+      })
+      .catch((err) => {
+        setError(chatErrorMessage(err))
+        if (
+          err instanceof ApiError &&
+          (err.status === 401 ||
+            (err.body &&
+              typeof err.body === 'object' &&
+              ((err.body as { code?: string }).code === 'MISSING_TOKEN' ||
+                (err.body as { code?: string }).code === 'INVALID_TOKEN')))
+        ) {
+          navigate('/login', {
+            state: { from: `/roommate/chat/${chatRoomId}` },
+          })
+        }
+      })
+      .finally(() => setSending(false))
+  }, [appendMessage, chatRoomId, navigate, sending, setError, text])
 
   useEffect(() => {
     if (!chatRoomId) return
@@ -365,59 +409,38 @@ export function ChatPage() {
         ) : null}
       </div>
 
-      <form
+      <div
         className={styles.composer}
-        onSubmit={(event) => {
-          event.preventDefault()
-          const value = text.trim()
-          if (!value || sending) return
-          setSending(true)
-          void sendChatMessage(chatRoomId, { content: value })
-            .then((res) => {
-              appendMessage(res.message)
-              setText('')
-              setError('')
-            })
-            .catch((err) => {
-              setError(chatErrorMessage(err))
-              if (
-                err instanceof ApiError &&
-                (err.status === 401 ||
-                  (err.body &&
-                    typeof err.body === 'object' &&
-                    ((err.body as { code?: string }).code === 'MISSING_TOKEN' ||
-                      (err.body as { code?: string }).code === 'INVALID_TOKEN')))
-              ) {
-                navigate('/login', {
-                  state: { from: `/roommate/chat/${chatRoomId}` },
-                })
-              }
-            })
-            .finally(() => {
-              setSending(false)
-              requestAnimationFrame(() => {
-                inputRef.current?.focus()
-              })
-            })
-        }}
+        style={
+          keyboardInset > 0
+            ? { marginBottom: keyboardInset }
+            : undefined
+        }
       >
         <input
           ref={inputRef}
           value={text}
           placeholder="메시지를 입력하세요"
           onChange={(event) => setText(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key !== 'Enter' || event.nativeEvent.isComposing) return
+            event.preventDefault()
+            submitMessage()
+          }}
           autoComplete="off"
           enterKeyHint="send"
+          inputMode="text"
         />
         <button
-          type="submit"
+          type="button"
           className={styles.iconBtn}
           aria-label="보내기"
           disabled={sending}
+          onClick={submitMessage}
         >
           <Send size={18} />
         </button>
-      </form>
+      </div>
     </section>
   )
 }

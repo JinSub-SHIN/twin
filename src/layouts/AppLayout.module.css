@@ -86,6 +86,12 @@
   min-height: 0;
 }
 
+.mainChat > * {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+}
+
 .mainRoommateFlow {
   padding-bottom: calc(4rem + env(safe-area-inset-bottom));
 }
