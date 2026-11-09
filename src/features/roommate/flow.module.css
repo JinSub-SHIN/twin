@@ -368,7 +368,7 @@
   height: 100%;
   min-height: 0;
   overflow: hidden;
-  background: var(--muted);
+  background: var(--background);
   font-family: var(--font-sans), sans-serif;
 }
 
@@ -378,21 +378,9 @@
   will-change: transform;
 }
 
-.chatSwipePanel {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  width: 100%;
-  min-height: 0;
-  height: 100%;
-  background: var(--background);
-  box-shadow: 10px 0 36px rgb(20 30 24 / 14%);
-  touch-action: pan-y pinch-zoom;
-}
-
-.chatSwipePanel > .wizardTop,
-.chatSwipePanel > .listingChip,
-.chatSwipePanel > .composer {
+.chat > .wizardTop,
+.chat > .listingChip,
+.chat > .composer {
   flex-shrink: 0;
 }
 
