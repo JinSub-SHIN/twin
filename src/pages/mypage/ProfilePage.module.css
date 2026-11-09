@@ -111,6 +111,19 @@
   color: var(--muted-foreground);
 }
 
+.chatEntry {
+  display: inline-flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  height: 3rem;
+  border-radius: 1rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
 .progressBlock {
   display: flex;
   flex-direction: column;

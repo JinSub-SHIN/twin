@@ -76,6 +76,8 @@ export type StationSearchQuery = {
 
 export type RoomDetail = RoomListItem & {
   locked: boolean
+  road_address?: string | null
+  detail_address?: string | null
   rent: number | null
   maint_fee: number | null
   share_rent_type: string | null

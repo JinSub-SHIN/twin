@@ -6,10 +6,12 @@ export function BottomActionBar({
   liked,
   onLike,
   onInquire,
+  inquireBusy = false,
 }: {
   liked: boolean
   onLike: () => void
   onInquire: () => void
+  inquireBusy?: boolean
 }) {
   return (
     <div className={styles.actionBar}>
@@ -22,9 +24,15 @@ export function BottomActionBar({
         <Heart size={20} strokeWidth={2.3} fill={liked ? 'currentColor' : 'none'} />
         <span>관심</span>
       </button>
-      <button type="button" className={styles.inquireBtn} onClick={onInquire}>
+      <button
+        type="button"
+        className={styles.inquireBtn}
+        onClick={onInquire}
+        disabled={inquireBusy}
+        aria-busy={inquireBusy}
+      >
         <MessageCircle size={18} strokeWidth={2.4} aria-hidden />
-        문의하기
+        {inquireBusy ? '연결 중…' : '문의하기'}
       </button>
     </div>
   )

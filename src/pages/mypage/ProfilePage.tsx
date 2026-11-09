@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { MessageCircle } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -104,6 +105,18 @@ export function ProfilePage() {
           </p>
         </div>
       </div>
+
+      <Link to="/roommate/chats" className={cn(buttonVariants({ variant: "outline", size: "lg" }), styles.chatEntry)}>
+        <MessageCircle size={18} aria-hidden />
+        채팅 목록
+      </Link>
+
+      <Link
+        to="/roommate/applications"
+        className={cn(buttonVariants({ variant: "outline", size: "lg" }), styles.chatEntry)}
+      >
+        함께 살기 신청
+      </Link>
 
       <div className={styles.progressBlock}>
         <div className={styles.track}>

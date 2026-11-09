@@ -2,6 +2,23 @@ export { searchRoomAddress } from './addressSearch'
 export type { RoomAddressSearchResult } from './addressSearch'
 export { addRoomPhotos, addRoomPhotosErrorMessage } from './addPhotos'
 export { getRoom, getRoomCount, getRoomList } from './list'
+export { inquireRoom, inquireErrorMessage } from './inquire'
+export type { RoomInquireResponse } from './inquire'
+export { applyRoom, applyErrorMessage } from './apply'
+export type { RoomApplyBody, RoomApplyResponse } from './apply'
+export {
+  getReceivedApplications,
+  getSentApplications,
+  respondToApplication,
+  applicationErrorMessage,
+} from './applications'
+export type {
+  ApplicationStatus,
+  ReceivedApplication,
+  SentApplication,
+  RespondApplicationBody,
+  RespondApplicationResponse,
+} from './applications'
 export type { RoomCountQuery } from './list'
 export type { RoomPhotoInput, RoomPhotoRecord } from './photoTypes'
 export { registerRoom, registerErrorMessage } from './register'

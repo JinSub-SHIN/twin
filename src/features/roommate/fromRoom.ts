@@ -104,9 +104,9 @@ export function roomToRoommateListing(room: RoomDetail): RoommateListing {
     area: {
       city: room.region?.trim() || '',
       district: room.district?.trim() || '',
-      dong: '',
-      roadAddress: '',
-      detailAddress: '',
+      dong: room.dong?.trim() || '',
+      roadAddress: room.road_address?.trim() || '',
+      detailAddress: room.detail_address?.trim() || '',
       stationName: station,
       stationLines: room.subway_line ?? [],
       walkMinutes: station ? traits.walkMinutes : 0,

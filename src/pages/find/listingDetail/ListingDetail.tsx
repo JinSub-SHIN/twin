@@ -20,13 +20,14 @@ export function ListingDetail({
 }: {
   listing: ListingDetailData;
   onBack: () => void;
-  onInquire?: () => void;
+  onInquire?: () => void | Promise<void>;
   preview?: boolean;
 }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const [solid, setSolid] = useState(false);
   const [liked, setLiked] = useState(false);
   const [toast, setToast] = useState("");
+  const [inquireBusy, setInquireBusy] = useState(false);
 
   useEffect(() => {
     const scroller = rootRef.current?.closest("main");
@@ -90,9 +91,20 @@ export function ListingDetail({
         <BottomActionBar
           liked={liked}
           onLike={toggleLike}
-          onInquire={() =>
-            onInquire ? onInquire() : setToast("문의하기는 곧 열려요")
-          }
+          inquireBusy={inquireBusy}
+          onInquire={() => {
+            if (!onInquire) {
+              setToast("문의하기는 곧 열려요");
+              return;
+            }
+            if (inquireBusy) return;
+            setInquireBusy(true);
+            void Promise.resolve(onInquire())
+              .catch(() => {
+                /* 오류 메시지는 상위에서 처리 */
+              })
+              .finally(() => setInquireBusy(false));
+          }}
         />
       )}
 

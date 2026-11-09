@@ -3,6 +3,8 @@ import { AuthProvider } from "@/context/AuthContext";
 import { RoommateProvider } from "@/features/roommate/store";
 import { BrowsePage } from "@/features/roommate/BrowsePage";
 import { ChatPage } from "@/features/roommate/ChatPage";
+import { ChatRoomsPage } from "@/features/roommate/ChatRoomsPage";
+import { ApplicationsPage } from "@/features/roommate/ApplicationsPage";
 import { CreatePage } from "@/features/roommate/CreatePage";
 import { DonePage } from "@/features/roommate/DonePage";
 import { MatchPage } from "@/features/roommate/MatchPage";
@@ -37,8 +39,10 @@ function App() {
               path="/roommate/listing/:listingId/photos"
               element={<AddPhotosPage />}
             />
+            <Route path="/roommate/chats" element={<ChatRoomsPage />} />
+            <Route path="/roommate/applications" element={<ApplicationsPage />} />
             <Route path="/roommate/chat/:threadId" element={<ChatPage />} />
-            <Route path="/roommate/match/:threadId" element={<MatchPage />} />
+            <Route path="/roommate/match/:applyId" element={<MatchPage />} />
             <Route path="/explore/listing" element={<ListingPreviewPage />} />
             <Route
               path="/explore/listing/:listingId"

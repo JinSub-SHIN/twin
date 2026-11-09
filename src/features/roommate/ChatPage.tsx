@@ -1,19 +1,127 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ArrowLeft, Send } from 'lucide-react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { areaLabel, monthlyBurden } from './toDetail'
-import { useRoommate } from './store'
+import { useChatMessages } from '@/hooks/useChatMessages'
+import { resolveStorageUserId } from '@/lib/authUserId'
+import { loadAccessToken } from '@/lib/authStorage'
+import {
+  chatErrorMessage,
+  getChatRooms,
+  sendChatMessage,
+  type ChatRoomSummary,
+} from '@/service/chat'
+import {
+  applicationErrorMessage,
+  applyErrorMessage,
+  applyRoom,
+  getRoom,
+  respondToApplication,
+} from '@/service/room'
+import { ApiError } from '@/service/http'
 import styles from './flow.module.css'
+
+function roomPlace(room: ChatRoomSummary) {
+  const parts = [room.room_district, room.room_subway_stn].filter(Boolean)
+  return parts.join(' · ') || '살짝 공고'
+}
 
 export function ChatPage() {
   const navigate = useNavigate()
-  const { threadId = '' } = useParams()
-  const { threads, listings, sendMessage, requestMatch } = useRoommate()
-  const thread = threads.find((item) => item.id === threadId)
-  const listing = listings.find((item) => item.id === thread?.listingId)
+  const { threadId: chatRoomId = '' } = useParams()
+  const { messages, loading, error, appendMessage, setError } =
+    useChatMessages(chatRoomId)
+  const [room, setRoom] = useState<ChatRoomSummary | null>(null)
+  const [roomLoading, setRoomLoading] = useState(true)
+  const [coverUrl, setCoverUrl] = useState<string | null>(null)
   const [text, setText] = useState('')
+  const [sending, setSending] = useState(false)
+  const [applying, setApplying] = useState(false)
+  const [responding, setResponding] = useState<'accepted' | 'rejected' | null>(
+    null,
+  )
+  const myId = resolveStorageUserId()
 
-  if (!thread || !listing) {
+  useEffect(() => {
+    if (!loadAccessToken()) {
+      navigate('/login', {
+        state: { from: `/roommate/chat/${chatRoomId}` },
+      })
+    }
+  }, [chatRoomId, navigate])
+
+  useEffect(() => {
+    if (!chatRoomId) return
+    let active = true
+    setRoomLoading(true)
+    void getChatRooms()
+      .then((res) => {
+        if (!active) return
+        const found =
+          res.rooms.find((item) => item.chat_room_id === chatRoomId) ?? null
+        setRoom(found)
+      })
+      .catch((err) => {
+        if (!active) return
+        setError(chatErrorMessage(err))
+      })
+      .finally(() => {
+        if (active) setRoomLoading(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [chatRoomId, setError])
+
+  useEffect(() => {
+    if (!room?.room_id) return
+    let active = true
+    void getRoom(room.room_id)
+      .then((detail) => {
+        if (!active) return
+        const cover = detail.cover_photo?.trim()
+        if (cover) setCoverUrl(cover)
+      })
+      .catch(() => {
+        /* 카드 썸네일만 생략 */
+      })
+    return () => {
+      active = false
+    }
+  }, [room?.room_id])
+
+  useEffect(() => {
+    if (!chatRoomId) return
+    const syncRoom = () => {
+      void getChatRooms()
+        .then((res) => {
+          const found =
+            res.rooms.find((item) => item.chat_room_id === chatRoomId) ?? null
+          if (found) setRoom(found)
+        })
+        .catch(() => {
+          /* 폴링용 메타 동기화 — 침묵 실패 */
+        })
+    }
+    const timer = window.setInterval(syncRoom, 5000)
+    return () => window.clearInterval(timer)
+  }, [chatRoomId])
+
+  const partnerName = room?.partner_nick ?? '상대방'
+  const isApplicant = room && !room.is_owner
+  const canRequestMatch =
+    isApplicant &&
+    !room.apply_id &&
+    room.apply_status !== 'pending' &&
+    room.apply_status !== 'accepted'
+  const requestLocked =
+    isApplicant &&
+    (room.apply_status === 'pending' ||
+      room.apply_status === 'accepted' ||
+      Boolean(room.apply_id))
+  const showHostApplyActions =
+    room?.is_owner && room.apply_status === 'pending' && Boolean(room.apply_id)
+
+  if (!chatRoomId) {
     return (
       <section className={styles.page}>
         <p className={styles.sub}>대화를 찾지 못했어요.</p>
@@ -21,74 +129,223 @@ export function ChatPage() {
     )
   }
 
-  const cost = monthlyBurden(listing)
-  const cover = listing.photos.find((photo) => photo.cover) ?? listing.photos[0]
-  const canRequest = thread.status === 'CHATTING'
-
   return (
     <section className={styles.chat}>
       <header className={styles.wizardTop}>
-        <button type="button" className={styles.iconBtn} aria-label="뒤로" onClick={() => navigate(-1)}>
+        <button
+          type="button"
+          className={styles.iconBtn}
+          aria-label="뒤로"
+          onClick={() => navigate(-1)}
+        >
           <ArrowLeft size={20} />
         </button>
-        <p className={styles.stepNo}>{listing.host.nickname}</p>
+        <p className={styles.stepNo}>{partnerName}</p>
         <span />
       </header>
-      <button
-        type="button"
-        className={styles.listingChip}
-        onClick={() => navigate(`/explore/listing/${listing.id}`)}
-      >
-        {cover ? <img src={cover.url} alt="" /> : null}
-        <span>
-          <p>{areaLabel(listing)}</p>
-          <p>{cost == null ? '비용은 대화로 조율' : `한 달에 약 ${cost}만원`}</p>
-        </span>
-      </button>
+      {room ? (
+        <button
+          type="button"
+          className={styles.listingChip}
+          onClick={() => navigate(`/explore/listing/${room.room_id}`)}
+        >
+          {coverUrl ? <img src={coverUrl} alt="" /> : null}
+          <span>
+            <p>{roomPlace(room)}</p>
+            <p className={styles.sub}>
+              {room.is_owner ? '내 공고 문의' : '이 공고에 대해 문의하고 있어요'}
+            </p>
+          </span>
+        </button>
+      ) : null}
+
       <div className={styles.thread}>
-        <p className={styles.sub}>이 공고에 대해 문의하고 있어요.</p>
-        {thread.messages.map((message) => (
-          <p
-            key={message.id}
-            className={`${styles.bubble} ${message.from === 'me' ? styles.mine : styles.theirs}`}
-          >
-            {message.text}
-          </p>
-        ))}
-        {thread.status === 'MATCH_REQUESTED' ? (
-          <p className={styles.sub}>{listing.host.nickname}님에게 함께 살기를 요청했어요.</p>
+        {roomLoading || loading ? (
+          <p className={styles.sub}>메시지를 불러오는 중이에요.</p>
         ) : null}
-        {canRequest ? (
-          <button type="button" className={styles.primary} onClick={() => requestMatch(thread.id)}>
-            함께 살기로 요청
-          </button>
-        ) : null}
-        {thread.status === 'MATCH_REQUESTED' ? (
+        {error ? <p className={styles.sub}>{error}</p> : null}
+        {messages.map((message) =>
+          message.type === 'system' ? (
+            <p key={message.id} className={styles.systemLine}>
+              {message.content}
+            </p>
+          ) : (
+            <p
+              key={message.id}
+              className={`${styles.bubble} ${
+                myId && message.sender_id === myId
+                  ? styles.mine
+                  : styles.theirs
+              }`}
+            >
+              {message.content}
+            </p>
+          ),
+        )}
+
+        {canRequestMatch || requestLocked ? (
           <button
             type="button"
             className={styles.primary}
-            onClick={() => navigate(`/roommate/match/${thread.id}`)}
+            disabled={Boolean(requestLocked) || applying || !room?.room_id}
+            aria-busy={applying}
+            onClick={() => {
+              if (requestLocked || applying || !room?.room_id) return
+              setApplying(true)
+              setError('')
+              void applyRoom(room.room_id)
+                .then((res) => {
+                  setRoom((prev) =>
+                    prev
+                      ? {
+                          ...prev,
+                          apply_id: res.apply_id,
+                          apply_status: res.status,
+                          chat_room_id: res.chat_room_id,
+                        }
+                      : prev,
+                  )
+                  if (res.chat_room_id && res.chat_room_id !== chatRoomId) {
+                    navigate(`/roommate/chat/${res.chat_room_id}`, {
+                      replace: true,
+                    })
+                  }
+                })
+                .catch((err) => {
+                  setError(applyErrorMessage(err))
+                  if (
+                    err instanceof ApiError &&
+                    (err.status === 401 ||
+                      (err.body &&
+                        typeof err.body === 'object' &&
+                        ((err.body as { code?: string }).code ===
+                          'MISSING_TOKEN' ||
+                          (err.body as { code?: string }).code ===
+                            'INVALID_TOKEN')))
+                  ) {
+                    navigate('/login', {
+                      state: { from: `/roommate/chat/${chatRoomId}` },
+                    })
+                    return
+                  }
+                  if (
+                    err instanceof ApiError &&
+                    err.body &&
+                    typeof err.body === 'object' &&
+                    (err.body as { code?: string }).code === 'ALREADY_APPLIED'
+                  ) {
+                    void getChatRooms()
+                      .then((list) => {
+                        const found =
+                          list.rooms.find(
+                            (item) => item.chat_room_id === chatRoomId,
+                          ) ?? null
+                        if (found) setRoom(found)
+                      })
+                      .catch(() => {
+                        /* 상태 갱신 실패는 무시 */
+                      })
+                  }
+                })
+                .finally(() => setApplying(false))
+            }}
           >
-            요청 확인하기
+            {applying ? '요청 중…' : '함께 살기로 요청'}
           </button>
         ) : null}
+
+        {showHostApplyActions && room?.apply_id ? (
+          <div className={styles.hostApplyActions}>
+            <button
+              type="button"
+              className={styles.primary}
+              disabled={responding !== null}
+              onClick={() => {
+                setResponding('accepted')
+                setError('')
+                void respondToApplication(room.apply_id!, { status: 'accepted' })
+                  .then((res) => {
+                    setRoom((prev) =>
+                      prev
+                        ? { ...prev, apply_status: res.status }
+                        : prev,
+                    )
+                    navigate(`/roommate/match/${room.apply_id}`)
+                  })
+                  .catch((err) => setError(applicationErrorMessage(err)))
+                  .finally(() => setResponding(null))
+              }}
+            >
+              {responding === 'accepted' ? '처리 중…' : '수락'}
+            </button>
+            <button
+              type="button"
+              className={styles.ghost}
+              disabled={responding !== null}
+              onClick={() => {
+                setResponding('rejected')
+                setError('')
+                void respondToApplication(room.apply_id!, { status: 'rejected' })
+                  .then((res) => {
+                    setRoom((prev) =>
+                      prev
+                        ? { ...prev, apply_status: res.status }
+                        : prev,
+                    )
+                  })
+                  .catch((err) => setError(applicationErrorMessage(err)))
+                  .finally(() => setResponding(null))
+              }}
+            >
+              {responding === 'rejected' ? '처리 중…' : '거절'}
+            </button>
+          </div>
+        ) : null}
       </div>
+
       <form
         className={styles.composer}
         onSubmit={(event) => {
           event.preventDefault()
           const value = text.trim()
-          if (!value) return
-          sendMessage(thread.id, value)
-          setText('')
+          if (!value || sending) return
+          setSending(true)
+          void sendChatMessage(chatRoomId, { content: value })
+            .then((res) => {
+              appendMessage(res.message)
+              setText('')
+              setError('')
+            })
+            .catch((err) => {
+              setError(chatErrorMessage(err))
+              if (
+                err instanceof ApiError &&
+                (err.status === 401 ||
+                  (err.body &&
+                    typeof err.body === 'object' &&
+                    ((err.body as { code?: string }).code === 'MISSING_TOKEN' ||
+                      (err.body as { code?: string }).code === 'INVALID_TOKEN')))
+              ) {
+                navigate('/login', {
+                  state: { from: `/roommate/chat/${chatRoomId}` },
+                })
+              }
+            })
+            .finally(() => setSending(false))
         }}
       >
         <input
           value={text}
           placeholder="메시지를 입력하세요"
           onChange={(event) => setText(event.target.value)}
+          disabled={sending}
         />
-        <button type="submit" className={styles.iconBtn} aria-label="보내기">
+        <button
+          type="submit"
+          className={styles.iconBtn}
+          aria-label="보내기"
+          disabled={sending}
+        >
           <Send size={18} />
         </button>
       </form>

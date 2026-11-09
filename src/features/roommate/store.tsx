@@ -80,7 +80,7 @@ type Store = {
   toggleSave: (id: string) => void;
   recordView: (id: string) => void;
   rememberListing: (listing: RoommateListing) => void;
-  openInquiry: (listingId: string) => string;
+  openInquiry: (listingId: string, chatRoomId: string) => string;
   sendMessage: (threadId: string, text: string) => void;
   requestMatch: (threadId: string) => void;
   acceptMatch: (threadId: string) => void;
@@ -185,12 +185,23 @@ export function RoommateProvider({ children }: { children: ReactNode }) {
           rows.some((row) => row.id === listing.id) ? rows : [listing, ...rows],
         );
       },
-      openInquiry: (listingId) => {
-        const found = threads.find((thread) => thread.listingId === listingId);
-        if (found) return found.id;
-        const id = `chat-${Date.now()}`;
+      openInquiry: (listingId, chatRoomId) => {
+        const found = threads.find(
+          (thread) =>
+            thread.id === chatRoomId || thread.listingId === listingId,
+        );
+        if (found) {
+          if (found.id !== chatRoomId) {
+            setThreads((prev) =>
+              prev.map((thread) =>
+                thread.id === found.id ? { ...thread, id: chatRoomId } : thread,
+              ),
+            );
+          }
+          return chatRoomId;
+        }
         const thread: InquiryThread = {
-          id,
+          id: chatRoomId,
           listingId,
           status: "OPEN",
           messages: [],
@@ -207,7 +218,7 @@ export function RoommateProvider({ children }: { children: ReactNode }) {
               : row,
           ),
         );
-        return id;
+        return chatRoomId;
       },
       sendMessage: (threadId, text) => {
         const message: ChatMessage = {
