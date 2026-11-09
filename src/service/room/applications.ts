@@ -76,6 +76,21 @@ export function respondToApplication(
   )
 }
 
+export type CancelApplicationResponse = {
+  success: boolean
+}
+
+/** 신청자 · 대기 중 신청 취소 */
+export function cancelApplication(applyId: string) {
+  return apiRequest<CancelApplicationResponse>(
+    `/room/applications/${encodeURIComponent(applyId)}`,
+    {
+      method: 'DELETE',
+      headers: authHeaders(),
+    },
+  )
+}
+
 export function applicationErrorMessage(error: unknown): string {
   if (error && typeof error === 'object' && 'body' in error) {
     const body = (error as { body: unknown }).body
@@ -91,6 +106,8 @@ export function applicationErrorMessage(error: unknown): string {
           return '이 신청을 처리할 수 없어요.'
         case 'ALREADY_RESPONDED':
           return '이미 처리된 신청이에요.'
+        case 'APPLY_NOT_PENDING':
+          return '대기 중인 신청만 취소할 수 있어요.'
         default:
           if (typeof record.message === 'string' && record.message.trim()) {
             return record.message

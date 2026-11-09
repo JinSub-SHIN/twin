@@ -1,4 +1,4 @@
-export { getChatRooms } from './rooms'
+export { getChatRooms, clearChatRoomsCache } from './rooms'
 export { getChatMessages, sendChatMessage, chatErrorMessage } from './messages'
 export type {
   ApiChatMessage,

@@ -10,6 +10,7 @@ export {
   getReceivedApplications,
   getSentApplications,
   respondToApplication,
+  cancelApplication,
   applicationErrorMessage,
 } from './applications'
 export type {

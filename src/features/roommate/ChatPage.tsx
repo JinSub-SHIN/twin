@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ArrowLeft, Send } from 'lucide-react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useChatMessages } from '@/hooks/useChatMessages'
@@ -6,6 +6,7 @@ import { resolveStorageUserId } from '@/lib/authUserId'
 import { loadAccessToken } from '@/lib/authStorage'
 import {
   chatErrorMessage,
+  clearChatRoomsCache,
   getChatRooms,
   sendChatMessage,
   type ChatRoomSummary,
@@ -14,6 +15,7 @@ import {
   applicationErrorMessage,
   applyErrorMessage,
   applyRoom,
+  cancelApplication,
   getRoom,
   respondToApplication,
 } from '@/service/room'
@@ -36,10 +38,13 @@ export function ChatPage() {
   const [text, setText] = useState('')
   const [sending, setSending] = useState(false)
   const [applying, setApplying] = useState(false)
+  const [canceling, setCanceling] = useState(false)
   const [responding, setResponding] = useState<'accepted' | 'rejected' | null>(
     null,
   )
   const myId = resolveStorageUserId()
+  const inputRef = useRef<HTMLInputElement>(null)
+  const threadRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!loadAccessToken()) {
@@ -48,6 +53,20 @@ export function ChatPage() {
       })
     }
   }, [chatRoomId, navigate])
+
+  useEffect(() => {
+    if (!chatRoomId || roomLoading) return
+    const timer = window.setTimeout(() => {
+      inputRef.current?.focus()
+    }, 0)
+    return () => window.clearTimeout(timer)
+  }, [chatRoomId, roomLoading])
+
+  useEffect(() => {
+    const el = threadRef.current
+    if (!el) return
+    el.scrollTop = el.scrollHeight
+  }, [messages, loading])
 
   useEffect(() => {
     if (!chatRoomId) return
@@ -113,16 +132,16 @@ export function ChatPage() {
 
   const partnerName = room?.partner_nick ?? '상대방'
   const isApplicant = room && !room.is_owner
+  const applyPending =
+    isApplicant &&
+    room.apply_status === 'pending' &&
+    Boolean(room.apply_id)
   const canRequestMatch =
     isApplicant &&
-    !room.apply_id &&
-    room.apply_status !== 'pending' &&
-    room.apply_status !== 'accepted'
-  const requestLocked =
-    isApplicant &&
-    (room.apply_status === 'pending' ||
-      room.apply_status === 'accepted' ||
-      Boolean(room.apply_id))
+    !applyPending &&
+    room.apply_status !== 'accepted' &&
+    !room.apply_id
+  const applyAccepted = isApplicant && room.apply_status === 'accepted'
   const showHostApplyActions =
     room?.is_owner && room.apply_status === 'pending' && Boolean(room.apply_id)
 
@@ -164,7 +183,7 @@ export function ChatPage() {
         </button>
       ) : null}
 
-      <div className={styles.thread}>
+      <div ref={threadRef} className={styles.thread}>
         {roomLoading || loading ? (
           <p className={styles.sub}>메시지를 불러오는 중이에요.</p>
         ) : null}
@@ -188,18 +207,19 @@ export function ChatPage() {
           ),
         )}
 
-        {canRequestMatch || requestLocked ? (
+        {canRequestMatch ? (
           <button
             type="button"
             className={styles.primary}
-            disabled={Boolean(requestLocked) || applying || !room?.room_id}
+            disabled={applying || !room?.room_id}
             aria-busy={applying}
             onClick={() => {
-              if (requestLocked || applying || !room?.room_id) return
+              if (applying || !room?.room_id) return
               setApplying(true)
               setError('')
               void applyRoom(room.room_id)
                 .then((res) => {
+                  clearChatRoomsCache()
                   setRoom((prev) =>
                     prev
                       ? {
@@ -256,6 +276,43 @@ export function ChatPage() {
             }}
           >
             {applying ? '요청 중…' : '함께 살기로 요청'}
+          </button>
+        ) : null}
+
+        {applyPending && room?.apply_id ? (
+          <button
+            type="button"
+            className={styles.primaryDanger}
+            disabled={canceling}
+            aria-busy={canceling}
+            onClick={() => {
+              if (canceling || !room.apply_id) return
+              setCanceling(true)
+              setError('')
+              void cancelApplication(room.apply_id)
+                .then(() => {
+                  clearChatRoomsCache()
+                  setRoom((prev) =>
+                    prev
+                      ? {
+                          ...prev,
+                          apply_id: null,
+                          apply_status: null,
+                        }
+                      : prev,
+                  )
+                })
+                .catch((err) => setError(applicationErrorMessage(err)))
+                .finally(() => setCanceling(false))
+            }}
+          >
+            {canceling ? '취소 중…' : '함께 살기로 요청취소'}
+          </button>
+        ) : null}
+
+        {applyAccepted ? (
+          <button type="button" className={styles.primary} disabled>
+            함께 살기 매칭됨
           </button>
         ) : null}
 
@@ -336,14 +393,21 @@ export function ChatPage() {
                 })
               }
             })
-            .finally(() => setSending(false))
+            .finally(() => {
+              setSending(false)
+              requestAnimationFrame(() => {
+                inputRef.current?.focus()
+              })
+            })
         }}
       >
         <input
+          ref={inputRef}
           value={text}
           placeholder="메시지를 입력하세요"
           onChange={(event) => setText(event.target.value)}
-          disabled={sending}
+          autoComplete="off"
+          enterKeyHint="send"
         />
         <button
           type="submit"

@@ -12,9 +12,9 @@ export function AppLayout() {
   const isLogin = pathname.startsWith('/login')
   const isProfileEdit = pathname.startsWith('/profile/edit')
   const isRoommateFlow = pathname === '/roommate/new' || pathname === '/roommate/done'
+  const isChatRoom = pathname.startsWith('/roommate/chat/')
   const isRoommateImmersive =
-    pathname.startsWith('/roommate/chat/') ||
-    pathname.startsWith('/roommate/match/')
+    isChatRoom || pathname.startsWith('/roommate/match/')
   const isListingDetail = pathname.startsWith('/explore/listing/')
   const isListingPreview = pathname.startsWith('/explore/listing') && !isListingDetail
   const isAuthPage = isSignup || isLogin
@@ -51,6 +51,7 @@ export function AppLayout() {
           isProfileEdit && styles.mainProfileEdit,
           isListingPreview && styles.mainListingPreview,
           (isListingDetail || isRoommateImmersive || isRoommateFlow) && styles.mainListingDetail,
+          isChatRoom && styles.mainChat,
           isRoommateFlow && styles.mainRoommateFlow,
         )}
       >

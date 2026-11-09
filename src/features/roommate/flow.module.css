@@ -324,6 +324,21 @@
   color: var(--background);
 }
 
+.primaryDanger {
+  height: 3.1rem;
+  border: 0;
+  border-radius: 0.95rem;
+  background: var(--destructive);
+  color: var(--destructive-foreground);
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.primaryDanger:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
 .error {
   margin: 0;
   font-size: 0.8rem;
@@ -346,10 +361,18 @@
 
 .chat {
   display: flex;
+  flex: 1;
   flex-direction: column;
-  height: 100%;
-  min-height: 100%;
+  width: 100%;
+  min-height: 0;
+  overflow: hidden;
   font-family: var(--font-sans), sans-serif;
+}
+
+.chat > .wizardTop,
+.chat > .listingChip,
+.chat > .composer {
+  flex-shrink: 0;
 }
 
 .thread {
@@ -357,7 +380,12 @@
   flex: 1;
   flex-direction: column;
   gap: 0.55rem;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 0.8rem 1rem 1rem;
+  -webkit-overflow-scrolling: touch;
 }
 
 .bubble {
@@ -394,11 +422,27 @@
   word-break: keep-all;
 }
 
+.thread > .primary,
+.thread > .primaryDanger {
+  width: 100%;
+  min-height: 3.1rem;
+  border-radius: 1rem;
+}
+
 .hostApplyActions {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 0.5rem;
+  width: 100%;
   margin-top: 0.35rem;
+}
+
+.hostApplyActions .primary,
+.hostApplyActions .ghost {
+  width: 100%;
+  min-width: 0;
+  min-height: 3.1rem;
+  border-radius: 1rem;
 }
 
 .composer {

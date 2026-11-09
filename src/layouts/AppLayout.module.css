@@ -79,6 +79,13 @@
   background: var(--background);
 }
 
+.mainChat {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+
 .mainRoommateFlow {
   padding-bottom: calc(4rem + env(safe-area-inset-bottom));
 }
