@@ -1,7 +1,15 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { MessageCircle } from 'lucide-react'
-import { buttonVariants } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { loadAccessToken } from '@/lib/authStorage'
 import { cn } from '@/lib/utils'
 import {
@@ -51,6 +59,7 @@ export function ChatRoomsPage() {
   const [error, setError] = useState('')
   const [openRowId, setOpenRowId] = useState<string | null>(null)
   const [leavingId, setLeavingId] = useState<string | null>(null)
+  const [leaveConfirmId, setLeaveConfirmId] = useState<string | null>(null)
 
   useEffect(() => {
     if (!loadAccessToken()) {
@@ -102,11 +111,15 @@ export function ChatRoomsPage() {
     }
   }, [openRowId])
 
-  const handleLeave = (chatRoomId: string) => {
+  const requestLeave = (chatRoomId: string) => {
     if (leavingId) return
-    if (!window.confirm('채팅방을 나가시겠어요? 대화 내용은 목록에서 사라져요.')) {
-      return
-    }
+    setLeaveConfirmId(chatRoomId)
+    setOpenRowId(null)
+  }
+
+  const confirmLeave = () => {
+    if (!leaveConfirmId || leavingId) return
+    const chatRoomId = leaveConfirmId
     setLeavingId(chatRoomId)
     setError('')
     void leaveChatRoom(chatRoomId)
@@ -114,6 +127,7 @@ export function ChatRoomsPage() {
         clearChatRoomsCache()
         setRooms((prev) => prev.filter((room) => room.chat_room_id !== chatRoomId))
         setOpenRowId(null)
+        setLeaveConfirmId(null)
       })
       .catch((err) => setError(chatErrorMessage(err)))
       .finally(() => setLeavingId(null))
@@ -187,7 +201,7 @@ export function ChatRoomsPage() {
                         prev === room.chat_room_id ? null : prev,
                       )
                     }
-                    onLeave={() => handleLeave(room.chat_room_id)}
+                    onLeave={() => requestLeave(room.chat_room_id)}
                     leaving={leavingId === room.chat_room_id}
                     className={activityStyles.item}
                   >
@@ -253,6 +267,55 @@ export function ChatRoomsPage() {
           <span className={activityStyles.footerActionPlaceholder} aria-hidden />
         )}
       </div>
+
+      <Dialog
+        open={leaveConfirmId !== null}
+        onOpenChange={(open) => {
+          if (!open && !leavingId) setLeaveConfirmId(null)
+        }}
+      >
+        <DialogContent
+          className={listStyles.dialogContent}
+          showCloseButton={false}
+        >
+          <div className={listStyles.modalInner}>
+            <span className={listStyles.modalIconWrap} aria-hidden>
+              <span className={listStyles.modalIcon}>👋</span>
+            </span>
+            <DialogHeader className={listStyles.modalHeader}>
+              <DialogTitle className={listStyles.modalTitle}>
+                채팅방을 나가시겠어요?
+              </DialogTitle>
+              <DialogDescription className={listStyles.modalDesc}>
+                목록에서 대화가 사라져요.
+                <br />
+                상대방과의 채팅방은 그대로 남아 있을 수 있어요.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className={listStyles.dialogFooter}>
+              <Button
+                type="button"
+                size="lg"
+                className={listStyles.modalPrimary}
+                disabled={Boolean(leavingId)}
+                onClick={confirmLeave}
+              >
+                {leavingId ? '나가는 중…' : '나가기'}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="lg"
+                className={listStyles.modalSecondary}
+                disabled={Boolean(leavingId)}
+                onClick={() => setLeaveConfirmId(null)}
+              >
+                취소
+              </Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
     </section>
   )
 }
