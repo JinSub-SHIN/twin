@@ -9,6 +9,8 @@ export type ChatRoomSummary = {
   is_owner: boolean
   apply_id: string | null
   apply_status: ApplyStatus | null
+  /** 읽지 않은 메시지 수 (API 미제공 시 0) */
+  unread_count?: number | null
   created_at: string
 }
 

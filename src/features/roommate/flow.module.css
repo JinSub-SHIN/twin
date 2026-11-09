@@ -367,12 +367,25 @@
   height: 100%;
   min-height: 0;
   overflow: hidden;
+  background: var(--muted);
   font-family: var(--font-sans), sans-serif;
 }
 
-.chat > .wizardTop,
-.chat > .listingChip,
-.chat > .composer {
+.chatSwipePanel {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  width: 100%;
+  min-height: 0;
+  height: 100%;
+  background: var(--background);
+  box-shadow: 10px 0 36px rgb(20 30 24 / 14%);
+  touch-action: pan-y pinch-zoom;
+}
+
+.chatSwipePanel > .wizardTop,
+.chatSwipePanel > .listingChip,
+.chatSwipePanel > .composer {
   flex-shrink: 0;
 }
 

@@ -32,3 +32,18 @@ export function getChatRooms(options?: { force?: boolean }) {
 export function clearChatRoomsCache() {
   cached = null
 }
+
+export type LeaveChatRoomResponse = {
+  success: boolean
+}
+
+/** 채팅방 나가기 — 목록에서 숨김 */
+export function leaveChatRoom(chatRoomId: string) {
+  return apiRequest<LeaveChatRoomResponse>(
+    `/chat/rooms/${encodeURIComponent(chatRoomId)}`,
+    {
+      method: 'DELETE',
+      headers: authHeaders(),
+    },
+  )
+}

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { ArrowLeft, Send } from 'lucide-react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useChatMessages } from '@/hooks/useChatMessages'
+import { useSwipeBack } from '@/hooks/useSwipeBack'
 import { useVisualViewportBottomInset } from '@/hooks/useVisualViewportBottomInset'
 import { resolveStorageUserId } from '@/lib/authUserId'
 import { loadAccessToken } from '@/lib/authStorage'
@@ -72,6 +73,7 @@ export function ChatPage() {
   const myId = resolveStorageUserId()
   const inputRef = useRef<HTMLInputElement>(null)
   const threadRef = useRef<HTMLDivElement>(null)
+  const swipePanelRef = useRef<HTMLDivElement>(null)
   const stickToBottomRef = useRef(true)
   const userClosedKeyboardRef = useRef(false)
   const keyboardInset = useVisualViewportBottomInset()
@@ -81,6 +83,9 @@ export function ChatPage() {
     if (!input || document.activeElement === input) return
     input.focus({ preventScroll: true })
   }, [])
+
+  const goBack = useCallback(() => navigate(-1), [navigate])
+  useSwipeBack(swipePanelRef, goBack)
 
   useEffect(() => {
     if (!loadAccessToken()) {
@@ -245,6 +250,7 @@ export function ChatPage() {
 
   return (
     <section className={styles.chat}>
+      <div ref={swipePanelRef} className={styles.chatSwipePanel}>
       <header className={styles.wizardTop}>
         <button
           type="button"
@@ -501,6 +507,7 @@ export function ChatPage() {
         >
           <Send size={18} />
         </button>
+      </div>
       </div>
     </section>
   )

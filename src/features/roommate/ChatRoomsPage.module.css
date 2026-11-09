@@ -1,0 +1,77 @@
+.swipeRow {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.05rem;
+  list-style: none;
+}
+
+.swipeActions {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-end;
+  width: 4.75rem;
+}
+
+.leaveBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  width: 100%;
+  padding: 0 0.25rem;
+  border: 0;
+  border-radius: 0 1.05rem 1.05rem 0;
+  border-left: 1px solid color-mix(in oklch, var(--border) 55%, transparent);
+  background: color-mix(in oklch, var(--muted) 42%, var(--card));
+  color: var(--muted-foreground);
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.leaveGlyph {
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.leaveCaption {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  opacity: 0.88;
+}
+
+.leaveBtn:disabled {
+  opacity: 0.75;
+  cursor: wait;
+}
+
+.swipeFront {
+  position: relative;
+  z-index: 1;
+  touch-action: pan-y;
+  will-change: transform;
+}
+
+.unreadBadge {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  min-width: 1.35rem;
+  height: 1.35rem;
+  padding: 0 0.35rem;
+  margin-top: 0.4rem;
+  border-radius: 999px;
+  background: var(--highlight);
+  color: var(--background);
+  font-family: var(--font-sans), sans-serif;
+  font-size: 0.68rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  box-shadow: 0 0 0 2px var(--card);
+}

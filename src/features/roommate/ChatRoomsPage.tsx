@@ -1,12 +1,20 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ChevronRight, MessageCircle } from 'lucide-react'
+import { MessageCircle } from 'lucide-react'
 import { buttonVariants } from '@/components/ui/button'
 import { loadAccessToken } from '@/lib/authStorage'
 import { cn } from '@/lib/utils'
-import { chatErrorMessage, getChatRooms, type ChatRoomSummary } from '@/service/chat'
+import {
+  chatErrorMessage,
+  clearChatRoomsCache,
+  getChatRooms,
+  leaveChatRoom,
+  type ChatRoomSummary,
+} from '@/service/chat'
 import activityStyles from '@/pages/mypage/ActivityPage.module.css'
 import profileStyles from '@/pages/mypage/ProfilePage.module.css'
+import { ChatSwipeRow } from './ChatSwipeRow'
+import listStyles from './ChatRoomsPage.module.css'
 
 function roomPlace(room: ChatRoomSummary) {
   const parts = [room.room_district, room.room_subway_stn].filter(Boolean)
@@ -16,6 +24,17 @@ function roomPlace(room: ChatRoomSummary) {
 function partnerInitials(name: string) {
   const text = name.trim()
   return text ? text.slice(0, 2) : '살'
+}
+
+function unreadCount(room: ChatRoomSummary) {
+  const record = room as ChatRoomSummary & { unread?: number | null }
+  const raw = record.unread_count ?? record.unread ?? 0
+  if (typeof raw !== 'number' || !Number.isFinite(raw)) return 0
+  return Math.max(0, Math.floor(raw))
+}
+
+function unreadLabel(count: number) {
+  return count > 99 ? '99+' : String(count)
 }
 
 function statusChip(status: ChatRoomSummary['apply_status']) {
@@ -30,6 +49,8 @@ export function ChatRoomsPage() {
   const [rooms, setRooms] = useState<ChatRoomSummary[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [openRowId, setOpenRowId] = useState<string | null>(null)
+  const [leavingId, setLeavingId] = useState<string | null>(null)
 
   useEffect(() => {
     if (!loadAccessToken()) {
@@ -51,6 +72,52 @@ export function ChatRoomsPage() {
       active = false
     }
   }, [navigate])
+
+  useEffect(() => {
+    const refresh = () => {
+      if (document.visibilityState !== 'visible') return
+      void getChatRooms({ force: true })
+        .then((res) => setRooms(res.rooms ?? []))
+        .catch(() => {
+          /* 목록 갱신 실패는 무시 */
+        })
+    }
+    document.addEventListener('visibilitychange', refresh)
+    return () => document.removeEventListener('visibilitychange', refresh)
+  }, [])
+
+  useEffect(() => {
+    if (!openRowId) return
+    const close = (event: Event) => {
+      const target = event.target
+      if (!(target instanceof Element)) return
+      if (target.closest(`[data-chat-row="${openRowId}"]`)) return
+      setOpenRowId(null)
+    }
+    document.addEventListener('touchstart', close, { passive: true })
+    document.addEventListener('click', close)
+    return () => {
+      document.removeEventListener('touchstart', close)
+      document.removeEventListener('click', close)
+    }
+  }, [openRowId])
+
+  const handleLeave = (chatRoomId: string) => {
+    if (leavingId) return
+    if (!window.confirm('채팅방을 나가시겠어요? 대화 내용은 목록에서 사라져요.')) {
+      return
+    }
+    setLeavingId(chatRoomId)
+    setError('')
+    void leaveChatRoom(chatRoomId)
+      .then(() => {
+        clearChatRoomsCache()
+        setRooms((prev) => prev.filter((room) => room.chat_room_id !== chatRoomId))
+        setOpenRowId(null)
+      })
+      .catch((err) => setError(chatErrorMessage(err)))
+      .finally(() => setLeavingId(null))
+  }
 
   const showEmpty = !loading && !error && rooms.length === 0
 
@@ -107,11 +174,32 @@ export function ChatRoomsPage() {
             <ul className={activityStyles.items}>
               {rooms.map((room) => {
                 const chip = statusChip(room.apply_status)
+                const unread = unreadCount(room)
+                const isOpen = openRowId === room.chat_room_id
                 return (
-                  <li key={room.chat_room_id} className={activityStyles.item}>
+                  <ChatSwipeRow
+                    key={room.chat_room_id}
+                    rowId={room.chat_room_id}
+                    open={isOpen}
+                    onOpen={() => setOpenRowId(room.chat_room_id)}
+                    onClose={() =>
+                      setOpenRowId((prev) =>
+                        prev === room.chat_room_id ? null : prev,
+                      )
+                    }
+                    onLeave={() => handleLeave(room.chat_room_id)}
+                    leaving={leavingId === room.chat_room_id}
+                    className={activityStyles.item}
+                  >
                     <Link
                       to={`/roommate/chat/${room.chat_room_id}`}
                       className={activityStyles.itemLink}
+                      onClick={(event) => {
+                        if (isOpen) {
+                          event.preventDefault()
+                          setOpenRowId(null)
+                        }
+                      }}
                     >
                       <div className={activityStyles.itemHead}>
                         <div className={activityStyles.itemMain}>
@@ -119,13 +207,22 @@ export function ChatRoomsPage() {
                             {partnerInitials(room.partner_nick)}
                           </span>
                           <div className={activityStyles.itemCopy}>
-                            <p className={activityStyles.itemTitle}>{room.partner_nick}</p>
-                            <p className={activityStyles.itemMeta}>{roomPlace(room)}</p>
+                            <p className={activityStyles.itemTitle}>
+                              {room.partner_nick}
+                            </p>
+                            <p className={activityStyles.itemMeta}>
+                              {roomPlace(room)}
+                            </p>
                           </div>
                         </div>
-                        <span className={activityStyles.itemGo} aria-hidden>
-                          <ChevronRight size={16} strokeWidth={2.4} />
-                        </span>
+                        {unread > 0 ? (
+                          <span
+                            className={listStyles.unreadBadge}
+                            aria-label={`읽지 않은 메시지 ${unread}개`}
+                          >
+                            {unreadLabel(unread)}
+                          </span>
+                        ) : null}
                       </div>
                       <div className={activityStyles.chips}>
                         <span className={activityStyles.chip}>
@@ -136,7 +233,7 @@ export function ChatRoomsPage() {
                         ) : null}
                       </div>
                     </Link>
-                  </li>
+                  </ChatSwipeRow>
                 )
               })}
             </ul>
