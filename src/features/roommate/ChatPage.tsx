@@ -3,8 +3,9 @@ import { ArrowLeft, Send } from 'lucide-react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useChatMessages } from '@/hooks/useChatMessages'
 import { useSwipeBack } from '@/hooks/useSwipeBack'
-import { useVisualViewportBottomInset } from '@/hooks/useVisualViewportBottomInset'
+import { useVisualViewportLayout } from '@/hooks/useVisualViewportBottomInset'
 import { resolveStorageUserId } from '@/lib/authUserId'
+import { cn } from '@/lib/utils'
 import { loadAccessToken } from '@/lib/authStorage'
 import {
   chatErrorMessage,
@@ -76,7 +77,7 @@ export function ChatPage() {
   const swipePanelRef = useRef<HTMLDivElement>(null)
   const stickToBottomRef = useRef(true)
   const userClosedKeyboardRef = useRef(false)
-  const keyboardInset = useVisualViewportBottomInset()
+  const viewport = useVisualViewportLayout()
 
   const maintainComposerFocus = useCallback(() => {
     const input = inputRef.current
@@ -248,8 +249,22 @@ export function ChatPage() {
     )
   }
 
+  const chatFrameStyle = viewport.keyboardOpen
+    ? {
+        height: viewport.height,
+        maxHeight: viewport.height,
+        transform: `translate3d(0, ${viewport.offsetTop}px, 0)`,
+      }
+    : undefined
+
   return (
-    <section className={styles.chat}>
+    <section
+      className={cn(
+        styles.chat,
+        viewport.keyboardOpen && styles.chatViewportPinned,
+      )}
+      style={chatFrameStyle}
+    >
       <div ref={swipePanelRef} className={styles.chatSwipePanel}>
       <header className={styles.wizardTop}>
         <button
@@ -459,15 +474,7 @@ export function ChatPage() {
         ) : null}
       </div>
 
-      <div
-        className={styles.composer}
-        data-composer
-        style={
-          keyboardInset > 0
-            ? { marginBottom: keyboardInset }
-            : undefined
-        }
-      >
+      <div className={styles.composer} data-composer>
         <input
           ref={inputRef}
           value={text}
