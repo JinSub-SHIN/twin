@@ -21,7 +21,7 @@ import {
 } from '@/service/chat'
 import activityStyles from '@/pages/mypage/ActivityPage.module.css'
 import profileStyles from '@/pages/mypage/ProfilePage.module.css'
-import { ChatSwipeRow } from './ChatSwipeRow'
+import { ChatSwipeRow, CHAT_LEAVE_ICON } from './ChatSwipeRow'
 import listStyles from './ChatRoomsPage.module.css'
 
 function roomPlace(room: ChatRoomSummary) {
@@ -280,7 +280,13 @@ export function ChatRoomsPage() {
         >
           <div className={listStyles.modalInner}>
             <span className={listStyles.modalIconWrap} aria-hidden>
-              <span className={listStyles.modalIcon}>👋</span>
+              <img
+                src={CHAT_LEAVE_ICON}
+                alt=""
+                className={listStyles.modalIconImg}
+                width={42}
+                height={42}
+              />
             </span>
             <DialogHeader className={listStyles.modalHeader}>
               <DialogTitle className={listStyles.modalTitle}>

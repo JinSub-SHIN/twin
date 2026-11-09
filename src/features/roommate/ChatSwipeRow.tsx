@@ -10,6 +10,7 @@ import styles from './ChatRoomsPage.module.css'
 
 const ACTION_WIDTH = 76
 const OPEN_RATIO = 0.38
+export const CHAT_LEAVE_ICON = '/images/chatOut.png'
 
 type ChatSwipeRowProps = {
   rowId: string
@@ -139,7 +140,17 @@ export function ChatSwipeRow({
           }}
         >
           <span className={styles.leaveGlyph} aria-hidden>
-            {leaving ? '…' : '👋'}
+            {leaving ? (
+              '…'
+            ) : (
+              <img
+                src={CHAT_LEAVE_ICON}
+                alt=""
+                className={styles.leaveIcon}
+                width={34}
+                height={34}
+              />
+            )}
           </span>
           <span className={styles.leaveCaption} aria-hidden>
             나가요
