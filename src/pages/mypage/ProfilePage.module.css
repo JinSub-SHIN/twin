@@ -14,6 +14,10 @@
   );
 }
 
+.pageActivity {
+  min-height: 0;
+}
+
 .pageGuest {
   display: flex;
   flex-direction: column;

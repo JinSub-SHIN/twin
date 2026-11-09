@@ -1,0 +1,353 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.05rem 1rem 1.1rem;
+  border: 1.5px solid color-mix(in oklch, var(--primary) 12%, transparent);
+  border-radius: 1.35rem;
+  background: var(--card);
+  box-shadow: 0 6px 18px oklch(0.3 0.04 150 / 7%);
+  animation: twin-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: 0.08s;
+}
+
+.panelTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  font-family: var(--font-sans), sans-serif;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: -0.05em;
+}
+
+.panelTitle svg {
+  color: var(--highlight);
+}
+
+.panelHint {
+  margin: -0.35rem 0 0;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--muted-foreground);
+  word-break: keep-all;
+}
+
+.items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 0.9rem 0.85rem;
+  border-radius: 1.05rem;
+  background: color-mix(in oklch, var(--muted) 38%, var(--card));
+}
+
+.itemLink {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.itemHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.65rem;
+}
+
+.itemMain {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-width: 0;
+}
+
+.itemAvatar {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 999px;
+  font-family: var(--font-heading);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  background: var(--secondary);
+  color: var(--primary);
+}
+
+.itemCopy {
+  min-width: 0;
+}
+
+.itemTitle {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 0.98rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.itemMeta {
+  margin: 0.2rem 0 0;
+  font-size: 0.76rem;
+  line-height: 1.4;
+  color: var(--muted-foreground);
+}
+
+.itemGo {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.65rem;
+  height: 1.65rem;
+  margin-top: 0.15rem;
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--highlight) 14%, var(--card));
+  color: var(--foreground);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.chip {
+  padding: 0.16rem 0.48rem;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  background: var(--muted);
+  color: var(--muted-foreground);
+}
+
+.chipAccent {
+  background: color-mix(in oklch, var(--highlight) 18%, var(--card));
+  color: var(--highlight);
+}
+
+.chipPrimary {
+  background: color-mix(in oklch, var(--primary) 16%, var(--card));
+  color: var(--primary);
+}
+
+.quote {
+  margin: 0;
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.85rem;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  background: var(--card);
+  color: var(--foreground);
+  word-break: keep-all;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.textLink {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--highlight);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.55rem;
+  animation: twin-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: 0.12s;
+}
+
+.tab,
+.tabOn {
+  height: 2.85rem;
+  border: 0;
+  border-radius: 1rem;
+  font-family: var(--font-sans), sans-serif;
+  font-size: 0.9rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  cursor: pointer;
+}
+
+.tab {
+  background: var(--muted);
+  color: var(--muted-foreground);
+}
+
+.tabOn {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.muted {
+  margin: 0;
+  padding: 1.25rem 0.5rem;
+  text-align: center;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+  word-break: keep-all;
+}
+
+.mutedError {
+  color: var(--destructive);
+}
+
+.banner {
+  margin: 0;
+  padding: 0.85rem 1rem;
+  border-radius: 1rem;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  text-align: center;
+  color: var(--muted-foreground);
+  background: var(--muted);
+}
+
+.listStage {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  min-height: 6.75rem;
+}
+
+.emptyPlate {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 6.75rem;
+  margin: 0;
+  padding: 0.5rem;
+  text-align: center;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+  word-break: keep-all;
+}
+
+.footerActionSlot {
+  display: flex;
+  flex-direction: column;
+  min-height: 3rem;
+}
+
+.footerActionPlaceholder {
+  display: block;
+  width: 100%;
+  height: 3rem;
+  flex-shrink: 0;
+}
+
+.skeletonHint {
+  display: block;
+  width: 4.5rem;
+  height: 0.72rem;
+  border-radius: 0.4rem;
+}
+
+.skeletonItem {
+  pointer-events: none;
+}
+
+.skeletonAvatar {
+  flex-shrink: 0;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 999px;
+}
+
+.skeletonLine {
+  display: block;
+  height: 0.72rem;
+  border-radius: 0.4rem;
+}
+
+.skeletonLineLg {
+  width: 42%;
+  height: 0.82rem;
+}
+
+.skeletonLineMd {
+  width: 72%;
+  margin-top: 0.45rem;
+}
+
+.skeletonLineSm {
+  width: 55%;
+  margin-top: 0.45rem;
+}
+
+.skeletonChipRow {
+  display: flex;
+  gap: 0.35rem;
+  margin-top: 0.1rem;
+}
+
+.skeletonChip {
+  width: 3.1rem;
+  height: 1.15rem;
+  border-radius: 999px;
+}
+
+.skeletonBone {
+  background: linear-gradient(
+    90deg,
+    color-mix(in oklch, var(--muted) 88%, var(--card)) 0%,
+    color-mix(in oklch, var(--muted) 55%, var(--card)) 45%,
+    color-mix(in oklch, var(--muted) 88%, var(--card)) 90%
+  );
+  background-size: 220% 100%;
+  animation: skeleton-shimmer 1.15s ease-in-out infinite;
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 120% 0;
+  }
+  100% {
+    background-position: -120% 0;
+  }
+}
+
+@keyframes twin-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

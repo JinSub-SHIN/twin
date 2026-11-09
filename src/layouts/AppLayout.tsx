@@ -12,7 +12,9 @@ export function AppLayout() {
   const isLogin = pathname.startsWith('/login')
   const isProfileEdit = pathname.startsWith('/profile/edit')
   const isRoommateFlow = pathname === '/roommate/new' || pathname === '/roommate/done'
-  const isRoommateImmersive = /^\/roommate\/(chat|match)/.test(pathname)
+  const isRoommateImmersive =
+    pathname.startsWith('/roommate/chat/') ||
+    pathname.startsWith('/roommate/match/')
   const isListingDetail = pathname.startsWith('/explore/listing/')
   const isListingPreview = pathname.startsWith('/explore/listing') && !isListingDetail
   const isAuthPage = isSignup || isLogin

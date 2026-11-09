@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { MessageCircle } from "lucide-react";
+import { ClipboardList, MessageCircle } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -115,6 +115,7 @@ export function ProfilePage() {
         to="/roommate/applications"
         className={cn(buttonVariants({ variant: "outline", size: "lg" }), styles.chatEntry)}
       >
+        <ClipboardList size={18} aria-hidden />
         함께 살기 신청
       </Link>
 

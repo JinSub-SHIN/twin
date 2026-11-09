@@ -59,6 +59,7 @@ export function ChatPage() {
         const found =
           res.rooms.find((item) => item.chat_room_id === chatRoomId) ?? null
         setRoom(found)
+        setError('')
       })
       .catch((err) => {
         if (!active) return
@@ -71,6 +72,27 @@ export function ChatPage() {
       active = false
     }
   }, [chatRoomId, setError])
+
+  useEffect(() => {
+    if (!chatRoomId || room?.apply_status !== 'pending') return
+    let active = true
+    const timer = window.setInterval(() => {
+      void getChatRooms({ force: true })
+        .then((res) => {
+          if (!active) return
+          const found =
+            res.rooms.find((item) => item.chat_room_id === chatRoomId) ?? null
+          if (found) setRoom(found)
+        })
+        .catch(() => {
+          /* 신청 상태 동기화 */
+        })
+    }, 10_000)
+    return () => {
+      active = false
+      window.clearInterval(timer)
+    }
+  }, [chatRoomId, room?.apply_status])
 
   useEffect(() => {
     if (!room?.room_id) return
@@ -88,23 +110,6 @@ export function ChatPage() {
       active = false
     }
   }, [room?.room_id])
-
-  useEffect(() => {
-    if (!chatRoomId) return
-    const syncRoom = () => {
-      void getChatRooms()
-        .then((res) => {
-          const found =
-            res.rooms.find((item) => item.chat_room_id === chatRoomId) ?? null
-          if (found) setRoom(found)
-        })
-        .catch(() => {
-          /* 폴링용 메타 동기화 — 침묵 실패 */
-        })
-    }
-    const timer = window.setInterval(syncRoom, 5000)
-    return () => window.clearInterval(timer)
-  }, [chatRoomId])
 
   const partnerName = room?.partner_nick ?? '상대방'
   const isApplicant = room && !room.is_owner
@@ -234,7 +239,7 @@ export function ChatPage() {
                     typeof err.body === 'object' &&
                     (err.body as { code?: string }).code === 'ALREADY_APPLIED'
                   ) {
-                    void getChatRooms()
+                    void getChatRooms({ force: true })
                       .then((list) => {
                         const found =
                           list.rooms.find(
