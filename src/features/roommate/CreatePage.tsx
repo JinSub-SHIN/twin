@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import {
   ArrowLeft,
   ArrowRight,
@@ -2083,45 +2084,69 @@ function AddressSearchSheet({
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<JusoItem[]>([]);
   const [state, setState] = useState<"idle" | "loading" | "error">("idle");
+  const [searching, setSearching] = useState(false);
   const [picking, setPicking] = useState(false);
   const [hint, setHint] = useState("");
+  const trimmed = query.trim();
+  const [resultsPanelOpen, setResultsPanelOpen] = useState(false);
 
   useEffect(() => {
-    const q = query.trim();
-    if (q.length < 2) {
+    if (trimmed.length >= 2) setResultsPanelOpen(true);
+    if (trimmed.length === 0) setResultsPanelOpen(false);
+  }, [trimmed]);
+
+  useEffect(() => {
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, []);
+
+  useEffect(() => {
+    const q = trimmed;
+    if (q.length === 0) {
       setResults([]);
       setState("idle");
       setHint("");
+      setSearching(false);
+      return;
+    }
+    if (q.length < 2) {
+      setSearching(false);
       return;
     }
 
+    setSearching(true);
+    setHint("");
+
     let active = true;
     const timer = window.setTimeout(() => {
-      setState("loading");
-      setHint("");
       searchJuso(q)
         .then((list) => {
           if (!active) return;
           setResults(list);
           setState("idle");
+          setSearching(false);
         })
         .catch((error: unknown) => {
           if (!active) return;
           setResults([]);
           setState("error");
+          setSearching(false);
           setHint(
             error instanceof Error
               ? error.message
               : "주소를 불러오지 못했어요.",
           );
         });
-    }, 250);
+    }, 300);
 
     return () => {
       active = false;
       window.clearTimeout(timer);
     };
-  }, [query]);
+  }, [trimmed]);
 
   const pick = async (item: JusoItem) => {
     if (picking) return;
@@ -2171,10 +2196,15 @@ function AddressSearchSheet({
     }
   };
 
-  const trimmed = query.trim();
+  const showAddressSkeleton =
+    resultsPanelOpen && searching && results.length === 0 && state !== "error";
 
-  return (
-    <div className={styles.sheetBackdrop} role="presentation" onClick={onClose}>
+  const overlay = (
+    <div
+      className={styles.addressSheetOverlay}
+      role="presentation"
+      onClick={onClose}
+    >
       <div
         className={styles.addressSheet}
         role="dialog"
@@ -2203,6 +2233,13 @@ function AddressSearchSheet({
               autoFocus
               disabled={picking}
               onChange={(event) => setQuery(event.target.value)}
+              onInput={(event) => setQuery(event.currentTarget.value)}
+              onCompositionUpdate={(event) =>
+                setQuery(event.currentTarget.value)
+              }
+              onCompositionEnd={(event) =>
+                setQuery(event.currentTarget.value)
+              }
             />
             {query ? (
               <button
@@ -2218,45 +2255,65 @@ function AddressSearchSheet({
           {hint ? <p className={styles.error}>{hint}</p> : null}
         </div>
 
-        <div className={styles.addressSheetBody}>
-          {trimmed.length >= 2 ? (
-            <div className={styles.stationResults}>
-              <p>
-                {picking
-                  ? "주소 적용 중…"
-                  : state === "loading" && results.length === 0
-                    ? "찾는 중"
-                    : state === "error"
-                      ? "주소를 불러오지 못했어요"
-                      : results.length > 0
-                        ? `${results.length}건`
-                        : "맞는 주소가 없어요"}
-              </p>
-              <ul>
-                {results.map((item) => (
-                  <li key={`${item.zipNo}-${item.roadAddr}`}>
-                    <button
-                      type="button"
-                      disabled={picking}
-                      onClick={() => void pick(item)}
-                    >
-                      <span>
-                        <strong>{item.roadAddr}</strong>
-                        <em>{item.jibunAddr}</em>
-                      </span>
-                      <ChevronRight size={16} strokeWidth={2.2} />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : (
-            <p className={styles.addressSearchEmpty}>
-              {trimmed
-                ? "두 글자 이상 입력해 주세요."
-                : "검색어를 입력해 주세요."}
-            </p>
+        <div
+          className={cn(
+            styles.addressSheetBodyShell,
+            resultsPanelOpen && styles.addressSheetBodyShellOpen,
           )}
+        >
+          <div className={styles.addressSheetBody}>
+            {resultsPanelOpen ? (
+              <div className={styles.stationResults}>
+                <p>
+                  {picking
+                    ? "주소 적용 중…"
+                    : showAddressSkeleton
+                      ? "주소를 찾는 중"
+                      : state === "error"
+                        ? "주소를 불러오지 못했어요"
+                        : searching && results.length > 0
+                          ? `${results.length}건 · 갱신 중`
+                          : results.length > 0
+                            ? `${results.length}건`
+                            : "맞는 주소가 없어요"}
+                </p>
+                {showAddressSkeleton ? (
+                  <ul className={styles.addressSkeletonList} aria-hidden>
+                    {[0, 1, 2].map((index) => (
+                      <li
+                        key={`addr-skel-${index}`}
+                        className={styles.addressSkeletonRow}
+                      />
+                    ))}
+                  </ul>
+                ) : (
+                  <ul>
+                    {results.map((item) => (
+                      <li key={`${item.zipNo}-${item.roadAddr}`}>
+                        <button
+                          type="button"
+                          disabled={picking}
+                          onClick={() => void pick(item)}
+                        >
+                          <span>
+                            <strong>{item.roadAddr}</strong>
+                            <em>{item.jibunAddr}</em>
+                          </span>
+                          <ChevronRight size={16} strokeWidth={2.2} />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            ) : (
+              <p className={styles.addressSearchEmpty}>
+                {trimmed
+                  ? "두 글자 이상 입력해 주세요."
+                  : "검색어를 입력해 주세요."}
+              </p>
+            )}
+          </div>
         </div>
 
         <button
@@ -2270,6 +2327,8 @@ function AddressSearchSheet({
       </div>
     </div>
   );
+
+  return createPortal(overlay, document.body);
 }
 
 function ClearField({
