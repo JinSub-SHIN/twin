@@ -22,6 +22,11 @@ export type RoomTmpPhotoDeleteResponse = {
   success: boolean
 }
 
+export type RoomTmpPhotoUpdateResponse = {
+  success: boolean
+  photo: RoomTmpPhoto
+}
+
 export function listTmpRoomPhotos() {
   return apiRequest<RoomTmpPhotoListResponse>('/room/photos/tmp', {
     method: 'GET',
@@ -56,6 +61,23 @@ export function deleteTmpRoomPhoto(photoId: string) {
   )
 }
 
+export function patchTmpRoomPhotoCategory(
+  photoId: string,
+  category: RoomPhotoCategory | null,
+) {
+  return apiRequest<RoomTmpPhotoUpdateResponse>(
+    `/room/photos/tmp/${encodeURIComponent(photoId)}`,
+    {
+      method: 'PATCH',
+      headers: {
+        ...authHeaders(),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ category }),
+    },
+  )
+}
+
 export function tmpRoomPhotosErrorMessage(error: unknown): string {
   if (error && typeof error === 'object' && 'body' in error) {
     const body = (error as { body: unknown }).body
@@ -67,7 +89,7 @@ export function tmpRoomPhotosErrorMessage(error: unknown): string {
         case 'TOKEN_EXPIRED':
           return '로그인이 필요해요. 다시 로그인해 주세요.'
         case 'INVALID_PHOTO_URL':
-          return '업로드된 임시 사진 URL을 확인해 주세요.'
+          return '사진 URL 또는 카테고리를 확인해 주세요.'
         case 'PHOTO_LIMIT_EXCEEDED':
           return `등록 대기 중인 사진이 이미 최대 ${10}장이에요.`
         case 'INAPPROPRIATE_PHOTO':
@@ -75,6 +97,7 @@ export function tmpRoomPhotosErrorMessage(error: unknown): string {
         case 'PHOTO_ADD_FAILED':
         case 'PHOTO_DELETE_FAILED':
         case 'PHOTO_LIST_FAILED':
+        case 'PHOTO_UPDATE_FAILED':
           return '사진 처리에 실패했어요. 잠시 후 다시 시도해 주세요.'
         case 'PHOTO_NOT_FOUND':
           return '임시 사진을 찾을 수 없어요.'

@@ -4,6 +4,7 @@ export { addRoomPhotos, addRoomPhotosErrorMessage } from './addPhotos'
 export {
   deleteTmpRoomPhoto,
   listTmpRoomPhotos,
+  patchTmpRoomPhotoCategory,
   registerTmpRoomPhoto,
   tmpRoomPhotosErrorMessage,
 } from './tmpPhotos'
@@ -11,6 +12,7 @@ export type {
   RoomTmpPhoto,
   RoomTmpPhotoAddResponse,
   RoomTmpPhotoListResponse,
+  RoomTmpPhotoUpdateResponse,
 } from './tmpPhotos'
 export { getRoom, getRoomCount, getRoomList } from './list'
 export { inquireRoom, inquireErrorMessage } from './inquire'

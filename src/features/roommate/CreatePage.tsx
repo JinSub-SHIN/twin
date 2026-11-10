@@ -33,6 +33,7 @@ import { registerErrorMessage } from "@/service/room/register";
 import {
   deleteTmpRoomPhoto,
   listTmpRoomPhotos,
+  patchTmpRoomPhotoCategory,
   registerTmpRoomPhoto,
   tmpRoomPhotosErrorMessage,
 } from "@/service/room/tmpPhotos";
@@ -1339,6 +1340,47 @@ function PhotoStep({
     setLoading(false);
   };
 
+  const setPhotoCategory = async (
+    photoId: string,
+    category: PhotoCategory | null,
+  ) => {
+    const prev = photos;
+    const normalized = category
+      ? normalizePhotoCategory(category)
+      : null;
+    const next = photos.map((photo) =>
+      photo.id === photoId ? { ...photo, category: normalized } : photo,
+    );
+    onChange(next);
+    setError("");
+
+    if (!loadAccessToken()) return;
+
+    try {
+      const { photo } = await patchTmpRoomPhotoCategory(
+        photoId,
+        normalized,
+      );
+      onChange(
+        next.map((p) =>
+          p.id === photoId
+            ? {
+                ...p,
+                category: normalizePhotoCategory(photo.category),
+              }
+            : p,
+        ),
+      );
+    } catch (err) {
+      onChange(prev);
+      setError(
+        err instanceof ApiError
+          ? tmpRoomPhotosErrorMessage(err)
+          : tmpRoomPhotosErrorMessage(err),
+      );
+    }
+  };
+
   const remove = async (id: string) => {
     setError("");
     try {
@@ -1432,14 +1474,13 @@ function PhotoStep({
         <span className={styles.fieldLabel}>사진 카테고리 (선택)</span>
         <select
           value={selected.category ?? ""}
+          disabled={loading}
           onChange={(event) => {
             const value = event.target.value as PhotoCategory | "";
-            const next = photos.map((photo) =>
-              photo.id === selected.id
-                ? { ...photo, category: value || null }
-                : photo,
+            void setPhotoCategory(
+              selected.id,
+              value ? value : null,
             );
-            onChange(next);
           }}
         >
           <option value="">선택 안 함</option>
