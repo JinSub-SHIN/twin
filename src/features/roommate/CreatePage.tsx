@@ -2182,81 +2182,86 @@ function AddressSearchSheet({
         aria-labelledby="address-search-title"
         onClick={(event) => event.stopPropagation()}
       >
-        <h2 id="address-search-title" className={styles.sheetTitle}>
-          도로명 주소 검색
-        </h2>
-        <p className={styles.sheetDesc}>
-          도로명·건물명·지번으로 검색한 뒤 항목을 선택해 주세요.
-        </p>
-        <div
-          className={cn(
-            styles.stationSearch,
-            trimmed && styles.stationSearchOpen,
-          )}
-        >
-          <Search size={18} strokeWidth={2.2} />
-          <input
-            value={query}
-            placeholder="도로명, 건물명, 지번"
-            enterKeyHint="search"
-            autoFocus
-            disabled={picking}
-            onChange={(event) => setQuery(event.target.value)}
-          />
-          {query ? (
-            <button
-              type="button"
-              aria-label="검색어 지우기"
+        <div className={styles.addressSheetHead}>
+          <h2 id="address-search-title" className={styles.sheetTitle}>
+            도로명 주소 검색
+          </h2>
+          <p className={styles.sheetDesc}>
+            도로명·건물명·지번으로 검색한 뒤 항목을 선택해 주세요.
+          </p>
+          <div
+            className={cn(
+              styles.stationSearch,
+              trimmed && styles.stationSearchOpen,
+            )}
+          >
+            <Search size={18} strokeWidth={2.2} />
+            <input
+              value={query}
+              placeholder="도로명, 건물명, 지번"
+              enterKeyHint="search"
+              autoFocus
               disabled={picking}
-              onClick={() => setQuery("")}
-            >
-              <X size={14} strokeWidth={2.4} />
-            </button>
-          ) : null}
+              onChange={(event) => setQuery(event.target.value)}
+            />
+            {query ? (
+              <button
+                type="button"
+                aria-label="검색어 지우기"
+                disabled={picking}
+                onClick={() => setQuery("")}
+              >
+                <X size={14} strokeWidth={2.4} />
+              </button>
+            ) : null}
+          </div>
+          {hint ? <p className={styles.error}>{hint}</p> : null}
         </div>
 
-        {hint ? <p className={styles.error}>{hint}</p> : null}
-
-        {trimmed.length >= 2 ? (
-          <div className={styles.stationResults}>
-            <p>
-              {picking
-                ? "주소 적용 중…"
-                : state === "loading" && results.length === 0
-                  ? "찾는 중"
-                  : state === "error"
-                    ? "주소를 불러오지 못했어요"
-                    : results.length > 0
-                      ? `${results.length}건`
-                      : "맞는 주소가 없어요"}
+        <div className={styles.addressSheetBody}>
+          {trimmed.length >= 2 ? (
+            <div className={styles.stationResults}>
+              <p>
+                {picking
+                  ? "주소 적용 중…"
+                  : state === "loading" && results.length === 0
+                    ? "찾는 중"
+                    : state === "error"
+                      ? "주소를 불러오지 못했어요"
+                      : results.length > 0
+                        ? `${results.length}건`
+                        : "맞는 주소가 없어요"}
+              </p>
+              <ul>
+                {results.map((item) => (
+                  <li key={`${item.zipNo}-${item.roadAddr}`}>
+                    <button
+                      type="button"
+                      disabled={picking}
+                      onClick={() => void pick(item)}
+                    >
+                      <span>
+                        <strong>{item.roadAddr}</strong>
+                        <em>{item.jibunAddr}</em>
+                      </span>
+                      <ChevronRight size={16} strokeWidth={2.2} />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : (
+            <p className={styles.addressSearchEmpty}>
+              {trimmed
+                ? "두 글자 이상 입력해 주세요."
+                : "검색어를 입력해 주세요."}
             </p>
-            <ul>
-              {results.map((item) => (
-                <li key={`${item.zipNo}-${item.roadAddr}`}>
-                  <button
-                    type="button"
-                    disabled={picking}
-                    onClick={() => void pick(item)}
-                  >
-                    <span>
-                      <strong>{item.roadAddr}</strong>
-                      <em>{item.jibunAddr}</em>
-                    </span>
-                    <ChevronRight size={16} strokeWidth={2.2} />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ) : (
-          <p className={styles.addressSearchEmpty}>
-            {trimmed ? "두 글자 이상 입력해 주세요." : "검색어를 입력해 주세요."}
-          </p>
-        )}
+          )}
+        </div>
 
         <button
           type="button"
-          className={cn(styles.ghost, styles.full)}
+          className={cn(styles.ghost, styles.full, styles.addressSheetFoot)}
           disabled={picking}
           onClick={onClose}
         >
