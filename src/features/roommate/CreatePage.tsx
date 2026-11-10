@@ -27,8 +27,15 @@ import { resolveStorageUserId } from "@/lib/authUserId";
 import { loadAccessToken } from "@/lib/authStorage";
 import { submitListingDraft } from "@/lib/roomRegister/submitListing";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
-import { uploadRoomPhotoFromUrl } from "@/lib/supabase/roomPhotos";
+import { uploadTmpRoomPhotoFromUrl } from "@/lib/supabase/roomPhotos";
+import { normalizePhotoCategory } from "@/lib/roomRegister/normalizePhotoCategory";
 import { registerErrorMessage } from "@/service/room/register";
+import {
+  deleteTmpRoomPhoto,
+  listTmpRoomPhotos,
+  registerTmpRoomPhoto,
+  tmpRoomPhotosErrorMessage,
+} from "@/service/room/tmpPhotos";
 import { ApiError } from "@/service/http";
 import { useAuth } from "@/context/AuthContext";
 import { SubwayLineBadges } from "@/components/ui/subway";
@@ -1188,11 +1195,68 @@ function PhotoStep({
   photos: ListingPhoto[];
   onChange: (photos: ListingPhoto[]) => void;
 }) {
+  const initialPhotosRef = useRef(photos);
   const [selectedId, setSelectedId] = useState(
     () => photos.find((photo) => photo.cover)?.id ?? photos[0]?.id ?? "",
   );
   const [loading, setLoading] = useState(false);
+  const [hydrating, setHydrating] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (!loadAccessToken() || !isSupabaseConfigured()) return;
+      setHydrating(true);
+      try {
+        const { photos: remote } = await listTmpRoomPhotos();
+        if (cancelled || remote.length === 0) return;
+
+        const localByUrl = new Map(
+          initialPhotosRef.current.map((photo) => [photo.url, photo]),
+        );
+        const prevCover =
+          initialPhotosRef.current.find((photo) => photo.cover)?.id ?? "";
+
+        const next: ListingPhoto[] = remote.map((photo) => {
+          const local = localByUrl.get(photo.url);
+          const category =
+            local?.category ??
+            normalizePhotoCategory(photo.category) ??
+            null;
+          return {
+            id: photo.id,
+            url: photo.url,
+            label: "집 사진",
+            category,
+            cover: false,
+          };
+        });
+
+        const coverId =
+          next.some((photo) => photo.id === prevCover) && prevCover
+            ? prevCover
+            : (next[0]?.id ?? "");
+        onChange(
+          next.map((photo, index) => ({
+            ...photo,
+            cover:
+              photo.id === coverId || (coverId === "" && index === 0),
+          })),
+        );
+        if (coverId) setSelectedId(coverId);
+        else if (next[0]) setSelectedId(next[0].id);
+      } catch {
+        /* draft·로컬 상태만으로 진행 */
+      } finally {
+        if (!cancelled) setHydrating(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 진입 시 임시 사진 1회 동기화
+  }, []);
 
   const selectedIndex = Math.max(
     0,
@@ -1214,36 +1278,49 @@ function PhotoStep({
       return;
     }
 
-    const stamp = Date.now();
     const added: ListingPhoto[] = [];
     let failed = 0;
+    let lastError = "";
 
     for (let index = 0; index < picked.length; index += 1) {
       const file = picked[index];
       try {
         const localUrl = await readPhoto(file);
-        let url = localUrl;
-        if (isSupabaseConfigured()) {
-          const userId = resolveStorageUserId();
-          if (!userId) throw new Error("login");
-          url = await uploadRoomPhotoFromUrl(userId, localUrl);
+        if (!isSupabaseConfigured()) {
+          throw new Error("supabase");
         }
+        const userId = resolveStorageUserId();
+        if (!userId) throw new Error("login");
+        const url = await uploadTmpRoomPhotoFromUrl(userId, localUrl);
+        const { photo } = await registerTmpRoomPhoto({ url, category: null });
         added.push({
-          id: `photo-${stamp}-${index}`,
-          url,
+          id: photo.id,
+          url: photo.url,
           label: "집 사진",
+          category: normalizePhotoCategory(photo.category),
           cover: false,
         });
-      } catch {
+      } catch (err) {
         failed += 1;
+        lastError =
+          err instanceof ApiError
+            ? tmpRoomPhotosErrorMessage(err)
+            : err instanceof Error && err.message === "login"
+              ? "사진을 서버에 올리려면 로그인이 필요해요."
+              : err instanceof Error && err.message === "supabase"
+                ? "Supabase(.env) 미설정 — 사진 업로드를 할 수 없어요."
+                : err instanceof Error
+                  ? err.message
+                  : tmpRoomPhotosErrorMessage(err);
       }
     }
 
     if (added.length === 0) {
       setError(
-        failed > 0 && isSupabaseConfigured()
-          ? "사진 업로드에 실패했어요. 로그인·Supabase 설정을 확인해 주세요."
-          : "사진을 불러오지 못했어요. 다른 사진으로 다시 시도해 주세요.",
+        lastError ||
+          (failed > 0
+            ? "사진 업로드에 실패했어요. 로그인·Supabase 설정을 확인해 주세요."
+            : "사진을 불러오지 못했어요. 다른 사진으로 다시 시도해 주세요."),
       );
       setLoading(false);
       return;
@@ -1259,14 +1336,21 @@ function PhotoStep({
       setError(`사진 ${failed}장을 올리지 못했어요. 나머지는 저장됐어요.`);
     else if (files.length > room)
       setError(`사진은 최대 ${MAX_PHOTOS}장까지 올릴 수 있어요.`);
-    else if (!isSupabaseConfigured())
-      setError(
-        "Supabase(.env) 미설정 — 미리보기만 가능하고, 등록 시 업로드가 필요해요.",
-      );
     setLoading(false);
   };
 
-  const remove = (id: string) => {
+  const remove = async (id: string) => {
+    setError("");
+    try {
+      await deleteTmpRoomPhoto(id);
+    } catch (err) {
+      setError(
+        err instanceof ApiError
+          ? tmpRoomPhotosErrorMessage(err)
+          : tmpRoomPhotosErrorMessage(err),
+      );
+      return;
+    }
     const next = photos.filter((photo) => photo.id !== id);
     if (next.length > 0 && !next.some((photo) => photo.cover)) {
       next[0] = { ...next[0], cover: true };
@@ -1289,7 +1373,7 @@ function PhotoStep({
       accept="image/*"
       multiple
       hidden
-      disabled={loading || full}
+      disabled={loading || hydrating || full}
       onChange={(event) => {
         void add(event.target.files);
         event.target.value = "";
@@ -1303,10 +1387,10 @@ function PhotoStep({
         <label className={cn(styles.photoEmpty, loading && styles.photoBusy)}>
           <ImagePlus size={30} strokeWidth={1.8} />
           <strong>
-            {loading
-              ? isSupabaseConfigured()
-                ? "Supabase에 업로드 중…"
-                : "사진을 불러오는 중…"
+            {loading || hydrating
+              ? hydrating
+                ? "이전에 올린 사진 불러오는 중…"
+                : "사진 업로드 중…"
               : "사진 추가하기"}
           </strong>
           <span>침실, 거실, 주방처럼 생활이 보이는 사진이 좋아요.</span>
@@ -1390,7 +1474,9 @@ function PhotoStep({
         <button
           type="button"
           className={styles.photoDelete}
-          onClick={() => remove(selected.id)}
+          onClick={() => {
+            void remove(selected.id);
+          }}
         >
           <Trash2 size={15} strokeWidth={2.2} />
           삭제

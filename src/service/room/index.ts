@@ -1,6 +1,17 @@
 export { searchRoomAddress } from './addressSearch'
 export type { RoomAddressSearchResult } from './addressSearch'
 export { addRoomPhotos, addRoomPhotosErrorMessage } from './addPhotos'
+export {
+  deleteTmpRoomPhoto,
+  listTmpRoomPhotos,
+  registerTmpRoomPhoto,
+  tmpRoomPhotosErrorMessage,
+} from './tmpPhotos'
+export type {
+  RoomTmpPhoto,
+  RoomTmpPhotoAddResponse,
+  RoomTmpPhotoListResponse,
+} from './tmpPhotos'
 export { getRoom, getRoomCount, getRoomList } from './list'
 export { inquireRoom, inquireErrorMessage } from './inquire'
 export type { RoomInquireResponse } from './inquire'

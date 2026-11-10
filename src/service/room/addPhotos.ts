@@ -33,6 +33,10 @@ export function addRoomPhotosErrorMessage(error: unknown): string {
           return '추가할 사진을 선택해 주세요.'
         case 'INVALID_PHOTO_URL':
           return '업로드된 room-photos URL과 카테고리를 확인해 주세요.'
+        case 'PHOTO_LIMIT_EXCEEDED':
+          return '사진은 공고당 최대 10장까지예요.'
+        case 'INAPPROPRIATE_PHOTO':
+          return '부적절한 사진은 등록할 수 없습니다. 다른 사진을 선택해 주세요.'
         case 'PHOTO_ADD_FAILED':
           return '사진 추가에 실패했어요. 잠시 후 다시 시도해 주세요.'
         default:
